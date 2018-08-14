@@ -1,0 +1,21 @@
+
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo" actionBarHidden="true" class="permobil-page">
+
+    <FlexboxLayout flexDirection="column" justifyContent="space-between">
+        <FlexboxLayout flexDirection="row" justifyContent="center">
+            <Image src="~/assets/images/permobil.png" margin="10" stretch="none" />
+        </FlexboxLayout>
+        <FlexboxLayout flexDirection="column">
+            <FlexboxLayout flexDirection="row" justifyContent="center">
+                <Label text="This" class="label title"></Label>
+            </FlexboxLayout>
+            <FlexboxLayout flexDirection="row" justifyContent="center">
+                <Button text="IS AWESOME" tap="{{ onTap }}" class="btn" />
+            </FlexboxLayout>
+        </FlexboxLayout>
+        <FlexboxLayout flexDirection="row" justifyContent="center">
+            <!-- <Label text="Prev" class="label" textWrap="true" /> -->
+        </FlexboxLayout>
+    </FlexboxLayout>
+
+</Page>
