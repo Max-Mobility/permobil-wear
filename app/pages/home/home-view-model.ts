@@ -8,10 +8,15 @@ import {
   Central,
   ConnectionState
 } from 'nativescript-bluetooth';
-
+import { Prop } from '../../obs-prop';
+import * as application from 'tns-core-modules/application';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 
 export class HelloWorldModel extends Observable {
+  @Prop()
+  public heartRate: string;
+  @Prop()
+  public accelerometer: string;
   private _data;
   private _bluetooth = new Bluetooth();
 
@@ -42,6 +47,8 @@ export class HelloWorldModel extends Observable {
   public startAccelerometer() {
     accelerometer.startAccelerometerUpdates(
       data => {
+        this.accelerometer = `X: ${data.x} - Y: ${data.y}`;
+
         console.log(
           `X: ${data.x} - Y: ${data.y} - Sensor Type: ${
             data.sensortype
@@ -69,5 +76,57 @@ export class HelloWorldModel extends Observable {
     //     okButtonText: 'Okay'
     //   });
     // }
+  }
+
+  public getHeartRateData() {
+    try {
+      console.log('getHeartRateData');
+      const activity =
+        application.android.startActivity ||
+        application.android.foregroundActivity;
+      if (!activity) {
+        alert({
+          message: 'Could not get the current Activity.',
+          okButtonText: 'Okay'
+        });
+      }
+      const mSensorManager = activity.getSystemService(
+        android.content.Context.SENSOR_SERVICE
+      );
+
+      if (!mSensorManager) {
+        alert({
+          message: 'Could not initialize SensorManager.',
+          okButtonText: 'Okay'
+        });
+      }
+
+      const mHeartRateSensor = mSensorManager.getDefaultSensor(
+        (android.hardware.Sensor as any).TYPE_HEART_RATE
+      );
+      console.log('mHeartRateSensor', mHeartRateSensor);
+
+      const sensorListener = new android.hardware.SensorEventListener({
+        onAccuracyChanged: (sensor, accuracy) => {},
+        onSensorChanged: event => {
+          console.log(`Sensor: ${event.sensor}`);
+          console.log(`Timestamp: ${event.timestamp}`);
+          console.log(`Values: ${event.values}`);
+          this.heartRate = event.values[0].toString();
+        }
+      });
+
+      console.log('sensorListener', sensorListener);
+
+      mSensorManager.registerListener(
+        sensorListener,
+        mHeartRateSensor,
+        android.hardware.SensorManager.SENSOR_DELAY_NORMAL
+      );
+
+      console.log('Registered heart rate sensor listener');
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
