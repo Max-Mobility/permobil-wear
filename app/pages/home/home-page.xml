@@ -1,22 +1,26 @@
 
-<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo" actionBarHidden="true" class="permobil-page">
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" 
+    xmlns:Lottie="nativescript-lottie" navigatingTo="navigatingTo" actionBarHidden="true" class="permobil-page">
 
-    <FlexboxLayout flexDirection="column" justifyContent="space-between">
-        <FlexboxLayout flexDirection="row" justifyContent="center">
-            <Image src="~/assets/images/permobil.png" margin="10" stretch="none" />
-        </FlexboxLayout>
-        <FlexboxLayout flexDirection="column">
-            <FlexboxLayout flexDirection="row" justifyContent="center">
-                <Label text="This is working." class="label title"></Label>
+    <ScrollView>
+        <FlexboxLayout flexDirection="column" justifyContent="space-between">
+            <FlexboxLayout flexDirection="row" justifyContent="center" marginTop="15" width="60%">
+                <Image src="~/assets/images/permobil-logo.png" stretch="aspectFit" />
             </FlexboxLayout>
-            <FlexboxLayout flexDirection="row" justifyContent="center">
-                <Button text="Accelerometer" tap="{{ startAccelerometer }}" class="btn" />
-                <Button text="Alert" tap="{{ onAlertTap }}" class="btn" />
+            <FlexboxLayout flexDirection="column" justifyContent="center">
+                <StackLayout>
+                    <!-- <Lottie:LottieView src="pulse.json" height="100" width="100" loop="true" autoPlay="true" loaded="yourLoadedEvent" /> -->
+                    <Button text="{{ accelerometerBtnText }}" tap="{{ toggleAccelerometer }}" class="btn" />
+                    <Label text="{{ accelerometerData }}" class="label font-small" visibility="{{ accelerometerData ? 'visible' : 'collapsed' }}" horizontalAlignment="center" textAlign="center" textWrap="true" />
+                </StackLayout>
+                <FlexboxLayout flexDirection="row" justifyContent="center">
+                    <Button text="Heart Rate" tap="{{ openHeartRateModal }}" class="btn" />
+                </FlexboxLayout>
+                <FlexboxLayout flexDirection="row" justifyContent="center">
+                    <Button text="Alert" tap="{{ onAlertTap }}" class="btn" />
+                </FlexboxLayout>
             </FlexboxLayout>
         </FlexboxLayout>
-        <FlexboxLayout flexDirection="row" justifyContent="center">
-            <!-- <Label text="Prev" class="label" textWrap="true" /> -->
-        </FlexboxLayout>
-    </FlexboxLayout>
+    </ScrollView>
 
 </Page>
