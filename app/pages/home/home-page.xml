@@ -7,10 +7,11 @@
         </FlexboxLayout>
         <FlexboxLayout flexDirection="column">
             <FlexboxLayout flexDirection="row" justifyContent="center">
-                <Label text="This" class="label title"></Label>
+                <Label text="This is working." class="label title"></Label>
             </FlexboxLayout>
             <FlexboxLayout flexDirection="row" justifyContent="center">
-                <Button text="IS AWESOME" tap="{{ onTap }}" class="btn" />
+                <Button text="Accelerometer" tap="{{ startAccelerometer }}" class="btn" />
+                <Button text="Alert" tap="{{ onAlertTap }}" class="btn" />
             </FlexboxLayout>
         </FlexboxLayout>
         <FlexboxLayout flexDirection="row" justifyContent="center">
