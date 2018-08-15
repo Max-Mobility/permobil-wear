@@ -1,132 +1,121 @@
 import { Observable } from 'tns-core-modules/data/observable';
-import * as HTTP from 'tns-core-modules/http';
 import { alert } from 'tns-core-modules/ui/dialogs';
 import { device, screen } from 'tns-core-modules/platform';
-import {
-  Bluetooth,
-  BondState,
-  Central,
-  ConnectionState
-} from 'nativescript-bluetooth';
+import { Bluetooth } from 'nativescript-bluetooth';
 import { Prop } from '../../obs-prop';
 import * as application from 'tns-core-modules/application';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
+import * as Toast from 'nativescript-toast';
+import { topmost, Page } from 'tns-core-modules/ui/frame';
 
 export class HelloWorldModel extends Observable {
+  /**
+   * The heart rate data to render.
+   */
   @Prop()
-  public heartRate: string;
+  heartRate: string;
+
+  /**
+   * The label text to display accelerometer data.
+   */
   @Prop()
-  public accelerometer: string;
-  private _data;
+  accelerometerData: string;
+
+  /**
+   * Button text for starting/stopping accelerometer.
+   */
+  @Prop()
+  accelerometerBtnText = 'Accelerometer';
+
+  /**
+   * Boolean to track if accelerometer is already registered listener events.
+   */
+  private _isListeningAccelerometer = false;
+
+  private _page: Page;
+
   private _bluetooth = new Bluetooth();
 
-  constructor() {
+  constructor(page: Page) {
     super();
-    console.log('Device Type', device.deviceType);
-    console.log(`Manufacturer: ${device.manufacturer}`);
-    console.log(device.model);
-    console.log(device.os);
-    console.log(device.osVersion);
-    console.log(device.sdkVersion);
-    console.log(device.uuid);
+    this._page = page;
     console.log(
-      `Screen scale: ${screen.mainScreen.scale}, width: ${
-        screen.mainScreen.widthDIPs
-      }`
+      { device },
+      'Device Info: ',
+      device.manufacturer,
+      device.model,
+      device.os,
+      device.osVersion,
+      device.sdkVersion,
+      device.region,
+      device.language,
+      device.uuid
     );
-    this._bluetooth
-      .isBluetoothEnabled()
-      .then(result => {
-        console.log(result);
-      })
-      .catch(err => {
-        console.log('error', err);
-      });
+
+    this._bluetooth.isBluetoothEnabled().then(
+      result => {
+        console.log('Bluetooth enabled: ' + result);
+      },
+      err => {
+        console.log({ err });
+      }
+    );
   }
 
-  public startAccelerometer() {
-    accelerometer.startAccelerometerUpdates(
-      data => {
-        this.accelerometer = `X: ${data.x} - Y: ${data.y}`;
+  public toggleAccelerometer() {
+    console.log({ _isListeningAccelerometer: this._isListeningAccelerometer });
 
-        console.log(
-          `X: ${data.x} - Y: ${data.y} - Sensor Type: ${
-            data.sensortype
-          } - Time in milliseconds: ${data.timemilli}`
-        );
+    // if already listening stop and reset isListening boolean
+    if (this._isListeningAccelerometer === true) {
+      accelerometer.stopAccelerometerUpdates();
+      this._isListeningAccelerometer = false;
+      this.accelerometerBtnText = 'Accelerometer';
+      this.accelerometerData = '';
+      return;
+    }
+
+    accelerometer.startAccelerometerUpdates(
+      accelerometerdata => {
+        // only showing linear acceleration data for now
+        if (
+          accelerometerdata.sensortype ===
+          android.hardware.Sensor.TYPE_LINEAR_ACCELERATION
+        ) {
+          console.log({ accelerometerdata });
+          const x = this._trimAccelerometerData(accelerometerdata.x);
+          const y = this._trimAccelerometerData(accelerometerdata.y);
+          const z = this._trimAccelerometerData(accelerometerdata.z);
+          this.accelerometerData = `X: ${x} - Y: ${y} * Z: ${z}`;
+        }
       },
       { sensorDelay: 'normal' }
     );
+
+    // set true so next tap doesn't try to register the listeners again
+    this._isListeningAccelerometer = true;
+    this.accelerometerBtnText = 'Stop Accelerometer';
   }
 
   public async onAlertTap() {
     alert({
-      message: 'Tap Away Kids',
+      message: 'Alert can be swiped or closed with button.',
       okButtonText: 'Okay'
+    }).then(() => {
+      Toast.makeText('Alert closed').show();
     });
-    // try {
-    //   console.log('going to fetch remote data...');
-    //   const result = await HTTP.getJSON(
-    //     'https://storage.googleapis.com/59b74a76eff148919d9f10a7b3d5cfbb/14fa7599-5a7c-4a82-937c-9b1e53b3a0e7/en.json'
-    //   );
-    //   // console.log(result);
-    // } catch (error) {
-    //   alert({
-    //     message: `Error getting json data ${error}`,
-    //     okButtonText: 'Okay'
-    //   });
-    // }
   }
 
-  public getHeartRateData() {
+  public openHeartRateModal(args) {
     try {
-      console.log('getHeartRateData');
-      const activity =
-        application.android.startActivity ||
-        application.android.foregroundActivity;
-      if (!activity) {
-        alert({
-          message: 'Could not get the current Activity.',
-          okButtonText: 'Okay'
-        });
-      }
-      const mSensorManager = activity.getSystemService(
-        android.content.Context.SENSOR_SERVICE
-      );
-
-      if (!mSensorManager) {
-        alert({
-          message: 'Could not initialize SensorManager.',
-          okButtonText: 'Okay'
-        });
-      }
-
-      const mHeartRateSensor = mSensorManager.getDefaultSensor(
-        (android.hardware.Sensor as any).TYPE_HEART_RATE
-      );
-      console.log('mHeartRateSensor', mHeartRateSensor);
-
-      const sensorListener = new android.hardware.SensorEventListener({
-        onAccuracyChanged: (sensor, accuracy) => {},
-        onSensorChanged: event => {
-          console.log(`Sensor: ${event.sensor}`);
-          console.log(`Timestamp: ${event.timestamp}`);
-          console.log(`Values: ${event.values}`);
-          this.heartRate = event.values[0].toString();
-        }
-      });
-
-      console.log('sensorListener', sensorListener);
-
-      mSensorManager.registerListener(
-        sensorListener,
-        mHeartRateSensor,
-        android.hardware.SensorManager.SENSOR_DELAY_NORMAL
-      );
-
-      console.log('Registered heart rate sensor listener');
+      const modalPage = '../heart-rate/heart-rate';
+      args.object.page.showModal(modalPage, null, () => {}, true, true);
     } catch (error) {
       console.log(error);
     }
+  }
+
+  private _trimAccelerometerData(value: number) {
+    const x = value.toString();
+    return x.substring(0, 8);
   }
 }
