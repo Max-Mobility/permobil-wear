@@ -9,6 +9,8 @@ import {
   ConnectionState
 } from 'nativescript-bluetooth';
 
+import * as accelerometer from 'nativescript-accelerometer-advanced';
+
 export class HelloWorldModel extends Observable {
   private _data;
   private _bluetooth = new Bluetooth();
@@ -37,7 +39,20 @@ export class HelloWorldModel extends Observable {
       });
   }
 
-  public async onTap() {
+  public startAccelerometer() {
+    accelerometer.startAccelerometerUpdates(
+      data => {
+        console.log(
+          `X: ${data.x} - Y: ${data.y} - Sensor Type: ${
+            data.sensortype
+          } - Time in milliseconds: ${data.timemilli}`
+        );
+      },
+      { sensorDelay: 'normal' }
+    );
+  }
+
+  public async onAlertTap() {
     alert({
       message: 'Tap Away Kids',
       okButtonText: 'Okay'

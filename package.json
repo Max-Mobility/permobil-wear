@@ -21,6 +21,7 @@
     "setup": "npm i && npm run build-bluetooth"
   },
   "dependencies": {
+    "nativescript-accelerometer-advanced": "^2.0.8",
     "nativescript-bluetooth": "file:./nativescript-bluetooth/nativescript-bluetooth-1.3.0.tgz",
     "nativescript-carousel": "^4.0.2",
     "nativescript-gif": "^4.0.1",
