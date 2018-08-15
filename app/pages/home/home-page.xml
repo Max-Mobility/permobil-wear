@@ -9,12 +9,15 @@
             </FlexboxLayout>
             <FlexboxLayout flexDirection="column" justifyContent="center">
                 <StackLayout>
-                    <!-- <Lottie:LottieView src="pulse.json" height="100" width="100" loop="true" autoPlay="true" loaded="yourLoadedEvent" /> -->
                     <Button text="{{ accelerometerBtnText }}" tap="{{ toggleAccelerometer }}" class="btn" />
                     <Label text="{{ accelerometerData }}" class="label font-small" visibility="{{ accelerometerData ? 'visible' : 'collapsed' }}" horizontalAlignment="center" textAlign="center" textWrap="true" />
                 </StackLayout>
-                <FlexboxLayout flexDirection="row" justifyContent="center">
-                    <Button text="Heart Rate" tap="{{ openHeartRateModal }}" class="btn" />
+                <FlexboxLayout flexDirection="column" justifyContent="center">
+                    <Button text="Heart Rate" tap="{{ startHeartRate }}" class="btn" />
+                    <GridLayout height="85" rows="auto" columns="*" visibility="{{ isGettingHeartRate ? 'visible' : 'collapsed' }}">
+                        <Lottie:LottieView row="0" col="0" horizontalAlignment="center" verticalAlignment="middle" src="pulse.json" height="100" width="100" loop="true" autoPlay="true" loaded="yourLoadedEvent" />
+                        <Label row="0" col="0" text="{{ heartRate }}" class="heart-rate" textWrap="true" />
+                    </GridLayout>
                 </FlexboxLayout>
                 <FlexboxLayout flexDirection="row" justifyContent="center">
                     <Button text="Alert" tap="{{ onAlertTap }}" class="btn" />

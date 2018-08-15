@@ -28,9 +28,17 @@ export class HelloWorldModel extends Observable {
   accelerometerBtnText = 'Accelerometer';
 
   /**
+   * Boolean to track if heart rate is being monitored.
+   */
+  @Prop()
+  private isGettingHeartRate = false;
+
+  /**
    * Boolean to track if accelerometer is already registered listener events.
    */
   private _isListeningAccelerometer = false;
+
+  private _heartrateListener;
 
   private _page: Page;
 
@@ -62,9 +70,7 @@ export class HelloWorldModel extends Observable {
     );
   }
 
-  public toggleAccelerometer() {
-    console.log({ _isListeningAccelerometer: this._isListeningAccelerometer });
-
+  toggleAccelerometer() {
     // if already listening stop and reset isListening boolean
     if (this._isListeningAccelerometer === true) {
       accelerometer.stopAccelerometerUpdates();
@@ -96,7 +102,7 @@ export class HelloWorldModel extends Observable {
     this.accelerometerBtnText = 'Stop Accelerometer';
   }
 
-  public async onAlertTap() {
+  async onAlertTap() {
     alert({
       message: 'Alert can be swiped or closed with button.',
       okButtonText: 'Okay'
@@ -105,12 +111,69 @@ export class HelloWorldModel extends Observable {
     });
   }
 
-  public openHeartRateModal(args) {
+  startHeartRate() {
+    try {
+      const activity: android.app.Activity =
+        application.android.startActivity ||
+        application.android.foregroundActivity;
+      const mSensorManager = activity.getSystemService(
+        android.content.Context.SENSOR_SERVICE
+      ) as android.hardware.SensorManager;
+
+      if (!this._heartrateListener) {
+        this._heartrateListener = new android.hardware.SensorEventListener({
+          onAccuracyChanged: (sensor, accuracy) => {},
+          onSensorChanged: event => {
+            console.log(event.values[0]);
+            this.heartRate = event.values[0].toString().split('.')[0];
+          }
+        });
+      }
+
+      // if already getting the HR, then turn off on this tap
+      if (this.isGettingHeartRate === true) {
+        this.isGettingHeartRate = false;
+        mSensorManager.unregisterListener(this._heartrateListener);
+        return;
+      }
+
+      if (!mSensorManager) {
+        alert({
+          message: 'Could not initialize Sensor Manager.',
+          okButtonText: 'Okay'
+        });
+      }
+
+      const mHeartRateSensor = mSensorManager.getDefaultSensor(
+        (android.hardware.Sensor as any).TYPE_HEART_RATE
+      );
+      console.log(mHeartRateSensor);
+
+      const didRegListener = mSensorManager.registerListener(
+        this._heartrateListener,
+        mHeartRateSensor,
+        android.hardware.SensorManager.SENSOR_DELAY_NORMAL
+      );
+
+      console.log(didRegListener);
+
+      if (didRegListener) {
+        this.isGettingHeartRate = true;
+        console.log('Registered heart rate sensor listener');
+      } else {
+        Toast.makeText('Heart Rate sensor error').show();
+      }
+    } catch (error) {
+      console.log({ error });
+    }
+  }
+
+  openHeartRateModal(args) {
     try {
       const modalPage = '../heart-rate/heart-rate';
       args.object.page.showModal(modalPage, null, () => {}, true, true);
     } catch (error) {
-      console.log(error);
+      console.log({ error });
     }
   }
 
