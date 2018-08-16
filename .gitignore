@@ -74,6 +74,7 @@ package-lock.json
 .DS_Store
 **/platforms/
 /**/platforms/
+!nativescript-bluetooth/base64.js
 
 # IDE - VSCode
 .vs/*
