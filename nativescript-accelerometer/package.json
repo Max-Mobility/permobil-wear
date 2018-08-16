@@ -1,0 +1,48 @@
+{
+  "name": "nativescript-accelerometer-advanced",
+  "version": "3.0.0",
+  "description": "NativeScript accelerometer plugin.",
+  "main": "index",
+  "typings": "index.d.ts",
+  "scripts": {
+    "prepublish": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sktzoootech/native-script-accelerometer.git"
+  },
+  "keywords": [
+    "nativescript",
+    "physics",
+    "game"
+  ],
+  "nativescript": {
+    "platforms": {
+      "ios": "3.0.0",
+      "android": "3.0.0"
+    }
+  },
+  "author": {
+    "name": "Sktzoootech <sktzoootech@gmail.com>"
+  },
+  "contributors": [
+    "Sktzoootech <sktzoootech@gmail.com>",
+    "Alexander Vakrilov <alexander.vakrilov@gmail.com>",
+    "Shawn Pavel <shawn@liveshopper.com>",
+    {
+      "name": "Brad Martin",
+      "email": "bradwaynemartin@gmail.com",
+      "url": "https://github.com/bradmartin"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sktzoootech/native-script-accelerometer.git/issues"
+  },
+  "homepage": "https://github.com/sktzoootech/native-script-accelerometer",
+  "devDependencies": {
+    "tns-core-modules": "^4.2.0",
+    "tns-platform-declarations": "^4.2.0",
+    "typescript": "~2.8.2"
+  }
+}

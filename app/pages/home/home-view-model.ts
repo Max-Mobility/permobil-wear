@@ -83,6 +83,8 @@ export class HelloWorldModel extends Observable {
 
     accelerometer.startAccelerometerUpdates(
       accelerometerdata => {
+        console.log({ accelerometerdata });
+
         // only showing linear acceleration data for now
         if (
           accelerometerdata.sensortype ===
