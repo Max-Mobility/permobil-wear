@@ -70,7 +70,6 @@ hooks/
 package-lock.json
 *.js
 **/*.js
-**/*.css
 .DS_Store
 **/platforms/
 /**/platforms/

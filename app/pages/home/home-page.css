@@ -1,0 +1,25 @@
+.label {
+  color: #fff;
+}
+
+.font-small {
+  font-size: 9;
+  vertical-align: middle;
+}
+
+.title {
+  font-size: 14;
+}
+
+.heart-rate {
+  font-size: 50;
+  color: #fff;
+  text-align: center;
+  vertical-align: center;
+}
+
+.btn {
+  background-color: #f05d25;
+  font-size: 9;
+  color: #fff;
+}

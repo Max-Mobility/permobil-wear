@@ -1,0 +1,6 @@
+﻿@import '~nativescript-theme-core/css/core.light.css';
+
+.permobil-page {
+  background: linear-gradient(to bottom, #04558f 0%, #0463a7 100%);
+  padding: 0 6 0 6;
+}
