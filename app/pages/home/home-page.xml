@@ -10,6 +10,8 @@
             <FlexboxLayout flexDirection="column" justifyContent="center">
                 <StackLayout>
                     <Button text="{{ accelerometerBtnText }}" tap="{{ toggleAccelerometer }}" class="btn" />
+                    <!-- <Lottie:LottieView horizontalAlignment="center" verticalAlignment="middle" src="done_button.json" height="40" width="40" loop="false" autoPlay="false" loaded="{{ motionDetectedLoaded }}" visibility="{{ motionDetected ? 'visible' : 'collapsed' }}" /> -->
+                    <Lottie:LottieView horizontalAlignment="center" verticalAlignment="middle" src="done_button.json" height="40" width="40" loop="false" autoPlay="false" loaded="{{ motionDetectedLoaded }}" visibility="{{ motionDetected ? 'visible' : 'hidden' }}" />
                     <Label text="{{ accelerometerData }}" class="label font-small" visibility="{{ accelerometerData ? 'visible' : 'collapsed' }}" horizontalAlignment="center" textAlign="center" textWrap="true" />
                 </StackLayout>
                 <FlexboxLayout flexDirection="column" justifyContent="center">

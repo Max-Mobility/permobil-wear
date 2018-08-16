@@ -8,6 +8,7 @@ import * as accelerometer from 'nativescript-accelerometer-advanced';
 import * as Toast from 'nativescript-toast';
 import { topmost, Page } from 'tns-core-modules/ui/frame';
 import * as permissions from 'nativescript-permissions';
+import { LottieView } from 'nativescript-lottie';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -31,6 +32,12 @@ export class HelloWorldModel extends Observable {
   accelerometerBtnText = 'Accelerometer';
 
   /**
+   * Boolean to toggle when motion event detected to show animation in UI.
+   */
+  @Prop()
+  motionDetected = false;
+
+  /**
    * Boolean to track if heart rate is being monitored.
    */
   @Prop()
@@ -46,6 +53,7 @@ export class HelloWorldModel extends Observable {
   private _page: Page;
 
   private _bluetooth = new Bluetooth();
+  private _motionDetectedLottie: LottieView;
 
   constructor(page: Page) {
     super();
@@ -71,6 +79,10 @@ export class HelloWorldModel extends Observable {
         console.log({ err });
       }
     );
+  }
+
+  motionDetectedLoaded(args) {
+    this._motionDetectedLottie = args.object;
   }
 
   toggleAccelerometer() {
@@ -107,6 +119,12 @@ export class HelloWorldModel extends Observable {
               .toString()
               .substring(0, 8)}`;
             console.log('Motion detected!', { diff });
+            this.motionDetected = true;
+            this._motionDetectedLottie.playAnimation();
+            setTimeout(() => {
+              this.motionDetected = false;
+              this._motionDetectedLottie.cancelAnimation();
+            }, 600);
           }
         }
       },
