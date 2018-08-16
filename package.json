@@ -26,6 +26,7 @@
     "nativescript-carousel": "^4.0.2",
     "nativescript-gif": "^4.0.1",
     "nativescript-lottie": "^2.1.1",
+    "nativescript-permissions": "^1.2.3",
     "nativescript-theme-core": "~1.0.4",
     "nativescript-toast": "^1.4.6",
     "tns-core-modules": "~4.2.0"
