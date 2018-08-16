@@ -7,6 +7,7 @@ import * as application from 'tns-core-modules/application';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 import * as Toast from 'nativescript-toast';
 import { topmost, Page } from 'tns-core-modules/ui/frame';
+import * as permissions from 'nativescript-permissions';
 
 export class HelloWorldModel extends Observable {
   /**
@@ -111,8 +112,18 @@ export class HelloWorldModel extends Observable {
     });
   }
 
-  startHeartRate() {
+  async startHeartRate() {
     try {
+      // check permissions first
+      const hasPermission = permissions.hasPermission(
+        android.Manifest.permission.BODY_SENSORS
+      );
+      if (!hasPermission) {
+        await permissions.requestPermission(
+          android.Manifest.permission.BODY_SENSORS
+        );
+      }
+
       const activity: android.app.Activity =
         application.android.startActivity ||
         application.android.foregroundActivity;
@@ -139,13 +150,13 @@ export class HelloWorldModel extends Observable {
 
       if (!mSensorManager) {
         alert({
-          message: 'Could not initialize Sensor Manager.',
+          message: 'Could not initialize the device sensors.',
           okButtonText: 'Okay'
         });
       }
 
       const mHeartRateSensor = mSensorManager.getDefaultSensor(
-        (android.hardware.Sensor as any).TYPE_HEART_RATE
+        android.hardware.Sensor.TYPE_HEART_RATE
       );
       console.log(mHeartRateSensor);
 
@@ -154,14 +165,13 @@ export class HelloWorldModel extends Observable {
         mHeartRateSensor,
         android.hardware.SensorManager.SENSOR_DELAY_NORMAL
       );
-
-      console.log(didRegListener);
+      console.log({ didRegListener });
 
       if (didRegListener) {
         this.isGettingHeartRate = true;
         console.log('Registered heart rate sensor listener');
       } else {
-        Toast.makeText('Heart Rate sensor error').show();
+        console.log('Heart Rate listener did not register.');
       }
     } catch (error) {
       console.log({ error });
