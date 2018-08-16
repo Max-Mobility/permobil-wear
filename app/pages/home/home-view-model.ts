@@ -9,6 +9,8 @@ import * as Toast from 'nativescript-toast';
 import { topmost, Page } from 'tns-core-modules/ui/frame';
 import * as permissions from 'nativescript-permissions';
 
+const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
+
 export class HelloWorldModel extends Observable {
   /**
    * The heart rate data to render.
@@ -83,18 +85,29 @@ export class HelloWorldModel extends Observable {
 
     accelerometer.startAccelerometerUpdates(
       accelerometerdata => {
-        console.log({ accelerometerdata });
-
         // only showing linear acceleration data for now
         if (
           accelerometerdata.sensortype ===
           android.hardware.Sensor.TYPE_LINEAR_ACCELERATION
         ) {
-          console.log({ accelerometerdata });
+          // console.log({ accelerometerdata });
           const x = this._trimAccelerometerData(accelerometerdata.x);
           const y = this._trimAccelerometerData(accelerometerdata.y);
           const z = this._trimAccelerometerData(accelerometerdata.z);
-          this.accelerometerData = `X: ${x} - Y: ${y} * Z: ${z}`;
+          // this.accelerometerData = `X: ${x} - Y: ${y} * Z: ${z}`;
+
+          const diff = Math.sqrt(
+            accelerometerdata.x * accelerometerdata.x +
+              accelerometerdata.y * accelerometerdata.y +
+              accelerometerdata.z * accelerometerdata.z
+          );
+
+          if (diff > THRESHOLD) {
+            this.accelerometerData = `Motion detected ${diff
+              .toString()
+              .substring(0, 8)}`;
+            console.log('Motion detected!', { diff });
+          }
         }
       },
       { sensorDelay: 'normal' }
