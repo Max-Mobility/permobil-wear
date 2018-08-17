@@ -74,6 +74,7 @@ package-lock.json
 **/platforms/
 /**/platforms/
 !nativescript-bluetooth/base64.js
+!app/core/packet/packet_bindings.js
 
 # IDE - VSCode
 .vs/*
