@@ -44,19 +44,21 @@ export class HelloWorldModel extends Observable {
    * Boolean to track if heart rate is being monitored.
    */
   @Prop()
-  private isGettingHeartRate = false;
+  public isGettingHeartRate = false;
+
+  /**
+   * Boolean to handle logic if we have connected to a SD unit.
+   */
+  @Prop()
+  public connected = false;
 
   /**
    * Boolean to track if accelerometer is already registered listener events.
    */
   private _isListeningAccelerometer = false;
-
   private _heartrateListener;
-
   private _page: Page;
-
   private _smartDrive: SmartDrive;
-
   private _motionDetectedLottie: LottieView;
   private _heartRateLottie: LottieView;
   private _bluetoothService: BluetoothService;
@@ -77,11 +79,6 @@ export class HelloWorldModel extends Observable {
       device.language,
       device.uuid
     );
-  }
-
-  @Prop()
-  get connected(): boolean {
-    return this._smartDrive && this._smartDrive.connected;
   }
 
   motionDetectedLoaded(args) {
@@ -113,7 +110,6 @@ export class HelloWorldModel extends Observable {
           const x = this._trimAccelerometerData(accelerometerdata.x);
           const y = this._trimAccelerometerData(accelerometerdata.y);
           const z = this._trimAccelerometerData(accelerometerdata.z);
-          // this.accelerometerData = `X: ${x} - Y: ${y} * Z: ${z}`;
 
           let diff = Math.sqrt(
             accelerometerdata.x * accelerometerdata.x +
@@ -166,6 +162,7 @@ export class HelloWorldModel extends Observable {
           if (addresses.indexOf(result) > -1) {
             this._smartDrive = sds.filter(sd => sd.address === result)[0];
             this._smartDrive.connect();
+            this.connected = true;
             Toast.makeText('Connecting to ' + result).show();
           }
         });
@@ -178,6 +175,7 @@ export class HelloWorldModel extends Observable {
   async onDisconnectTap() {
     if (this._smartDrive.connected) {
       this._smartDrive.disconnect().then(() => {
+        this.connected = false;
         Toast.makeText('Disconnected from ' + this._smartDrive.address).show();
       });
     }
