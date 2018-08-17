@@ -53,9 +53,9 @@ export class HelloWorldModel extends Observable {
 
   private _heartrateListener;
 
-	private _page: Page;
+  private _page: Page;
 
-	private _smartDrive: SmartDrive;
+  private _smartDrive: SmartDrive;
 
   private _motionDetectedLottie: LottieView;
   private _heartRateLottie: LottieView;
@@ -79,10 +79,10 @@ export class HelloWorldModel extends Observable {
     );
   }
 
-	@Prop()
-	get connected(): boolean {
-		return this._smartDrive && this._smartDrive.connected;
-	}
+  @Prop()
+  get connected(): boolean {
+    return this._smartDrive && this._smartDrive.connected;
+  }
 
   motionDetectedLoaded(args) {
     this._motionDetectedLottie = args.object;
@@ -120,13 +120,15 @@ export class HelloWorldModel extends Observable {
               accelerometerdata.y * accelerometerdata.y +
               accelerometerdata.z * accelerometerdata.z
           );
-			diff = Math.abs(accelerometerdata.z);
+          diff = Math.abs(accelerometerdata.z);
 
           if (diff > THRESHOLD) {
-			  if (this._smartDrive.ableToSend) {
-				  console.log('Sending tap!');
-				  this._smartDrive.sendTap().catch((err) => console.log('could not send tap', err));
-			  }
+            if (this._smartDrive && this._smartDrive.ableToSend) {
+              console.log('Sending tap!');
+              this._smartDrive
+                .sendTap()
+                .catch(err => console.log('could not send tap', err));
+            }
             this.accelerometerData = `Motion detected ${diff
               .toString()
               .substring(0, 8)}`;
@@ -148,34 +150,37 @@ export class HelloWorldModel extends Observable {
     this.accelerometerBtnText = 'Stop Accelerometer';
   }
 
-	async onScanTap() {
-		console.log('onScanTap()');
-		return this._bluetoothService.scanForSmartDrive().then(() => {
-			let sds = BluetoothService.SmartDrives;
-			let addresses = sds.map(sd => sd.address);
-			action({
-				message: `Found ${sds && sds.length} SmartDrives!.`,
-				actions: addresses,
-				cancelButtonText: 'Dismiss'
-			}).then((result) => {
-				console.log('result', result);
-				if (addresses.indexOf(result) > -1) {
-					this._smartDrive = sds.filter((sd) => sd.address === result)[0];
-					this._smartDrive.connect();
-					Toast.makeText('Connecting to ' + result).show();
-				}
-			});
-		}).catch((err) => {
-			console.log('could not scan', err);
-		});
-	}
+  async onScanTap() {
+    console.log('onScanTap()');
+    return this._bluetoothService
+      .scanForSmartDrive()
+      .then(() => {
+        let sds = BluetoothService.SmartDrives;
+        let addresses = sds.map(sd => sd.address);
+        action({
+          message: `Found ${sds && sds.length} SmartDrives!.`,
+          actions: addresses,
+          cancelButtonText: 'Dismiss'
+        }).then(result => {
+          console.log('result', result);
+          if (addresses.indexOf(result) > -1) {
+            this._smartDrive = sds.filter(sd => sd.address === result)[0];
+            this._smartDrive.connect();
+            Toast.makeText('Connecting to ' + result).show();
+          }
+        });
+      })
+      .catch(err => {
+        console.log('could not scan', err);
+      });
+  }
 
-	async onDisconnectTap() {
-		if (this._smartDrive.connected) {
-			this._smartDrive.disconnect().then(() => {
-				Toast.makeText('Disconnected from ' + this._smartDrive.address).show();
-			});
-		}
+  async onDisconnectTap() {
+    if (this._smartDrive.connected) {
+      this._smartDrive.disconnect().then(() => {
+        Toast.makeText('Disconnected from ' + this._smartDrive.address).show();
+      });
+    }
   }
 
   async startHeartRate() {
@@ -203,10 +208,10 @@ export class HelloWorldModel extends Observable {
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
-              this._heartRateLottie.playAnimation();
-              setTimeout(() => {
-				  this._heartRateLottie.cancelAnimation();
-              }, 600);
+            this._heartRateLottie.playAnimation();
+            setTimeout(() => {
+              this._heartRateLottie.cancelAnimation();
+            }, 600);
           }
         });
       }
