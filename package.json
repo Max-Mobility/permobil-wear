@@ -22,6 +22,7 @@
     "setup": "npm i && npm run build-bluetooth && npm run build-accelerometer"
   },
   "dependencies": {
+    "buffer": "^5.2.0",
     "nativescript-accelerometer-advanced": "file:./nativescript-accelerometer/nativescript-accelerometer-advanced-3.0.0.tgz",
     "nativescript-bluetooth": "file:./nativescript-bluetooth/nativescript-bluetooth-1.3.0.tgz",
     "nativescript-carousel": "^4.0.2",
