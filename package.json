@@ -13,6 +13,7 @@
   "license": "SEE LICENSE IN <your-license-filename>",
   "repository": "<fill-your-repository-here>",
   "scripts": {
+    "precommit": "lint-staged",
     "start.android": "tns run android",
     "start.ios": "tns run ios",
     "build-bluetooth": "cd nativescript-bluetooth && npm i && tsc && rm -rf *.tgz && npm pack",
