@@ -110,6 +110,7 @@ export class HelloWorldModel extends Observable {
               accelerometerdata.y * accelerometerdata.y +
               accelerometerdata.z * accelerometerdata.z
           );
+			diff = Math.abs(accelerometerdata.z);
 
           if (diff > THRESHOLD) {
 			  if (this._smartDrive.ableToSend) {
