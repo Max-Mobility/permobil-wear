@@ -1,5 +1,5 @@
-import { bindingTypeToString, Packet } from '..';
-import { BluetoothService } from '@maxmobility/mobile';
+import { bindingTypeToString, Packet } from './';
+import { BluetoothService } from '../services/bluetooth.service';
 import { Observable } from 'tns-core-modules/data/observable/observable';
 import * as timer from 'tns-core-modules/timer/timer';
 
@@ -23,7 +23,7 @@ enum OTAState {
 }
 
 const timeToString = function(milliseconds: number): string {
-  let t = new Date(null);
+  const t = new Date(null);
   t.setSeconds(milliseconds / 1000.0);
   return t.toISOString().substr(11, 8);
 };
@@ -39,21 +39,23 @@ export class SmartDrive extends Observable {
     'e7add780-b042-4876-aae1-112855353cc1',
     'e8add780-b042-4876-aae1-112855353cc1',
     'e9add780-b042-4876-aae1-112855353cc1',
-    //'eaadd780-b042-4876-aae1-112855353cc1',
+    // 'eaadd780-b042-4876-aae1-112855353cc1',
     'ebadd780-b042-4876-aae1-112855353cc1'
   ];
   public static DataCharacteristic = SmartDrive.Characteristics[1];
   public static ControlCharacteristic = SmartDrive.Characteristics[2];
   public static BLEOTADataCharacteristic = SmartDrive.Characteristics[0];
   public static BLEOTAControlCharacteristic = SmartDrive.Characteristics[3];
-  //public static BLEOTADongleCharacteristic = SmartDrive.Characteristics[3];
+  // public static BLEOTADongleCharacteristic = SmartDrive.Characteristics[3];
 
   // Event names
   public static smartdrive_connect_event = 'smartdrive_connect_event';
   public static smartdrive_disconnect_event = 'smartdrive_disconnect_event';
 
-  public static smartdrive_service_discovered_event = 'smartdrive_service_discovered_event';
-  public static smartdrive_characteristic_discovered_event = 'smartdrive_characteristic_discovered_event';
+  public static smartdrive_service_discovered_event =
+    'smartdrive_service_discovered_event';
+  public static smartdrive_characteristic_discovered_event =
+    'smartdrive_characteristic_discovered_event';
 
   public static smartdrive_ble_version_event = 'smartdrive_ble_version_event';
   public static smartdrive_mcu_version_event = 'smartdrive_mcu_version_event';
@@ -61,8 +63,10 @@ export class SmartDrive extends Observable {
   public static smartdrive_distance_event = 'smartdrive_distance_event';
 
   public static smartdrive_ota_ready_event = 'smartdrive_ota_ready_event';
-  public static smartdrive_ota_ready_ble_event = 'smartdrive_ota_ready_ble_event';
-  public static smartdrive_ota_ready_mcu_event = 'smartdrive_ota_ready_mcu_event';
+  public static smartdrive_ota_ready_ble_event =
+    'smartdrive_ota_ready_ble_event';
+  public static smartdrive_ota_ready_mcu_event =
+    'smartdrive_ota_ready_mcu_event';
 
   // user interaction events
   public static smartdrive_ota_start_event = 'smartdrive_ota_start_event';
@@ -93,7 +97,7 @@ export class SmartDrive extends Observable {
   }
 
   public static versionByteToString(version: number): string {
-    if (version == 0xff || version == 0x00) {
+    if (version === 0xff || version === 0x00) {
       return 'unknown';
     } else {
       return `${(version & 0xf0) >> 4}.${version & 0x0f}`;
@@ -183,7 +187,7 @@ export class SmartDrive extends Observable {
     }
     const versions = [this.mcu_version];
     return versions.reduce((a, e) => {
-      return a && e != 0xff && e >= v;
+      return a && e !== 0xff && e >= v;
     }, true);
   }
 
@@ -194,7 +198,7 @@ export class SmartDrive extends Observable {
     }
     const versions = [this.ble_version];
     return versions.reduce((a, e) => {
-      return a && e != 0xff && e >= v;
+      return a && e !== 0xff && e >= v;
     }, true);
   }
 
@@ -205,7 +209,7 @@ export class SmartDrive extends Observable {
     }
     const versions = [this.mcu_version, this.ble_version];
     return versions.reduce((a, e) => {
-      return a && e != 0xff && e >= v;
+      return a && e !== 0xff && e >= v;
     }, true);
   }
 
@@ -331,8 +335,14 @@ export class SmartDrive extends Observable {
           this.off(SmartDrive.smartdrive_ble_version_event, bleVersionHandler);
           this.off(SmartDrive.smartdrive_mcu_version_event, mcuVersionHandler);
           this.off(SmartDrive.smartdrive_ota_ready_event, otaReadyHandler);
-          this.off(SmartDrive.smartdrive_ota_ready_mcu_event, otaMCUReadyHandler);
-          this.off(SmartDrive.smartdrive_ota_ready_ble_event, otaBLEReadyHandler);
+          this.off(
+            SmartDrive.smartdrive_ota_ready_mcu_event,
+            otaMCUReadyHandler
+          );
+          this.off(
+            SmartDrive.smartdrive_ota_ready_ble_event,
+            otaBLEReadyHandler
+          );
           this.off(SmartDrive.smartdrive_ota_start_event, otaStartHandler);
           this.off(SmartDrive.smartdrive_ota_retry_event, otaRetryHandler);
           this.off(SmartDrive.smartdrive_ota_force_event, otaForceHandler);
@@ -348,8 +358,14 @@ export class SmartDrive extends Observable {
           this.on(SmartDrive.smartdrive_disconnect_event, disconnectHandler);
           this.on(SmartDrive.smartdrive_ble_version_event, bleVersionHandler);
           this.on(SmartDrive.smartdrive_mcu_version_event, mcuVersionHandler);
-          this.on(SmartDrive.smartdrive_ota_ready_mcu_event, otaMCUReadyHandler);
-          this.on(SmartDrive.smartdrive_ota_ready_ble_event, otaBLEReadyHandler);
+          this.on(
+            SmartDrive.smartdrive_ota_ready_mcu_event,
+            otaMCUReadyHandler
+          );
+          this.on(
+            SmartDrive.smartdrive_ota_ready_ble_event,
+            otaBLEReadyHandler
+          );
           this.on(SmartDrive.smartdrive_ota_ready_event, otaReadyHandler);
           this.on(SmartDrive.smartdrive_ota_start_event, otaStartHandler);
           this.on(SmartDrive.smartdrive_ota_retry_event, otaRetryHandler);
@@ -489,27 +505,39 @@ export class SmartDrive extends Observable {
           }
         };
         let writeFirmwareTimeoutID = null;
-        const writeFirmwareSector = (device: string, fw: any, characteristic: any, nextState: any) => {
+        const writeFirmwareSector = (
+          device: string,
+          fw: any,
+          characteristic: any,
+          nextState: any
+        ) => {
           if (writeFirmwareTimeoutID) {
             timer.clearTimeout(writeFirmwareTimeoutID);
           }
           writeFirmwareTimeoutID = null;
           if (index < 0) {
-            console.log('writing firmware to ' + device + ' at ' + characteristic);
+            console.log(
+              'writing firmware to ' + device + ' at ' + characteristic
+            );
             index = 0;
           }
           const fileSize = fw.length;
           try {
             if (cancelOTA) {
               return;
-            } else if (paused || !this.connected || !this.ableToSend || !this.notifying) {
-              //console.log('NOT WRITING TO SD!');
+            } else if (
+              paused ||
+              !this.connected ||
+              !this.ableToSend ||
+              !this.notifying
+            ) {
+              // console.log('NOT WRITING TO SD!');
               writeFirmwareTimeoutID = timer.setTimeout(() => {
-                //console.log('trying now!');
+                // console.log('trying now!');
                 writeFirmwareSector(device, fw, characteristic, nextState);
               }, 500);
             } else if (index < fileSize) {
-              //console.log(`Writing ${index} / ${fileSize} of ota to ${device}`);
+              // console.log(`Writing ${index} / ${fileSize} of ota to ${device}`);
               let data = null;
               if (device === 'SmartDrive') {
                 const p = new Packet();
@@ -556,7 +584,11 @@ export class SmartDrive extends Observable {
             }, 500);
           }
         };
-        const stopOTA = (reason: string, success: boolean = false, doRetry: boolean = false) => {
+        const stopOTA = (
+          reason: string,
+          success: boolean = false,
+          doRetry: boolean = false
+        ) => {
           startedOTA = false;
           cancelOTA = true;
           this.otaActions = [];
@@ -609,7 +641,10 @@ export class SmartDrive extends Observable {
               break;
             case SmartDrive.OTAState.awaiting_versions:
               if (haveBLEVersion && haveMCUVersion) {
-                if (bleVersion == bleFWVersion && mcuVersion == mcuFWVersion) {
+                if (
+                  bleVersion === bleFWVersion &&
+                  mcuVersion === mcuFWVersion
+                ) {
                   this.otaActions = ['ota.action.force', 'ota.action.cancel'];
                 } else {
                   this.otaState = SmartDrive.OTAState.awaiting_mcu_ready;
@@ -631,7 +666,13 @@ export class SmartDrive extends Observable {
               index = -1;
               if (this.connected && this.ableToSend) {
                 // send start OTA
-                this.sendPacket('Command', 'StartOTA', 'OTADevice', 'PacketOTAType', 'SmartDrive').catch(err => {});
+                this.sendPacket(
+                  'Command',
+                  'StartOTA',
+                  'OTADevice',
+                  'PacketOTAType',
+                  'SmartDrive'
+                ).catch(err => {});
               }
               break;
             case SmartDrive.OTAState.updating_mcu:
@@ -645,7 +686,7 @@ export class SmartDrive extends Observable {
               }
 
               // what state do we go to next?
-              let nextState = this.doBLEUpdate
+              const nextState = this.doBLEUpdate
                 ? SmartDrive.OTAState.awaiting_ble_ready
                 : this.doMCUUpdate
                   ? SmartDrive.OTAState.rebooting_mcu
@@ -728,7 +769,9 @@ export class SmartDrive extends Observable {
                   }, 0);
                 }
               } else {
-                this.otaState = this.doMCUUpdate ? SmartDrive.OTAState.rebooting_mcu : SmartDrive.OTAState.complete;
+                this.otaState = this.doMCUUpdate
+                  ? SmartDrive.OTAState.rebooting_mcu
+                  : SmartDrive.OTAState.complete;
               }
               // update the progress bar
               this.bleOTAProgress = ((index + 16) * 100) / bleFirmware.length;
@@ -775,7 +818,13 @@ export class SmartDrive extends Observable {
               } else if (this.connected && !hasRebooted) {
                 // send MCU stop ota command
                 // send stop OTA
-                this.sendPacket('Command', 'StopOTA', 'OTADevice', 'PacketOTAType', 'SmartDrive').catch(() => {});
+                this.sendPacket(
+                  'Command',
+                  'StopOTA',
+                  'OTADevice',
+                  'PacketOTAType',
+                  'SmartDrive'
+                ).catch(() => {});
               }
               break;
             case SmartDrive.OTAState.verifying_update:
@@ -786,12 +835,16 @@ export class SmartDrive extends Observable {
               // - probably add buttons so they can retry?
               this.otaEndTime = new Date();
               let msg = '';
-              if (mcuVersion == mcuFWVersion && bleVersion == bleFWVersion) {
-                msg = `SmartDrive OTA Succeeded! ${mcuVersion.toString(16)}, ${bleVersion.toString(16)}`;
+              if (mcuVersion === mcuFWVersion && bleVersion === bleFWVersion) {
+                msg = `SmartDrive OTA Succeeded! ${mcuVersion.toString(
+                  16
+                )}, ${bleVersion.toString(16)}`;
                 console.log(msg);
                 this.otaState = SmartDrive.OTAState.complete;
               } else {
-                msg = `SmartDrive OTA FAILED! ${mcuVersion.toString(16)}, ${bleVersion.toString(16)}`;
+                msg = `SmartDrive OTA FAILED! ${mcuVersion.toString(
+                  16
+                )}, ${bleVersion.toString(16)}`;
                 console.log(msg);
                 this.otaState = SmartDrive.OTAState.failed;
                 stopOTA('OTA Failed', false, true);
@@ -809,7 +862,13 @@ export class SmartDrive extends Observable {
                 this.otaState = SmartDrive.OTAState.canceled;
               } else if (this.connected && this.ableToSend) {
                 // send stop OTA command
-                this.sendPacket('Command', 'StopOTA', 'OTADevice', 'PacketOTAType', 'SmartDrive')
+                this.sendPacket(
+                  'Command',
+                  'StopOTA',
+                  'OTADevice',
+                  'PacketOTAType',
+                  'SmartDrive'
+                )
                   .then(() => {
                     // now set state to cancelled
                     this.otaState = SmartDrive.OTAState.canceled;
@@ -841,7 +900,13 @@ export class SmartDrive extends Observable {
     });
   }
 
-  public sendPacket(Type: string, SubType: string, dataKey?: string, dataType?: string, data?: any): Promise<any> {
+  public sendPacket(
+    Type: string,
+    SubType: string,
+    dataKey?: string,
+    dataType?: string,
+    data?: any
+  ): Promise<any> {
     if (this.ableToSend) {
       console.log(`Sending ${Type}::${SubType}::${data} to ${this.address}`);
       const p = new Packet();
@@ -855,7 +920,7 @@ export class SmartDrive extends Observable {
       p.data(dataKey, boundData);
       const transmitData = p.toUint8Array();
       p.destroy();
-      //console.log(`sending ${transmitData}`);
+      // console.log(`sending ${transmitData}`);
 
       return this._bluetoothService.write({
         peripheralUUID: this.address,
@@ -883,8 +948,11 @@ export class SmartDrive extends Observable {
   // handlers
 
   private stoppingNotify = false;
-  private stopNotifyCharacteristics(characteristics: Array<string>): Promise<any> {
-    if (this.stoppingNotify) return Promise.resolve('Already stopping notifying!');
+  private stopNotifyCharacteristics(
+    characteristics: Array<string>
+  ): Promise<any> {
+    if (this.stoppingNotify)
+      return Promise.resolve('Already stopping notifying!');
     else this.stoppingNotify = true;
     console.log(`StopNotifying`);
     const retry = (maxRetries, fn) => {
@@ -930,8 +998,11 @@ export class SmartDrive extends Observable {
   }
 
   private startingNotify = false;
-  private startNotifyCharacteristics(characteristics: Array<string>): Promise<any> {
-    if (this.startingNotify) return Promise.reject('Already started notifying!');
+  private startNotifyCharacteristics(
+    characteristics: Array<string>
+  ): Promise<any> {
+    if (this.startingNotify)
+      return Promise.reject('Already started notifying!');
     else this.startingNotify = true;
     console.log(`StartNotifying`);
     const retry = (maxRetries, fn) => {
@@ -1042,7 +1113,7 @@ export class SmartDrive extends Observable {
     const subType = p.SubType();
     if (!packetType || !subType) {
       return;
-    } else if (packetType == 'Data') {
+    } else if (packetType === 'Data') {
       switch (subType) {
         case 'DeviceInfo':
           this.handleDeviceInfo(p);
@@ -1056,7 +1127,7 @@ export class SmartDrive extends Observable {
         default:
           break;
       }
-    } else if (packetType == 'Command') {
+    } else if (packetType === 'Command') {
       switch (subType) {
         case 'OTAReady':
           this.handleOTAReady(p);
@@ -1093,7 +1164,7 @@ export class SmartDrive extends Observable {
     /* Motor Info
            struct {
            Motor::State state;
-           uint8_t      batteryLevel; // [0,100] integer percent. 
+           uint8_t      batteryLevel; // [0,100] integer percent.
            uint8_t      version;      // Major.Minor version as the MAJOR and MINOR nibbles of the byte.
            uint8_t      padding;
            float        distance;
