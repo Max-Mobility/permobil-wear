@@ -1,5 +1,5 @@
-import { bindingTypeToString, Packet } from '..';
-import { BluetoothService } from '@maxmobility/mobile';
+import { bindingTypeToString, Packet } from './';
+import { BluetoothService } from '../services/bluetooth.service';
 import { Observable } from 'tns-core-modules/data/observable/observable';
 import { isIOS } from 'tns-core-modules/platform/platform';
 import * as timer from 'tns-core-modules/timer/timer';
@@ -20,7 +20,7 @@ enum OTAState {
 }
 
 const timeToString = function(milliseconds: number): string {
-  let t = new Date(null);
+  const t = new Date(null);
   t.setSeconds(milliseconds / 1000.0);
   return t.toISOString().substr(11, 8);
 };
@@ -87,7 +87,7 @@ export class PushTracker extends Observable {
   }
 
   public static versionByteToString(version: number): string {
-    if (version == 0xff || version == 0x00) {
+    if (version === 0xff || version === 0x00) {
       return 'unknown';
     } else {
       return `${(version & 0xf0) >> 4}.${version & 0x0f}`;
@@ -171,7 +171,7 @@ export class PushTracker extends Observable {
       versions.push(this.mcu_version, this.ble_version);
     }
     return versions.reduce((a, e) => {
-      return a && e != 0xff && e >= v;
+      return a && e !== 0xff && e >= v;
     }, true);
   }
 
@@ -260,7 +260,10 @@ export class PushTracker extends Observable {
           this.off(PushTracker.pushtracker_ota_force_event, otaForceHandler);
           this.off(PushTracker.pushtracker_ota_cancel_event, otaCancelHandler);
           this.off(PushTracker.pushtracker_ota_retry_event, otaRetryHandler);
-          this.off(PushTracker.pushtracker_ota_timeout_event, otaTimeoutHandler);
+          this.off(
+            PushTracker.pushtracker_ota_timeout_event,
+            otaTimeoutHandler
+          );
         };
         const register = () => {
           unregister();
@@ -292,7 +295,7 @@ export class PushTracker extends Observable {
           this.otaState = PushTracker.OTAState.not_started;
           this.otaActions = [];
           if (this.connected) {
-            if (this.version != 0xff) {
+            if (this.version !== 0xff) {
               haveVersion = true;
             }
             this.otaActions = ['ota.action.start'];
@@ -355,8 +358,12 @@ export class PushTracker extends Observable {
         const otaRetryHandler = data => {
           begin();
         };
-        const writeFirmwareSector = (fw: any, characteristic: any, nextState: any) => {
-          //console.log('writing firmware to pt');
+        const writeFirmwareSector = (
+          fw: any,
+          characteristic: any,
+          nextState: any
+        ) => {
+          // console.log('writing firmware to pt');
           if (index < 0) index = 0;
           const fileSize = fw.length;
           if (cancelOTA) {
@@ -367,7 +374,7 @@ export class PushTracker extends Observable {
             }, 100);
           } else if (index < fileSize) {
             if (this.connected && this.ableToSend) {
-              //console.log(`Writing ${index} / ${fileSize} of ota to pt`);
+              // console.log(`Writing ${index} / ${fileSize} of ota to pt`);
               const p = new Packet();
               p.makeOTAPacket('PushTracker', index, fw);
               const data = p.writableBuffer();
@@ -405,7 +412,11 @@ export class PushTracker extends Observable {
             }, 1500);
           }
         };
-        const stopOTA = (reason: string, success: boolean = false, doRetry: boolean = false) => {
+        const stopOTA = (
+          reason: string,
+          success: boolean = false,
+          doRetry: boolean = false
+        ) => {
           cancelOTA = true;
           startedOTA = false;
           this.otaActions = [];
@@ -419,7 +430,7 @@ export class PushTracker extends Observable {
 
           unregister();
           // TODO: do we disconnect?
-          //console.log(`Disconnecting from ${this.address}`);
+          // console.log(`Disconnecting from ${this.address}`);
           // TODO: How do we disconnect from the PT?
           if (success) {
             resolve(reason);
@@ -443,7 +454,7 @@ export class PushTracker extends Observable {
               break;
             case PushTracker.OTAState.awaiting_version:
               if (this.ableToSend && haveVersion) {
-                if (this.version == fwVersion) {
+                if (this.version === fwVersion) {
                   this.otaActions = ['ota.action.force', 'ota.action.cancel'];
                 } else {
                   this.otaState = PushTracker.OTAState.awaiting_ready;
@@ -458,7 +469,13 @@ export class PushTracker extends Observable {
               index = -1;
               if (this.connected && this.ableToSend) {
                 // send start OTA
-                this.sendPacket('Command', 'StartOTA', 'OTADevice', 'PacketOTAType', 'PushTracker').catch(err => {});
+                this.sendPacket(
+                  'Command',
+                  'StartOTA',
+                  'OTADevice',
+                  'PacketOTAType',
+                  'PushTracker'
+                ).catch(err => {});
               }
               break;
             case PushTracker.OTAState.updating:
@@ -471,7 +488,11 @@ export class PushTracker extends Observable {
                 timer.clearTimeout(otaTimeoutID);
               }
               if (index === -1) {
-                writeFirmwareSector(fw, PushTracker.DataCharacteristic, PushTracker.OTAState.rebooting);
+                writeFirmwareSector(
+                  fw,
+                  PushTracker.DataCharacteristic,
+                  PushTracker.OTAState.rebooting
+                );
               }
               // update the progress bar
               this.otaProgress = ((index + 16) * 100) / fw.length;
@@ -486,7 +507,13 @@ export class PushTracker extends Observable {
               this.otaActions = [];
               if (this.ableToSend && !hasRebooted) {
                 // send stop ota command
-                this.sendPacket('Command', 'StopOTA', 'OTADevice', 'PacketOTAType', 'PushTracker').catch(err => {});
+                this.sendPacket(
+                  'Command',
+                  'StopOTA',
+                  'OTADevice',
+                  'PacketOTAType',
+                  'PushTracker'
+                ).catch(err => {});
               } else if (this.ableToSend && haveVersion) {
                 this.otaState = PushTracker.OTAState.verifying_update;
               }
@@ -497,7 +524,7 @@ export class PushTracker extends Observable {
               //       and re-connect the PT to the App
               this.otaEndTime = new Date();
               let msg = '';
-              if (this.version == 0x15) {
+              if (this.version === 0x15) {
                 msg = `PushTracker OTA Succeeded! ${this.version.toString(16)}`;
                 this.otaState = PushTracker.OTAState.complete;
               } else {
@@ -518,7 +545,13 @@ export class PushTracker extends Observable {
                 this.otaState = PushTracker.OTAState.canceled;
               } else if (this.connected && this.ableToSend) {
                 // send stop ota command
-                this.sendPacket('Command', 'StopOTA', 'OTADevice', 'PacketOTAType', 'PushTracker')
+                this.sendPacket(
+                  'Command',
+                  'StopOTA',
+                  'OTADevice',
+                  'PacketOTAType',
+                  'PushTracker'
+                )
                   .then(success => {
                     if (success) {
                       // now update the ota state
@@ -550,7 +583,13 @@ export class PushTracker extends Observable {
     });
   }
 
-  public sendPacket(Type: string, SubType: string, dataKey?: string, dataType?: string, data?: any): Promise<any> {
+  public sendPacket(
+    Type: string,
+    SubType: string,
+    dataKey?: string,
+    dataType?: string,
+    data?: any
+  ): Promise<any> {
     console.log(`Sending ${Type}::${SubType}::${data} to ${this.address}`);
     const p = new Packet();
     p.Type(Type);
@@ -565,8 +604,10 @@ export class PushTracker extends Observable {
     }
     const transmitData = p.writableBuffer();
     p.destroy();
-    //console.log(`sending ${transmitData}`);
-    return this._bluetoothService.sendToPushTrackers(transmitData, [this.device]);
+    // console.log(`sending ${transmitData}`);
+    return this._bluetoothService.sendToPushTrackers(transmitData, [
+      this.device
+    ]);
   }
 
   public sendSettings(
@@ -577,16 +618,16 @@ export class PushTracker extends Observable {
     acceleration: number,
     max_speed: number
   ): Promise<any> {
-    let p = new Packet();
-    let settings = p.data('settings');
+    const p = new Packet();
+    const settings = p.data('settings');
     // convert mode
-    if (mode == 'MX2+') mode = 'Advanced';
-    else if (mode == 'MX2') mode = 'Intermediate';
-    else if (mode == 'MX1') mode = 'Beginner';
-    else if (mode == 'Off') mode = 'Off';
+    if (mode === 'MX2+') mode = 'Advanced';
+    else if (mode === 'MX2') mode = 'Intermediate';
+    else if (mode === 'MX1') mode = 'Beginner';
+    else if (mode === 'Off') mode = 'Off';
     else mode = 'Advanced';
     // convert units
-    units = units == 'Metric' ? 'Metric' : 'English';
+    units = units === 'Metric' ? 'Metric' : 'English';
     // clamp numbers
     const clamp = n => {
       return Math.max(0, Math.min(n, 1.0));
@@ -602,7 +643,13 @@ export class PushTracker extends Observable {
     settings.Acceleration = acceleration;
     settings.MaxSpeed = max_speed;
     p.destroy();
-    return this.sendPacket('Command', 'SetSettings', 'settings', null, settings);
+    return this.sendPacket(
+      'Command',
+      'SetSettings',
+      'settings',
+      null,
+      settings
+    );
   }
 
   /**
@@ -641,7 +688,7 @@ export class PushTracker extends Observable {
     // now actually determine packet type and call handlers
     const packetType = p.Type();
     const subType = p.SubType();
-    if (packetType && packetType == 'Data') {
+    if (packetType && packetType === 'Data') {
       switch (subType) {
         case 'VersionInfo':
           this.handleVersionInfo(p);
@@ -661,7 +708,7 @@ export class PushTracker extends Observable {
         default:
           break;
       }
-    } else if (packetType && packetType == 'Command') {
+    } else if (packetType && packetType === 'Command') {
       switch (subType) {
         case 'SetSettings':
           this.handleSettings(p);
