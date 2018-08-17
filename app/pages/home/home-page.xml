@@ -8,7 +8,7 @@
                 <Image src="~/assets/images/permobil-logo.png" stretch="aspectFit" />
             </FlexboxLayout>
             <FlexboxLayout flexDirection="column" justifyContent="center">
-              <Button text="{{ accelerometerBtnText }}" tap="{{ toggleAccelerometer }}" class="btn"/>
+                <Button text="{{ accelerometerBtnText }}" tap="{{ toggleAccelerometer }}" class="btn"/>
                 <StackLayout visibility="{{ accelerometerData ? 'visible': 'collapsed' }}">
                     <!-- <Lottie:LottieView horizontalAlignment="center" verticalAlignment="middle" src="done_button.json" height="40" width="40" loop="false" autoPlay="false" loaded="{{ motionDetectedLoaded }}" visibility="{{ motionDetected ? 'visible' : 'collapsed' }}" /> -->
                     <Lottie:LottieView horizontalAlignment="center" verticalAlignment="middle" src="done_button.json" height="120" width="120" loop="false" autoPlay="false" loaded="{{ motionDetectedLoaded }}" visibility="{{ motionDetected ? 'visible' : 'collapsed' }}" />
@@ -18,7 +18,7 @@
                 <FlexboxLayout flexDirection="column" justifyContent="center">
                     <Button text="Heart Rate" tap="{{ startHeartRate }}" class="btn" />
                     <GridLayout height="85" rows="auto" columns="*" visibility="{{ isGettingHeartRate ? 'visible' : 'collapsed' }}">
-                        <Lottie:LottieView row="0" col="0" horizontalAlignment="center" verticalAlignment="middle" src="pulse.json" height="100" width="100" loop="false" autoPlay="false" loaded="{{ heartRateLoaded }}" />
+                        <Lottie:LottieView row="0" col="0" horizontalAlignment="center" verticalAlignment="middle" src="pulse.json" height="100" width="100" loop="true" autoPlay="false" loaded="{{ heartRateLoaded }}" />
                         <Label row="0" col="0" text="{{ heartRate }}" class="heart-rate" textWrap="true" />
                     </GridLayout>
                 </FlexboxLayout>

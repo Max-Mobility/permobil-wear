@@ -1,7 +1,7 @@
 import { Observable } from 'tns-core-modules/data/observable';
 import { alert, action } from 'tns-core-modules/ui/dialogs';
 import { device, screen } from 'tns-core-modules/platform';
-//import { Bluetooth } from 'nativescript-bluetooth';
+// import { Bluetooth } from 'nativescript-bluetooth';
 import { Prop } from '../../obs-prop';
 import * as application from 'tns-core-modules/application';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
@@ -115,7 +115,7 @@ export class HelloWorldModel extends Observable {
           const z = this._trimAccelerometerData(accelerometerdata.z);
           // this.accelerometerData = `X: ${x} - Y: ${y} * Z: ${z}`;
 
-          const diff = Math.sqrt(
+          let diff = Math.sqrt(
             accelerometerdata.x * accelerometerdata.x +
               accelerometerdata.y * accelerometerdata.y +
               accelerometerdata.z * accelerometerdata.z
@@ -155,8 +155,8 @@ export class HelloWorldModel extends Observable {
     return this._bluetoothService
       .scanForSmartDrive()
       .then(() => {
-        let sds = BluetoothService.SmartDrives;
-        let addresses = sds.map(sd => sd.address);
+        const sds = BluetoothService.SmartDrives;
+        const addresses = sds.map(sd => sd.address);
         action({
           message: `Found ${sds && sds.length} SmartDrives!.`,
           actions: addresses,
@@ -208,10 +208,10 @@ export class HelloWorldModel extends Observable {
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
-            this._heartRateLottie.playAnimation();
-            setTimeout(() => {
-              this._heartRateLottie.cancelAnimation();
-            }, 600);
+            // this._heartRateLottie.playAnimation();
+            // setTimeout(() => {
+            //   // this._heartRateLottie.cancelAnimation();
+            // }, 600);
           }
         });
       }
@@ -219,6 +219,8 @@ export class HelloWorldModel extends Observable {
       // if already getting the HR, then turn off on this tap
       if (this.isGettingHeartRate === true) {
         this.isGettingHeartRate = false;
+        this._heartRateLottie.autoPlay = false;
+        this._heartRateLottie.cancelAnimation();
         mSensorManager.unregisterListener(this._heartrateListener);
         return;
       }
@@ -244,6 +246,8 @@ export class HelloWorldModel extends Observable {
 
       if (didRegListener) {
         this.isGettingHeartRate = true;
+        this._heartRateLottie.autoPlay = true;
+        this._heartRateLottie.playAnimation();
         console.log('Registered heart rate sensor listener');
       } else {
         console.log('Heart Rate listener did not register.');
