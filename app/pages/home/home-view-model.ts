@@ -1,7 +1,7 @@
 import { Observable } from 'tns-core-modules/data/observable';
-import { alert } from 'tns-core-modules/ui/dialogs';
+import { alert, action } from 'tns-core-modules/ui/dialogs';
 import { device, screen } from 'tns-core-modules/platform';
-import { Bluetooth } from 'nativescript-bluetooth';
+// import { Bluetooth } from 'nativescript-bluetooth';
 import { Prop } from '../../obs-prop';
 import * as application from 'tns-core-modules/application';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
@@ -9,6 +9,9 @@ import * as Toast from 'nativescript-toast';
 import { topmost, Page } from 'tns-core-modules/ui/frame';
 import * as permissions from 'nativescript-permissions';
 import { LottieView } from 'nativescript-lottie';
+import { BluetoothService } from '../../services';
+
+import { Packet, SmartDrive } from '../../core';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -52,12 +55,16 @@ export class HelloWorldModel extends Observable {
 
   private _page: Page;
 
-  private _bluetooth = new Bluetooth();
+  private _smartDrive: SmartDrive;
+
   private _motionDetectedLottie: LottieView;
+  private _heartRateLottie: LottieView;
+  private _bluetoothService: BluetoothService;
 
   constructor(page: Page) {
     super();
     this._page = page;
+    this._bluetoothService = new BluetoothService();
     console.log(
       { device },
       'Device Info: ',
@@ -70,19 +77,19 @@ export class HelloWorldModel extends Observable {
       device.language,
       device.uuid
     );
+  }
 
-    this._bluetooth.isBluetoothEnabled().then(
-      result => {
-        console.log('Bluetooth enabled: ' + result);
-      },
-      err => {
-        console.log({ err });
-      }
-    );
+  @Prop()
+  get connected(): boolean {
+    return this._smartDrive && this._smartDrive.connected;
   }
 
   motionDetectedLoaded(args) {
     this._motionDetectedLottie = args.object;
+  }
+
+  heartRateLoaded(args) {
+    this._heartRateLottie = args.object;
   }
 
   toggleAccelerometer() {
@@ -108,13 +115,20 @@ export class HelloWorldModel extends Observable {
           const z = this._trimAccelerometerData(accelerometerdata.z);
           // this.accelerometerData = `X: ${x} - Y: ${y} * Z: ${z}`;
 
-          const diff = Math.sqrt(
+          let diff = Math.sqrt(
             accelerometerdata.x * accelerometerdata.x +
               accelerometerdata.y * accelerometerdata.y +
               accelerometerdata.z * accelerometerdata.z
           );
+          diff = Math.abs(accelerometerdata.z);
 
           if (diff > THRESHOLD) {
+            if (this._smartDrive && this._smartDrive.ableToSend) {
+              console.log('Sending tap!');
+              this._smartDrive
+                .sendTap()
+                .catch(err => console.log('could not send tap', err));
+            }
             this.accelerometerData = `Motion detected ${diff
               .toString()
               .substring(0, 8)}`;
@@ -128,7 +142,7 @@ export class HelloWorldModel extends Observable {
           }
         }
       },
-      { sensorDelay: 'normal' }
+      { sensorDelay: 'game' }
     );
 
     // set true so next tap doesn't try to register the listeners again
@@ -136,13 +150,37 @@ export class HelloWorldModel extends Observable {
     this.accelerometerBtnText = 'Stop Accelerometer';
   }
 
-  async onAlertTap() {
-    alert({
-      message: 'Alert can be swiped or closed with button.',
-      okButtonText: 'Okay'
-    }).then(() => {
-      Toast.makeText('Alert closed').show();
-    });
+  async onScanTap() {
+    console.log('onScanTap()');
+    return this._bluetoothService
+      .scanForSmartDrive()
+      .then(() => {
+        const sds = BluetoothService.SmartDrives;
+        const addresses = sds.map(sd => sd.address);
+        action({
+          message: `Found ${sds && sds.length} SmartDrives!.`,
+          actions: addresses,
+          cancelButtonText: 'Dismiss'
+        }).then(result => {
+          console.log('result', result);
+          if (addresses.indexOf(result) > -1) {
+            this._smartDrive = sds.filter(sd => sd.address === result)[0];
+            this._smartDrive.connect();
+            Toast.makeText('Connecting to ' + result).show();
+          }
+        });
+      })
+      .catch(err => {
+        console.log('could not scan', err);
+      });
+  }
+
+  async onDisconnectTap() {
+    if (this._smartDrive.connected) {
+      this._smartDrive.disconnect().then(() => {
+        Toast.makeText('Disconnected from ' + this._smartDrive.address).show();
+      });
+    }
   }
 
   async startHeartRate() {
@@ -170,6 +208,10 @@ export class HelloWorldModel extends Observable {
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
+            // this._heartRateLottie.playAnimation();
+            // setTimeout(() => {
+            //   // this._heartRateLottie.cancelAnimation();
+            // }, 600);
           }
         });
       }
@@ -177,6 +219,8 @@ export class HelloWorldModel extends Observable {
       // if already getting the HR, then turn off on this tap
       if (this.isGettingHeartRate === true) {
         this.isGettingHeartRate = false;
+        this._heartRateLottie.autoPlay = false;
+        this._heartRateLottie.cancelAnimation();
         mSensorManager.unregisterListener(this._heartrateListener);
         return;
       }
@@ -202,6 +246,8 @@ export class HelloWorldModel extends Observable {
 
       if (didRegListener) {
         this.isGettingHeartRate = true;
+        this._heartRateLottie.autoPlay = true;
+        this._heartRateLottie.playAnimation();
         console.log('Registered heart rate sensor listener');
       } else {
         console.log('Heart Rate listener did not register.');
