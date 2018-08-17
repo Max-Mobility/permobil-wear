@@ -58,6 +58,7 @@ export class HelloWorldModel extends Observable {
 	private _smartDrive: SmartDrive;
 
   private _motionDetectedLottie: LottieView;
+  private _heartRateLottie: LottieView;
   private _bluetoothService: BluetoothService;
 
   constructor(page: Page) {
@@ -78,8 +79,17 @@ export class HelloWorldModel extends Observable {
     );
   }
 
+	@Prop()
+	get connected(): boolean {
+		return this._smartDrive && this._smartDrive.connected;
+	}
+
   motionDetectedLoaded(args) {
     this._motionDetectedLottie = args.object;
+  }
+
+  heartRateLoaded(args) {
+    this._heartRateLottie = args.object;
   }
 
   toggleAccelerometer() {
@@ -160,13 +170,12 @@ export class HelloWorldModel extends Observable {
 		});
 	}
 
-  async onAlertTap() {
-    alert({
-      message: 'Alert can be swiped or closed with button.',
-      okButtonText: 'Okay'
-    }).then(() => {
-      Toast.makeText('Alert closed').show();
-    });
+	async onDisconnectTap() {
+		if (this._smartDrive.connected) {
+			this._smartDrive.disconnect().then(() => {
+				Toast.makeText('Disconnected from ' + this._smartDrive.address).show();
+			});
+		}
   }
 
   async startHeartRate() {
@@ -194,6 +203,10 @@ export class HelloWorldModel extends Observable {
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
+              this._heartRateLottie.playAnimation();
+              setTimeout(() => {
+				  this._heartRateLottie.cancelAnimation();
+              }, 600);
           }
         });
       }

@@ -1106,6 +1106,12 @@ export class SmartDrive extends Observable {
     }
   }
 
+	public disconnect() {
+      return this._bluetoothService.disconnect({
+          UUID: this.address
+      });
+  }
+
   public handleConnect(data?: any) {
     // update state
     this.connected = true;

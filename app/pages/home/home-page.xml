@@ -3,7 +3,7 @@
     xmlns:Lottie="nativescript-lottie" navigatingTo="navigatingTo" actionBarHidden="true" class="permobil-page">
 
     <ScrollView>
-        <FlexboxLayout flexDirection="column" justifyContent="space-between">
+        <FlexboxLayout flexDirection="column" justifyContent="space-between" padding="30 0">
             <FlexboxLayout flexDirection="row" justifyContent="center" marginTop="15" width="60%">
                 <Image src="~/assets/images/permobil-logo.png" stretch="aspectFit" />
             </FlexboxLayout>
@@ -18,15 +18,15 @@
                 <FlexboxLayout flexDirection="column" justifyContent="center">
                     <Button text="Heart Rate" tap="{{ startHeartRate }}" class="btn" />
                     <GridLayout height="85" rows="auto" columns="*" visibility="{{ isGettingHeartRate ? 'visible' : 'collapsed' }}">
-                        <Lottie:LottieView row="0" col="0" horizontalAlignment="center" verticalAlignment="middle" src="pulse.json" height="100" width="100" loop="true" autoPlay="true" loaded="yourLoadedEvent" />
+                        <Lottie:LottieView row="0" col="0" horizontalAlignment="center" verticalAlignment="middle" src="pulse.json" height="100" width="100" loop="false" autoPlay="false" loaded="{{ heartRateLoaded }}" />
                         <Label row="0" col="0" text="{{ heartRate }}" class="heart-rate" textWrap="true" />
                     </GridLayout>
                 </FlexboxLayout>
                 <FlexboxLayout flexDirection="row" justifyContent="center">
                     <Button text="Scan For SmartDrives" tap="{{ onScanTap }}" class="btn" />
                 </FlexboxLayout>
-                <FlexboxLayout flexDirection="row" justifyContent="center">
-                    <Button text="Alert" tap="{{ onAlertTap }}" class="btn" />
+                <FlexboxLayout visibility="{{ connected ? 'visible' : 'collapsed' }}" flexDirection="row" justifyContent="center">
+                    <Button text="Disconnect" tap="{{ onDisconnectTap }}" class="btn" />
                 </FlexboxLayout>
             </FlexboxLayout>
         </FlexboxLayout>
