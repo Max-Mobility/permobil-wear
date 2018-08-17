@@ -1,7 +1,7 @@
 import { Observable } from 'tns-core-modules/data/observable';
-import { alert } from 'tns-core-modules/ui/dialogs';
+import { alert, action } from 'tns-core-modules/ui/dialogs';
 import { device, screen } from 'tns-core-modules/platform';
-import { Bluetooth } from 'nativescript-bluetooth';
+//import { Bluetooth } from 'nativescript-bluetooth';
 import { Prop } from '../../obs-prop';
 import * as application from 'tns-core-modules/application';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
@@ -10,6 +10,8 @@ import { topmost, Page } from 'tns-core-modules/ui/frame';
 import * as permissions from 'nativescript-permissions';
 import { LottieView } from 'nativescript-lottie';
 import { BluetoothService } from '../../services';
+
+import { Packet, SmartDrive } from '../../core';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -51,9 +53,11 @@ export class HelloWorldModel extends Observable {
 
   private _heartrateListener;
 
-  private _page: Page;
+	private _page: Page;
 
-  private _bluetooth = new Bluetooth();
+	private _smartDrive: SmartDrive;
+
+	//private _bluetooth = new Bluetooth();
   private _motionDetectedLottie: LottieView;
   private _bluetoothService: BluetoothService;
 
@@ -61,7 +65,6 @@ export class HelloWorldModel extends Observable {
     super();
     this._page = page;
     this._bluetoothService = new BluetoothService();
-    console.log('bluetoothService', this._bluetoothService);
     console.log(
       { device },
       'Device Info: ',
@@ -75,6 +78,7 @@ export class HelloWorldModel extends Observable {
       device.uuid
     );
 
+		  /*
     this._bluetooth.isBluetoothEnabled().then(
       result => {
         console.log('Bluetooth enabled: ' + result);
@@ -83,6 +87,7 @@ export class HelloWorldModel extends Observable {
         console.log({ err });
       }
     );
+		  */
   }
 
   motionDetectedLoaded(args) {
@@ -119,6 +124,9 @@ export class HelloWorldModel extends Observable {
           );
 
           if (diff > THRESHOLD) {
+			  if (this._smartDrive.ableToSend) {
+				  this._smartDrive.sendTap();
+			  }
             this.accelerometerData = `Motion detected ${diff
               .toString()
               .substring(0, 8)}`;
@@ -139,6 +147,28 @@ export class HelloWorldModel extends Observable {
     this._isListeningAccelerometer = true;
     this.accelerometerBtnText = 'Stop Accelerometer';
   }
+
+	async onScanTap() {
+		console.log('onScanTap()');
+		return this._bluetoothService.scanForSmartDrive().then(() => {
+			let sds = BluetoothService.SmartDrives;
+			let addresses = sds.map(sd => sd.address);
+			action({
+				message: `Found ${sds && sds.length} SmartDrives!.`,
+				actions: addresses,
+				cancelButtonText: 'Dismiss'
+			}).then((result) => {
+				console.log('result', result);
+				if (addresses.indexOf(result) > -1) {
+					this._smartDrive = sds.filter((sd) => sd.address === result)[0];
+					this._smartDrive.connect();
+					Toast.makeText('Connecting to ' + result).show();
+				}
+			});
+		}).catch((err) => {
+			console.log('could not scan', err);
+		});
+	}
 
   async onAlertTap() {
     alert({
