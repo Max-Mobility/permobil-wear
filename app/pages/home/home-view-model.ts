@@ -9,6 +9,7 @@ import * as Toast from 'nativescript-toast';
 import { topmost, Page } from 'tns-core-modules/ui/frame';
 import * as permissions from 'nativescript-permissions';
 import { LottieView } from 'nativescript-lottie';
+import { BluetoothService } from '../../services';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -54,10 +55,13 @@ export class HelloWorldModel extends Observable {
 
   private _bluetooth = new Bluetooth();
   private _motionDetectedLottie: LottieView;
+  private _bluetoothService: BluetoothService;
 
   constructor(page: Page) {
     super();
     this._page = page;
+    this._bluetoothService = new BluetoothService();
+    console.log('bluetoothService', this._bluetoothService);
     console.log(
       { device },
       'Device Info: ',

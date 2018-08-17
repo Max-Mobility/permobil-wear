@@ -9,7 +9,7 @@ import {
 // import { Feedback } from 'nativescript-feedback';
 // import { SnackBar } from 'nativescript-snackbar';
 import { ObservableArray } from 'tns-core-modules/data/observable-array';
-import { isAndroid, isIOS } from 'tns-core-modules/platform/platform';
+import { isAndroid, isIOS } from 'tns-core-modules/platform';
 import * as dialogsModule from 'tns-core-modules/ui/dialogs';
 
 export class BluetoothService {
