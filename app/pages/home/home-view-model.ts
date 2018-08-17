@@ -57,7 +57,6 @@ export class HelloWorldModel extends Observable {
 
 	private _smartDrive: SmartDrive;
 
-	//private _bluetooth = new Bluetooth();
   private _motionDetectedLottie: LottieView;
   private _bluetoothService: BluetoothService;
 
@@ -77,17 +76,6 @@ export class HelloWorldModel extends Observable {
       device.language,
       device.uuid
     );
-
-		  /*
-    this._bluetooth.isBluetoothEnabled().then(
-      result => {
-        console.log('Bluetooth enabled: ' + result);
-      },
-      err => {
-        console.log({ err });
-      }
-    );
-		  */
   }
 
   motionDetectedLoaded(args) {
@@ -125,7 +113,8 @@ export class HelloWorldModel extends Observable {
 
           if (diff > THRESHOLD) {
 			  if (this._smartDrive.ableToSend) {
-				  this._smartDrive.sendTap();
+				  console.log('Sending tap!');
+				  this._smartDrive.sendTap().catch((err) => console.log('could not send tap', err));
 			  }
             this.accelerometerData = `Motion detected ${diff
               .toString()
@@ -140,7 +129,7 @@ export class HelloWorldModel extends Observable {
           }
         }
       },
-      { sensorDelay: 'normal' }
+      { sensorDelay: 'game' }
     );
 
     // set true so next tap doesn't try to register the listeners again

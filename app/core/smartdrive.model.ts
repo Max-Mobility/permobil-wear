@@ -1143,7 +1143,7 @@ export class SmartDrive extends Observable {
     const uArray = new Uint8Array(value);
     const p = new Packet();
     p.initialize(uArray);
-    console.log(`${p.Type()}::${p.SubType()} ${p.toString()}`);
+      //console.log(`${p.Type()}::${p.SubType()} ${p.toString()}`);
     this.handlePacket(p);
     p.destroy();
   }
