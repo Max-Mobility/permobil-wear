@@ -933,45 +933,51 @@ export class SmartDrive extends Observable {
     }
   }
 
-	public sendSettings(
-      mode: string,
-      units: string,
-      flags: number,
-      tap_sensitivity: number,
-      acceleration: number,
-      max_speed: number
+  public sendSettings(
+    mode: string,
+    units: string,
+    flags: number,
+    tap_sensitivity: number,
+    acceleration: number,
+    max_speed: number
   ): Promise<any> {
-		let p = new Packet();
-		let settings = p.data('settings');
-		// convert mode
-		if (mode == 'MX2+') mode = 'Advanced';
-		else if (mode == 'MX2') mode = 'Intermediate';
-		else if (mode == 'MX1') mode = 'Beginner';
-		else if (mode == 'Off') mode = 'Off';
-		else mode = 'Advanced';
-		// convert units
-		units = units == 'Metric' ? 'Metric' : 'English';
-		// clamp numbers
-		const clamp = n => {
-			return Math.max(0, Math.min(n, 1.0));
-		};
-		tap_sensitivity = clamp(tap_sensitivity);
-		acceleration = clamp(acceleration);
-		max_speed = clamp(max_speed);
-		// now fill in the packet
-		settings.ControlMode = Packet.makeBoundData('SmartDriveControlMode', mode);
-		settings.Units = Packet.makeBoundData('Units', units);
-		settings.Flags = flags;
-		settings.TapSensitivity = tap_sensitivity;
-		settings.Acceleration = acceleration;
-		settings.MaxSpeed = max_speed;
-		p.destroy();
-		return this.sendPacket('Command', 'SetSettings', 'settings', null, settings);
-	}
+    const p = new Packet();
+    const settings = p.data('settings');
+    // convert mode
+    if (mode === 'MX2+') mode = 'Advanced';
+    else if (mode === 'MX2') mode = 'Intermediate';
+    else if (mode === 'MX1') mode = 'Beginner';
+    else if (mode === 'Off') mode = 'Off';
+    else mode = 'Advanced';
+    // convert units
+    units = units === 'Metric' ? 'Metric' : 'English';
+    // clamp numbers
+    const clamp = n => {
+      return Math.max(0, Math.min(n, 1.0));
+    };
+    tap_sensitivity = clamp(tap_sensitivity);
+    acceleration = clamp(acceleration);
+    max_speed = clamp(max_speed);
+    // now fill in the packet
+    settings.ControlMode = Packet.makeBoundData('SmartDriveControlMode', mode);
+    settings.Units = Packet.makeBoundData('Units', units);
+    settings.Flags = flags;
+    settings.TapSensitivity = tap_sensitivity;
+    settings.Acceleration = acceleration;
+    settings.MaxSpeed = max_speed;
+    p.destroy();
+    return this.sendPacket(
+      'Command',
+      'SetSettings',
+      'settings',
+      null,
+      settings
+    );
+  }
 
-	public sendTap() {
-		return this.sendPacket('Command', 'Tap');
-	}
+  public sendTap() {
+    return this.sendPacket('Command', 'Tap');
+  }
 
   /**
    * Notify events by name and optionally pass data
@@ -1106,10 +1112,10 @@ export class SmartDrive extends Observable {
     }
   }
 
-	public disconnect() {
-      return this._bluetoothService.disconnect({
-          UUID: this.address
-      });
+  public disconnect() {
+    return this._bluetoothService.disconnect({
+      UUID: this.address
+    });
   }
 
   public handleConnect(data?: any) {
@@ -1149,7 +1155,7 @@ export class SmartDrive extends Observable {
     const uArray = new Uint8Array(value);
     const p = new Packet();
     p.initialize(uArray);
-      //console.log(`${p.Type()}::${p.SubType()} ${p.toString()}`);
+    // console.log(`${p.Type()}::${p.SubType()} ${p.toString()}`);
     this.handlePacket(p);
     p.destroy();
   }

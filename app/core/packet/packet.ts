@@ -3,7 +3,12 @@ const Buffer = require('buffer').Buffer;
 
 export function bindingTypeToString(bindingType, bindingValue) {
   let valueName = null;
-  if (bindingType === null || bindingType === undefined || bindingValue === null || bindingValue === undefined) {
+  if (
+    bindingType === null ||
+    bindingType === undefined ||
+    bindingValue === null ||
+    bindingValue === undefined
+  ) {
     return valueName;
   }
   const names = Object.keys(PacketBinding[bindingType]).filter(key => {
@@ -83,13 +88,15 @@ export class Packet {
         this.instance[key] = data;
       }
     } catch (err) {
-      console.log(`Couldn't make packet: ${_type}::${subType}::${key} - ${err}`);
+      console.log(
+        `Couldn't make packet: ${_type}::${subType}::${key} - ${err}`
+      );
     }
   }
 
   public makeOTAPacket(device: string, startIndex: number, firmware: any) {
-    let length = Math.min(firmware.length - startIndex, 16);
-    let bytes = new PacketBinding.VectorInt();
+    const length = Math.min(firmware.length - startIndex, 16);
+    const bytes = new PacketBinding.VectorInt();
     for (let i = 0; i < length; i++) {
       bytes.push_back(firmware[startIndex + i]);
     }
