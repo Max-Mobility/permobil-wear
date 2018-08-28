@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">Permobil</string>
     <string name="title_activity_kimera">Permobil</string>
+    <string name="complications_provider_service_label">Complication Provider Service</string>
 </resources>
