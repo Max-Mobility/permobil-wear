@@ -1,11 +1,11 @@
 {
   "nativescript": {
     "id": "com.permobil.watch",
-    "tns-android": {
-      "version": "4.2.0"
-    },
     "tns-ios": {
       "version": "4.2.0"
+    },
+    "tns-android": {
+      "version": "4.3.0-2018-08-29-02"
     }
   },
   "main": "app.js",
@@ -18,9 +18,10 @@
     "start.ios": "tns run ios",
     "build-bluetooth": "cd nativescript-bluetooth && npm i && tsc && rm -rf *.tgz && npm pack",
     "build-accelerometer": "cd nativescript-accelerometer && npm i && tsc && rm -rf *.tgz && npm pack",
+    "build-complications": "cd nativescript-complications && npm i && tsc && rm -rf *.tgz && npm pack",
     "nuke": "rm -rf platforms hooks node_modules package-lock.json",
     "nuki": "npm run nuke && npm run setup",
-    "setup": "npm i && npm run build-bluetooth && npm run build-accelerometer"
+    "setup": "npm i && npm run build-bluetooth && npm run build-accelerometer && npm run build-complications"
   },
   "dependencies": {
     "buffer": "^5.2.0",

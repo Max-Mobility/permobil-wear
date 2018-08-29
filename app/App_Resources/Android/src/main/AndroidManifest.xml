@@ -30,5 +30,27 @@
 			</intent-filter>
 		</activity>
 		<activity android:name="com.tns.ErrorReportActivity"/>
+
+
+        <service
+            android:name="com.permobil.CustomComplicationProviderService"
+            android:icon="@drawable/ic_watch_white"
+            android:label="@string/complications_provider_service_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SMALL_IMAGE"/>
+
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="600"/>
+        </service>
+
+        <receiver android:name="com.permobil.ComplicationTapBroadcastReceiver"/>
+		
 	</application>
 </manifest>

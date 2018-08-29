@@ -1,6 +1,5 @@
-/* tslint:disable */
-'use strict';
-(global as any).__awaiter =
+// @ts-ignore
+global.__awaiter =
   (this && this.__awaiter) ||
   function(thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function(resolve, reject) {
@@ -31,7 +30,7 @@
 (global as any).__generator =
   (this && this.__generator) ||
   function(thisArg, body) {
-    var _ = {
+    let _ = {
         label: 0,
         sent: function() {
           if (t[0] & 1) throw t[1];
@@ -42,8 +41,16 @@
       },
       f,
       y,
-      t;
-    return { next: verb(0), throw: verb(1), return: verb(2) };
+      t,
+      g;
+    return (
+      (g = { next: verb(0), throw: verb(1), return: verb(2) }),
+      typeof Symbol === 'function' &&
+        (g[Symbol.iterator] = function() {
+          return this;
+        }),
+      g
+    );
     function verb(n) {
       return function(v) {
         return step([n, v]);

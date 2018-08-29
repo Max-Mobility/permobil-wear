@@ -1,4 +1,5 @@
 ﻿import './async-await';
+
 // import 'nativescript-master-technology';
 import * as application from 'tns-core-modules/application';
 

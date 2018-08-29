@@ -10,7 +10,7 @@ import { topmost, Page } from 'tns-core-modules/ui/frame';
 import * as permissions from 'nativescript-permissions';
 import { LottieView } from 'nativescript-lottie';
 import { BluetoothService } from '../../services';
-
+import * as complications from '../../complications';
 import { Packet, SmartDrive } from '../../core';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
