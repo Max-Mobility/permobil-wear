@@ -1,18 +1,5 @@
-/// <reference path="../../node_modules/tns-platform-declarations/android.d.ts" />
-
 import * as app from 'tns-core-modules/application';
-import { ComplicationTapBroadcastReceiver } from '~/complications/complication_tap_broadcast_receiver';
-
-declare namespace android {
-  export namespace support {
-    export namespace wearable {
-      export namespace complications {
-        export class ComplicationProviderService {}
-        export class ComplicationManager {}
-      }
-    }
-  }
-}
+import { ComplicationTapBroadcastReceiver } from './complication_tap_broadcast_receiver';
 
 @JavaProxy('com.permobil.CustomComplicationProviderService')
 export class CustomComplicationProviderService extends android.support.wearable
@@ -21,11 +8,6 @@ export class CustomComplicationProviderService extends android.support.wearable
 
   constructor() {
     super();
-    console.log(
-      CustomComplicationProviderService.TAG,
-      'CustomComplicationProviderService constructor ****'
-    );
-
     return global.__native(this);
   }
 
@@ -36,7 +18,7 @@ export class CustomComplicationProviderService extends android.support.wearable
    * You can continue sending data for the active complicationId until onComplicationDeactivated()
    * is called.
    */
-  public onComplicationActivated(
+  onComplicationActivated(
     complicationId: number,
     dataType: number,
     complicationManager: android.support.wearable.complications.ComplicationManager
@@ -58,7 +40,7 @@ export class CustomComplicationProviderService extends android.support.wearable
    *       ProviderUpdateRequester.requestUpdate() method.
    */
 
-  public onComplicationUpdate(
+  onComplicationUpdate(
     complicationId: number,
     dataType: number,
     complicationManager: android.support.wearable.complications.ComplicationManager
@@ -75,9 +57,7 @@ export class CustomComplicationProviderService extends android.support.wearable
     // Used to create a unique key to use with SharedPreferences for this complication.
     const thisProvider = new (android as any).content.ComponentName(
       app.android.context,
-      //   getClass()
-
-      java.lang.Class.forName('com.tns.NativeScriptActivity')
+      java.lang.Class.forName('com.permobil.CustomComplicationProviderService')
     );
 
     // Retrieves your data, in this case, we grab an incrementing number from SharedPrefs.
@@ -104,7 +84,7 @@ export class CustomComplicationProviderService extends android.support.wearable
   /*
    * Called when the complication has been deactivated.
    */
-  public onComplicationDeactivated(complicationId: number): void {
+  onComplicationDeactivated(complicationId: number): void {
     console.log(
       CustomComplicationProviderService.TAG,
       'onComplicationDeactivated(): ' + complicationId

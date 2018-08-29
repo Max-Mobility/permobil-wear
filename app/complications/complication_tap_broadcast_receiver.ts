@@ -1,5 +1,3 @@
-/// <reference path="../../node_modules/tns-platform-declarations/android.d.ts" />
-
 /**
  * Simple {@link BroadcastReceiver} subclass for asynchronously incrementing an integer for any
  * complication id triggered via TapAction on complication. Also, provides static method to create
@@ -20,11 +18,6 @@ export class ComplicationTapBroadcastReceiver extends android.content
 
   constructor() {
     super();
-    console.log(
-      ComplicationTapBroadcastReceiver.TAG,
-      'ComplicationTapBroadcastReceiver constructor ****'
-    );
-
     return global.__native(this);
   }
 
