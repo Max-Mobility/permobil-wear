@@ -62,7 +62,8 @@ export class ComplicationTapBroadcastReceiver extends android.content
       provider
     );
     // This instructs Wear OS that our complication's data has been updated.
-    requester.requestUpdate(complicationId);
+    console.log('calling requestUpdate for the Provider');
+    requester.requestUpdate([complicationId]);
   }
 
   // /**
