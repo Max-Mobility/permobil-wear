@@ -45,9 +45,9 @@
                 android:name="android.support.wearable.complications.SUPPORTED_TYPES"
                 android:value="SMALL_IMAGE"/>
 
-            <meta-data
-                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="600"/>
+            <meta-data 
+    			android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+    			android:value="0"/>
         </service>
 
         <receiver android:name="com.permobil.ComplicationTapBroadcastReceiver"/>

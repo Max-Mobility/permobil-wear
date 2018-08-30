@@ -1,11 +1,14 @@
 import * as app from 'tns-core-modules/application';
-import { ComplicationTapBroadcastReceiver } from './complication_tap_broadcast_receiver';
+import {
+  ComplicationTapBroadcastReceiver,
+  getPreferenceKey,
+  KEYS
+} from './complication_tap_broadcast_receiver';
 
 @JavaProxy('com.permobil.CustomComplicationProviderService')
 export class CustomComplicationProviderService extends android.support.wearable
   .complications.ComplicationProviderService {
-  private static TAG = 'ComplicationProviderService';
-
+  private _broadcastReceiver: ComplicationTapBroadcastReceiver;
   constructor() {
     super();
     return global.__native(this);
@@ -24,8 +27,8 @@ export class CustomComplicationProviderService extends android.support.wearable
     complicationManager: android.support.wearable.complications.ComplicationManager
   ): void {
     console.log(
-      CustomComplicationProviderService.TAG,
-      'onComplicationActivated(): ' + complicationId
+      'CustomComplicationProviderService',
+      `onComplicationActivated(): complicationId ${complicationId}`
     );
   }
 
@@ -46,8 +49,8 @@ export class CustomComplicationProviderService extends android.support.wearable
     complicationManager: android.support.wearable.complications.ComplicationManager
   ): void {
     console.log(
-      CustomComplicationProviderService.TAG,
-      'onComplicationUpdate() id: ' + complicationId
+      'CustomComplicationProviderService',
+      `onComplicationUpdate() complicationId: ${complicationId}`
     );
 
     // if (javaObj === null || typeof javaObj !== 'object') {
@@ -55,30 +58,92 @@ export class CustomComplicationProviderService extends android.support.wearable
     // }
 
     // Used to create a unique key to use with SharedPreferences for this complication.
+    console.log('CONTEXT', this);
     const thisProvider = new (android as any).content.ComponentName(
-      app.android.context,
-      java.lang.Class.forName('com.permobil.CustomComplicationProviderService')
+      this,
+      java.lang.Class.forName('com.tns.NativeScriptActivity')
     );
 
+    // We pass the complication id, so we can only update the specific complication tapped.
+    const complicationPendingIntent = this.getToggleIntent(
+      this as any,
+      thisProvider,
+      complicationId
+    );
+    console.log('complicationPendingIntent', complicationPendingIntent);
+
+    const prefKey = KEYS.COMPLICATION_PROVIDER_PREFERENCES_FILE_KEY;
+    console.log('PREFKEY', prefKey);
     // Retrieves your data, in this case, we grab an incrementing number from SharedPrefs.
-    const preferences = app
-      .getNativeApplication()
-      .getApplicationContext()
-      .getSharedPreferences(
-        ComplicationTapBroadcastReceiver.COMPLICATION_PROVIDER_PREFERENCES_FILE_KEY,
-        0
-      );
+    const preferences = (this as any).getSharedPreferences(
+      KEYS.COMPLICATION_PROVIDER_PREFERENCES_FILE_KEY,
+      0
+    ) as android.content.SharedPreferences;
+    console.log({ preferences });
 
     const keyNumber = preferences.getInt(
-      ComplicationTapBroadcastReceiver.getPreferenceKey(
-        thisProvider,
-        complicationId
-      ),
+      getPreferenceKey(thisProvider, complicationId),
       0
     );
     // const numberText = String.format(Locale.getDefault(), '%d!', number);
     const numberText = `${keyNumber}!`;
     console.log({ numberText });
+
+    let complicationData = null;
+
+    console.log('switch statement for DATATYPE', dataType);
+
+    const builder = new android.support.wearable.complications.ComplicationData.Builder(
+      dataType
+    );
+    console.log(builder);
+
+    switch (dataType) {
+      case android.support.wearable.complications.ComplicationData
+        .TYPE_SHORT_TEXT:
+        // complicationData = new android.support.wearable.complications.ComplicationData.Builder(
+        //   android.support.wearable.complications.ComplicationData.TYPE_SHORT_TEXT
+        // )
+        builder.setShortText(
+          android.support.wearable.complications.ComplicationText.plainText(
+            numberText
+          )
+        );
+        builder.setTapAction(complicationPendingIntent);
+        complicationData = builder.build();
+        break;
+      case android.support.wearable.complications.ComplicationData
+        .TYPE_SMALL_IMAGE:
+        console.log('TYPE_SMALL_IMAGE data type');
+        // builder.setLongText(
+        //   android.support.wearable.complications.ComplicationText.plainText(
+        //     'World'
+        //   )
+        // );
+        // builder.setLongTitle(
+        //   android.support.wearable.complications.ComplicationText.plainText(
+        //     'Hello'
+        //   )
+        // );
+        // complicationData = builder.build();
+        break;
+      default:
+        console.log(
+          'CustomComplicationProviderService',
+          'Unexpected complication type ' + dataType
+        );
+    }
+
+    if (complicationData != null) {
+      complicationManager.updateComplicationData(
+        complicationId,
+        complicationData
+      );
+    } else {
+      // If no data is sent, we still need to inform the ComplicationManager, so the update
+      // job can finish and the wake lock isn't held any longer than necessary.
+      complicationManager.noUpdateRequired(complicationId);
+    }
   }
 
   /*
@@ -86,8 +151,34 @@ export class CustomComplicationProviderService extends android.support.wearable
    */
   onComplicationDeactivated(complicationId: number): void {
     console.log(
-      CustomComplicationProviderService.TAG,
+      'CustomComplicationProviderService',
       'onComplicationDeactivated(): ' + complicationId
+    );
+  }
+
+  /**
+   * Returns a pending intent, suitable for use as a tap intent, that causes a complication to be
+   * toggled and updated.
+   */
+  private getToggleIntent(
+    context: android.content.Context,
+    provider: android.content.ComponentName,
+    complicationId: number
+  ): android.app.PendingIntent {
+    const intent = new android.content.Intent(
+      context,
+      ComplicationTapBroadcastReceiver.class
+    );
+    intent.putExtra(KEYS.EXTRA_PROVIDER_COMPONENT, provider);
+    intent.putExtra(KEYS.EXTRA_COMPLICATION_ID, complicationId);
+
+    // Pass complicationId as the requestCode to ensure that different complications get
+    // different intents.
+    return android.app.PendingIntent.getBroadcast(
+      context,
+      complicationId,
+      intent,
+      android.app.PendingIntent.FLAG_UPDATE_CURRENT
     );
   }
 }
