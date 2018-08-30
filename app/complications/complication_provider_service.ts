@@ -61,7 +61,7 @@ export class CustomComplicationProviderService extends android.support.wearable
     console.log('CONTEXT', this);
     const thisProvider = new (android as any).content.ComponentName(
       this,
-      java.lang.Class.forName('com.tns.NativeScriptActivity')
+      java.lang.Class.forName('com.permobil.CustomComplicationProviderService')
     );
 
     // We pass the complication id, so we can only update the specific complication tapped.
@@ -101,16 +101,16 @@ export class CustomComplicationProviderService extends android.support.wearable
     switch (dataType) {
       case android.support.wearable.complications.ComplicationData
         .TYPE_SHORT_TEXT:
-        // complicationData = new android.support.wearable.complications.ComplicationData.Builder(
-        //   android.support.wearable.complications.ComplicationData.TYPE_SHORT_TEXT
-        // )
-        builder.setShortText(
-          android.support.wearable.complications.ComplicationText.plainText(
-            numberText
+        complicationData = new android.support.wearable.complications.ComplicationData.Builder(
+          android.support.wearable.complications.ComplicationData.TYPE_SHORT_TEXT
+        )
+          .setShortText(
+            android.support.wearable.complications.ComplicationText.plainText(
+              numberText
+            )
           )
-        );
-        builder.setTapAction(complicationPendingIntent);
-        complicationData = builder.build();
+          .setTapAction(complicationPendingIntent)
+          .build();
         break;
       case android.support.wearable.complications.ComplicationData
         .TYPE_SMALL_IMAGE:
@@ -134,6 +134,7 @@ export class CustomComplicationProviderService extends android.support.wearable
         );
     }
 
+    console.log('COMPLICATIONDATA', complicationData);
     if (complicationData != null) {
       complicationManager.updateComplicationData(
         complicationId,

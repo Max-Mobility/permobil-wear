@@ -42,8 +42,8 @@
             </intent-filter>
 
             <meta-data
-                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
-                android:value="SMALL_IMAGE"/>
+    			android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+    			android:value="SHORT_TEXT"/>
 
             <meta-data 
     			android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
