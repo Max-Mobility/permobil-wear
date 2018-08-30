@@ -2,9 +2,9 @@
 
 // Uncomment to add recyclerview-v7 dependency
 dependencies {
-   'com.android.support:wear:27.1.1'
-  //  'com.google.android.support:wearable:2.3.0'
-  //  'com.google.android.wearable:wearable:2.3.0'
+  implementation 'com.android.support:wear:27.1.1'
+  implementation 'com.google.android.support:wearable:2.3.0'
+  compileOnly 'com.google.android.wearable:wearable:2.3.0'
 }
 
 android {  
