@@ -1249,8 +1249,10 @@ export class SmartDrive extends Observable {
         */
     this.driveDistance = motorTicks;
     this.coastDistance = caseTicks;
+    /*
     console.log(`Got distance info: ${motorTicks}, ${caseTicks}`);
     console.log(`                 : ${motorMiles}, ${caseMiles}`);
+	  */
     this.sendEvent(SmartDrive.smartdrive_distance_event, {
       driveDistance: motorTicks,
       coastDistance: caseTicks

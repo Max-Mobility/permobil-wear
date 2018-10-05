@@ -31,7 +31,7 @@ export class BluetoothService {
 
   constructor() {
     // enabling `debug` will output console.logs from the bluetooth source code
-    this._bluetooth.debug = true;
+    this._bluetooth.debug = false;
     this.advertise().catch(err => {
       const msg = `bluetooth.service::advertise error: ${err}`;
       dialogsModule

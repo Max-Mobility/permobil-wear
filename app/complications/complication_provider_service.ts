@@ -86,7 +86,10 @@ export class CustomComplicationProviderService extends android.support.wearable
       0
     );
     // const numberText = String.format(Locale.getDefault(), '%d!', number);
-    const numberText = `${keyNumber}!`;
+    let numberText = '--';
+    if (keyNumber >= 0) {
+      numberText = `${keyNumber}%`;
+    }
     console.log({ numberText });
 
     let complicationData = null;

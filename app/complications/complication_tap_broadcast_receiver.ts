@@ -1,3 +1,5 @@
+import * as appSettings from 'tns-core-modules/application-settings';
+
 import { CustomComplicationProviderService } from './complication_provider_service';
 /**
  * Simple {@link BroadcastReceiver} subclass for asynchronously incrementing an integer for any
@@ -47,13 +49,10 @@ export class ComplicationTapBroadcastReceiver extends android.content
       0
     );
 
-    let value = sharedPreferences.getInt(preferenceKey, 0);
-
-    // Update data for complication.
-    value = (value + 1) % KEYS.MAX_NUMBER;
+    const sdBattery = parseInt(appSettings.getNumber('sd.battery'));
 
     const editor = sharedPreferences.edit() as android.content.SharedPreferences.Editor;
-    editor.putInt(preferenceKey, value);
+    editor.putInt(preferenceKey, sdBattery);
     editor.apply();
 
     // Request an update for the complication that has just been tapped.

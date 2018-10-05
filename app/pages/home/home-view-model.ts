@@ -13,6 +13,8 @@ import { BluetoothService } from '../../services';
 import * as complications from '../../complications';
 import { Packet, SmartDrive } from '../../core';
 
+import * as appSettings from 'tns-core-modules/application-settings';
+
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
 export class HelloWorldModel extends Observable {
@@ -146,6 +148,19 @@ export class HelloWorldModel extends Observable {
     this.accelerometerBtnText = 'Stop Accelerometer';
   }
 
+  async onDistance(args: any) {
+    // save the updated distance
+    appSettings.setNumber('sd.distance.case', this._smartDrive.coastDistance);
+    appSettings.setNumber('sd.distance.drive', this._smartDrive.driveDistance);
+  }
+
+  async onSmartDriveVersion(args: any) {
+    // save the updated battery
+    appSettings.setNumber('sd.version.mcu', this._smartDrive.mcu_version);
+    appSettings.setNumber('sd.version.ble', this._smartDrive.ble_version);
+    appSettings.setNumber('sd.battery', this._smartDrive.battery);
+  }
+
   async onScanTap() {
     console.log('onScanTap()');
     return this._bluetoothService
@@ -161,6 +176,16 @@ export class HelloWorldModel extends Observable {
           console.log('result', result);
           if (addresses.indexOf(result) > -1) {
             this._smartDrive = sds.filter(sd => sd.address === result)[0];
+            this._smartDrive.on(
+              SmartDrive.smartdrive_mcu_version_event,
+              this.onSmartDriveVersion,
+              this
+            );
+            this._smartDrive.on(
+              SmartDrive.smartdrive_distance_event,
+              this.onDistance,
+              this
+            );
             this._smartDrive.connect();
             this.connected = true;
             Toast.makeText('Connecting to ' + result).show();
@@ -174,6 +199,16 @@ export class HelloWorldModel extends Observable {
 
   async onDisconnectTap() {
     if (this._smartDrive.connected) {
+      this._smartDrive.off(
+        SmartDrive.smartdrive_mcu_version_event,
+        this.onSmartDriveVersion,
+        this
+      );
+      this._smartDrive.off(
+        SmartDrive.smartdrive_distance_event,
+        this.onDistance,
+        this
+      );
       this._smartDrive.disconnect().then(() => {
         this.connected = false;
         Toast.makeText('Disconnected from ' + this._smartDrive.address).show();
@@ -206,6 +241,7 @@ export class HelloWorldModel extends Observable {
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
+            appSettings.setNumber('heartrate', this.heartRate);
             // this._heartRateLottie.playAnimation();
             // setTimeout(() => {
             //   // this._heartRateLottie.cancelAnimation();
