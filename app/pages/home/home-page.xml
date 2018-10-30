@@ -30,6 +30,8 @@
                 </FlexboxLayout>
 
 
+                <Button text="Scan Bluefruits" tap="{{ scanForBluefruit }}" />
+
 
                 <StackLayout id="colorLayout" width="75%" horizontalAlignment="center">
                     <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ rColor }}" />

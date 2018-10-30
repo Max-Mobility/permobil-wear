@@ -15,11 +15,13 @@ import { topmost, Page } from 'tns-core-modules/ui/frame';
 import { StackLayout } from 'tns-core-modules/ui/layouts/stack-layout';
 import * as permissions from 'nativescript-permissions';
 import { LottieView } from 'nativescript-lottie';
+import { Bluetooth } from 'nativescript-bluetooth';
 import { BluetoothService } from '../../services';
 import * as complications from '../../complications';
-import { Packet, SmartDrive } from '../../core';
+import { Packet, SmartDrive, BlueFruit } from '../../core';
 
 import * as appSettings from 'tns-core-modules/application-settings';
+import { StartScanningOptions } from 'nativescript-bluetooth/common';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -80,6 +82,7 @@ export class HelloWorldModel extends Observable {
   private _heartRateLottie: LottieView;
   private _bluetoothService: BluetoothService;
   private _colorLayout: StackLayout;
+  private _bluetooth: Bluetooth;
 
   constructor(page: Page) {
     super();
@@ -87,6 +90,8 @@ export class HelloWorldModel extends Observable {
 
     this._colorLayout = page.getViewById('colorLayout') as StackLayout;
     this._bluetoothService = new BluetoothService();
+    this._bluetooth = new Bluetooth();
+
     console.log(
       { device },
       'Device Info: ',
@@ -108,17 +113,41 @@ export class HelloWorldModel extends Observable {
     });
   }
 
-  private _setColor(r, g, b) {
-    const r_hex = parseInt(r, 10).toString(16);
-    const g_hex = parseInt(g, 10).toString(16);
-    const b_hex = parseInt(b, 10).toString(16);
-    const hex = '#' + this._pad(r_hex) + this._pad(g_hex) + this._pad(b_hex);
-    console.log('hex === ', hex);
-    return hex;
-  }
+  scanForBluefruit() {
+    console.log('scan for bluefruits');
+    // const scanOpts: StartScanningOptions = {
+    //   serviceUUIDs: [BlueFruit.UART_Service],
+    //   seconds: 10,
+    //   onDiscovered: peripheral => {
+    //     console.log('Periperhal found with UUID: ' + peripheral.UUID);
+    //     if (peripheral.name.includes('Bluefruit')) {
+    //       alert('BLUEFRUIT FOUND 🧟‍♂️');
+    //     }
 
-  private _pad(n) {
-    return n.length < 2 ? '0' + n : n;
+    //     if (BlueFruit.isBlueFruitDevice(peripheral)) {
+    //       console.log('*** found the bluefruit device ***');
+    //       console.dir(peripheral);
+    //     }
+    //   }
+    // };
+
+    this._bluetoothService
+      .scan([], 5)
+      .then(result => {
+        console.log('scan reslt', result);
+      })
+      .catch(error => {
+        console.log('scan error', error);
+      });
+
+    // this._bluetooth.startScanning(scanOpts).then(
+    //   () => {
+    //     console.log('scanning complete');
+    //   },
+    //   err => {
+    //     console.log('error while scanning: ' + err);
+    //   }
+    // );
   }
 
   motionDetectedLoaded(args) {
@@ -341,5 +370,18 @@ export class HelloWorldModel extends Observable {
   private _trimAccelerometerData(value: number) {
     const x = value.toString();
     return x.substring(0, 8);
+  }
+
+  private _setColor(r, g, b) {
+    const r_hex = parseInt(r, 10).toString(16);
+    const g_hex = parseInt(g, 10).toString(16);
+    const b_hex = parseInt(b, 10).toString(16);
+    const hex = '#' + this._pad(r_hex) + this._pad(g_hex) + this._pad(b_hex);
+    console.log('hex === ', hex);
+    return hex;
+  }
+
+  private _pad(n) {
+    return n.length < 2 ? '0' + n : n;
   }
 }

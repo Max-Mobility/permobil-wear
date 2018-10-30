@@ -1,5 +1,5 @@
 // /// <reference path="../../../typings/android27.d.ts" />
-import { Packet, PushTracker, SmartDrive } from '../core';
+import { Packet, PushTracker, SmartDrive, BlueFruit } from '../core';
 import {
   Bluetooth,
   BondState,
@@ -17,6 +17,7 @@ export class BluetoothService {
   public static AppServiceUUID = '9358ac8f-6343-4a31-b4e0-4b13a2b45d86';
   public static PushTrackers = new ObservableArray<PushTracker>();
   public static SmartDrives = new ObservableArray<SmartDrive>();
+  public static BlueFruits = new ObservableArray<BlueFruit>();
 
   // public members
   public enabled = false;
@@ -391,6 +392,9 @@ export class BluetoothService {
     console.log(`${peripheral.name}::${peripheral.address} - discovered`);
     if (this.isSmartDrive(peripheral)) {
       const sd = this.getOrMakeSmartDrive(peripheral);
+    } else if (BlueFruit.isBlueFruitDevice(peripheral)) {
+      const bf = this._getOrMakeBlueFruit(peripheral);
+      console.log('brads bf', bf);
     }
   }
 
@@ -675,6 +679,24 @@ export class BluetoothService {
       sd.rssi = device.rssi;
     }
     return sd;
+  }
+
+  private _getOrMakeBlueFruit(device: any): BlueFruit {
+    let bf = BluetoothService.BlueFruits.filter(
+      (x: BlueFruit) => x.address === device.address
+    )[0];
+
+    console.log('Found bluefruit ' + bf);
+    if (!bf) {
+      bf = new BlueFruit(this, { address: device.address });
+      BluetoothService.BlueFruits.push(bf);
+    }
+
+    if (device.device) {
+      bf.device = device.device;
+    }
+
+    return bf;
   }
 
   public disconnectPushTrackers(addresses: string[]) {
