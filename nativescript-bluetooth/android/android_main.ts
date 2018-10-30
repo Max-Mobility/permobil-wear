@@ -349,7 +349,7 @@ export class Bluetooth extends BluetoothCommon {
 
             if (!didStart) {
               // TODO error msg, see https://github.com/randdusing/cordova-plugin-bluetoothle/blob/master/src/android/BluetoothLePlugin.java#L758
-              reject("Scanning didn't start");
+              reject(`Scanning didn't start`);
               return;
             }
           } else {
@@ -541,7 +541,7 @@ export class Bluetooth extends BluetoothCommon {
           `Bluetooth.disconnect ---- connection: ${connection}`
         );
         if (!connection) {
-          reject("Peripheral wasn't connected");
+          reject(`Peripheral wasn't connected`);
           return;
         }
 
@@ -616,7 +616,7 @@ export class Bluetooth extends BluetoothCommon {
       try {
         if (!arg.value) {
           reject(
-            "You need to provide some data to write in the 'value' property"
+            `You need to provide some data to write in the 'value' property`
           );
           return;
         }
@@ -674,7 +674,7 @@ export class Bluetooth extends BluetoothCommon {
       try {
         if (!arg.value) {
           reject(
-            "You need to provide some data to write in the 'value' property"
+            `You need to provide some data to write in the 'value' property`
           );
           return;
         }
@@ -789,7 +789,7 @@ export class Bluetooth extends BluetoothCommon {
             CLogTypes.info,
             `Bluetooth.startNotifying ---- descriptor: ${bluetoothGattDescriptor}`
           );
-          //Any creation error will trigger the global catch. Ok.
+          // Any creation error will trigger the global catch. Ok.
         }
 
         // prefer notify over indicate
@@ -822,7 +822,7 @@ export class Bluetooth extends BluetoothCommon {
             function(result) {
               CLog(
                 CLogTypes.warning,
-                "No 'onNotify' callback function specified for 'startNotifying'"
+                `No 'onNotify' callback function specified for 'startNotifying'`
               );
             };
           const stateObject = this.connections[arg.peripheralUUID];
@@ -979,7 +979,7 @@ export class Bluetooth extends BluetoothCommon {
             const argdata = args.data;
             const device = argdata.device;
             const status = argdata.status;
-            //console.log(`notificationSent: ${device} : ${status}`);
+            // console.log(`notificationSent: ${device} : ${status}`);
             this.off(Bluetooth.notification_sent_event, notificationSent);
             if (status) {
               // GATT_SUCCESS is 0x00
@@ -990,7 +990,7 @@ export class Bluetooth extends BluetoothCommon {
           };
           // register for when notification is sent
           this.on(Bluetooth.notification_sent_event, notificationSent);
-          //console.log(`notifying ${addr}!`);
+          // console.log(`notifying ${addr}!`);
           // tell it to send the notification
           if (dev && characteristic) {
             this.gattServer.notifyCharacteristicChanged(
