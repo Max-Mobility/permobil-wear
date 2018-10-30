@@ -29,6 +29,10 @@ export const CLog = (type: CLogTypes = 0, ...args) => {
 };
 
 export class BluetoothCommon extends Observable {
+  constructor() {
+    super();
+  }
+
   public set debug(value: boolean) {
     BluetoothUtil.debug = value;
   }
@@ -51,19 +55,28 @@ export class BluetoothCommon extends Observable {
   /*
      * String value for hooking into the peripheral_failed_to_connect_event
      */
-  public static peripheral_failed_to_connect_event = 'peripheral_failed_to_connect_event';
-
-  public static centralmanager_updated_state_event = 'centralmanager_updated_state_event';
-  public static centralmanager_restore_state_event = 'centralmanager_restore_state_event';
-  public static peripheralmanager_restore_state_event = 'peripheralmanager_restore_state_event';
-  public static peripheralmanager_update_state_event = 'peripheralmanager_update_state_event';
-  public static peripheralmanager_did_add_event = 'peripheralmanager_did_add_event';
-  public static peripheralmanager_subscribe_characteristic_event = 'peripheralmanager_subscribe_characteristic_event';
+  public static peripheral_failed_to_connect_event =
+    'peripheral_failed_to_connect_event';
+  public static centralmanager_updated_state_event =
+    'centralmanager_updated_state_event';
+  public static centralmanager_restore_state_event =
+    'centralmanager_restore_state_event';
+  public static peripheralmanager_restore_state_event =
+    'peripheralmanager_restore_state_event';
+  public static peripheralmanager_update_state_event =
+    'peripheralmanager_update_state_event';
+  public static peripheralmanager_did_add_event =
+    'peripheralmanager_did_add_event';
+  public static peripheralmanager_subscribe_characteristic_event =
+    'peripheralmanager_subscribe_characteristic_event';
   public static peripheralmanager_unsubscribe_characteristic_event =
     'peripheralmanager_unsubscribe_characteristic_event';
-  public static peripheralmanager_ready_update_subscribers_event = 'peripheralmanager_ready_update_subscribers_event';
-  public static peripheralmanager_read_request_event = 'peripheralmanager_read_request_event';
-  public static peripheralmanager_write_request_event = 'peripheralmanager_write_request_event';
+  public static peripheralmanager_ready_update_subscribers_event =
+    'peripheralmanager_ready_update_subscribers_event';
+  public static peripheralmanager_read_request_event =
+    'peripheralmanager_read_request_event';
+  public static peripheralmanager_write_request_event =
+    'peripheralmanager_write_request_event';
 
   /*
      * String value for hooking into the bluetooth_enabled_event. This event fires when the bluetooth is enabled.
@@ -78,17 +91,20 @@ export class BluetoothCommon extends Observable {
   /*
      * String value for hooking into the bluetooth_advertise_success_event. This event fires when the bluetooth advertising is successful.
      */
-  public static bluetooth_advertise_success_event = 'bluetooth_advertise_success_event';
+  public static bluetooth_advertise_success_event =
+    'bluetooth_advertise_success_event';
 
   /*
      * String value for hooking into the bluetooth_advertise_error. This event fires when the bluetooth advertising throws and error.
      */
-  public static bluetooth_advertise_failure_event = 'bluetooth_advertise_failure_event';
+  public static bluetooth_advertise_failure_event =
+    'bluetooth_advertise_failure_event';
 
   /*
      * String value for hooking into the server_connection_state_changed. This event fires when the server connection state changes.
      */
-  public static server_connection_state_changed_event = 'server_connection_state_changed_event';
+  public static server_connection_state_changed_event =
+    'server_connection_state_changed_event';
 
   /*
      * String value for hooking into the bond_status_change_event. This event fires when the bonding status changes.
@@ -118,17 +134,20 @@ export class BluetoothCommon extends Observable {
   /*
      * String value for hooking into the characteristic_write_request. This event fires when a characteristic requests to write.
      */
-  public static characteristic_write_request_event = 'characteristic_write_request_event';
+  public static characteristic_write_request_event =
+    'characteristic_write_request_event';
 
   /*
      * String value for hooking into the characteristic_read_request_event. This event fires when a characteristic requests to read.
      */
-  public static characteristic_read_request_event = 'characteristic_read_request_event';
+  public static characteristic_read_request_event =
+    'characteristic_read_request_event';
 
   /*
      * String value for hooking into the descriptor_write_request_event. This event fires when a descriptor requests to write.
      */
-  public static descriptor_write_request_event = 'descriptor_write_request_event';
+  public static descriptor_write_request_event =
+    'descriptor_write_request_event';
 
   /*
      * String value for hooking into the descriptor_read_request_event. This event fires when a descriptor requests to read.
@@ -494,34 +513,34 @@ export enum CharacteristicProperties {
 /**
  * All of the events for Bluetooth that can be emitted and listened to.
  */
-export interface IBluetoothEvents {
-  error_event: string;
-  bluetooth_enabled_event: string;
-  peripheral_connected_event: string;
-  peripheral_disconnected_event: string;
-  peripheral_failed_to_connect_event: string;
-  centralmanager_updated_state_event: string;
-  centralmanager_restore_state_event: string;
-  peripheralmanager_restore_state_event: string;
-  peripheralmanager_update_state_event: string;
-  peripheralmanager_did_add_event: string;
-  peripheralmanager_subscribe_characteristic_event: string;
-  peripheralmanager_unsubscribe_characteristic_event: string;
-  peripheralmanager_ready_update_subscribers_event: string;
-  peripheralmanager_read_request_event: string;
-  peripheralmanager_write_request_event: string;
-  bluetooth_advertise_success_event: string;
-  bluetooth_advertise_failure_event: string;
-  server_connection_state_changed_event: string;
-  bond_status_change_event: string;
-  device_discovered_event: string;
-  device_name_change_event: string;
-  device_uuid_change_event: string;
-  device_acl_disconnected_event: string;
-  characteristic_write_request_event: string;
-  characteristic_read_request_event: string;
-  descriptor_write_request_event: string;
-  descriptor_read_request_event: string;
-  execute_write_event: string;
-  notification_sent_event: string;
+export enum IBluetoothEvents {
+  error_event = 'error_event',
+  bluetooth_enabled_event = 'bluetooth_enabled_event',
+  peripheral_connected_event = 'peripheral_connected_event',
+  peripheral_disconnected_event = 'peripheral_disconnected_event',
+  peripheral_failed_to_connect_event = 'peripheral_failed_to_connect_event',
+  centralmanager_updated_state_event = 'centralmanager_updated_state_event',
+  centralmanager_restore_state_event = 'centralmanager_restore_state_event',
+  peripheralmanager_restore_state_event = 'peripheralmanager_restore_state_event',
+  peripheralmanager_update_state_event = 'peripheralmanager_update_state_event',
+  peripheralmanager_did_add_event = 'peripheralmanager_did_add_event',
+  peripheralmanager_subscribe_characteristic_event = 'peripheralmanager_subscribe_characteristic_event',
+  peripheralmanager_unsubscribe_characteristic_event = 'peripheralmanager_unsubscribe_characteristic_event',
+  peripheralmanager_ready_update_subscribers_event = 'peripheralmanager_ready_update_subscribers_event',
+  peripheralmanager_read_request_event = 'peripheralmanager_read_request_event',
+  peripheralmanager_write_request_event = 'peripheralmanager_write_request_event',
+  bluetooth_advertise_success_event = 'bluetooth_advertise_success_event',
+  bluetooth_advertise_failure_event = 'bluetooth_advertise_failure_event',
+  server_connection_state_changed_event = 'server_connection_state_changed_event',
+  bond_status_change_event = 'bond_status_change_event',
+  device_discovered_event = 'device_discovered_event',
+  device_name_change_event = 'device_name_change_event',
+  device_uuid_change_event = 'device_uuid_change_event',
+  device_acl_disconnected_event = 'device_acl_disconnected_event',
+  characteristic_write_request_event = 'characteristic_write_request_event',
+  characteristic_read_request_event = 'characteristic_read_request_event',
+  descriptor_write_request_event = 'descriptor_write_request_event',
+  descriptor_read_request_event = 'descriptor_read_request_event',
+  execute_write_event = 'execute_write_event',
+  notification_sent_event = 'notification_sent_event'
 }
