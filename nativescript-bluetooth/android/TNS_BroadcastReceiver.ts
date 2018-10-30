@@ -1,8 +1,7 @@
 /// <reference path="../node_modules/tns-platform-declarations/android.d.ts" />
-/// <reference path="../typings/android27.d.ts" />
 
-import { CLog, CLogTypes, BondState } from '../common';
-import { Bluetooth, deviceToCentral, deviceToPeripheral } from './android_main';
+import { BondState, CLog, CLogTypes } from '../common';
+import { Bluetooth, deviceToCentral } from './android_main';
 
 @JavaProxy('com.nativescript.TNS_BroadcastReceiver')
 // tslint:disable-next-line:class-name
@@ -15,7 +14,10 @@ export class TNS_BroadcastReceiver extends android.content.BroadcastReceiver {
 
   onInit(owner: WeakRef<Bluetooth>) {
     this._owner = owner;
-    CLog(CLogTypes.info, `---- TNS_BroadcastReceiver.onInit ---- this._owner: ${this._owner}`);
+    CLog(
+      CLogTypes.info,
+      `---- TNS_BroadcastReceiver.onInit ---- this._owner: ${this._owner}`
+    );
   }
 
   /**
@@ -40,7 +42,9 @@ export class TNS_BroadcastReceiver extends android.content.BroadcastReceiver {
       CLog(CLogTypes.warning, `No device found in the intent: ${intent}`);
     }
 
-    if (action === android.bluetooth.BluetoothDevice.ACTION_BOND_STATE_CHANGED) {
+    if (
+      action === android.bluetooth.BluetoothDevice.ACTION_BOND_STATE_CHANGED
+    ) {
       const bs = intent.getIntExtra(
         android.bluetooth.BluetoothDevice.EXTRA_BOND_STATE,
         android.bluetooth.BluetoothDevice.ERROR
@@ -63,28 +67,39 @@ export class TNS_BroadcastReceiver extends android.content.BroadcastReceiver {
         device: deviceToCentral(device),
         bondState
       });
-    } else if (action === android.bluetooth.BluetoothDevice.ACTION_NAME_CHANGED) {
-      const name = intent.getStringExtra(android.bluetooth.BluetoothDevice.EXTRA_NAME);
+    } else if (
+      action === android.bluetooth.BluetoothDevice.ACTION_NAME_CHANGED
+    ) {
+      const name = intent.getStringExtra(
+        android.bluetooth.BluetoothDevice.EXTRA_NAME
+      );
       this._owner.get().sendEvent(Bluetooth.device_name_change_event, {
         device: deviceToCentral(device),
         name
       });
     } else if (action === android.bluetooth.BluetoothDevice.ACTION_UUID) {
       // TODO: uuidExtra in this is always null!
-      let uuidExtra = intent.getParcelableArrayExtra(android.bluetooth.BluetoothDevice.EXTRA_UUID);
+      let uuidExtra = intent.getParcelableArrayExtra(
+        android.bluetooth.BluetoothDevice.EXTRA_UUID
+      );
       const uuids = [];
       if (uuidExtra && uuidExtra.length) {
         for (let i = 0; i < uuidExtra.length; i++) {
           uuids.push(uuidExtra[i].toString());
         }
       }
-      CLog(CLogTypes.info, `${uuidExtra || 0} UUIDs found in the ACTION_UUID action.`);
+      CLog(
+        CLogTypes.info,
+        `${uuidExtra || 0} UUIDs found in the ACTION_UUID action.`
+      );
 
       this._owner.get().sendEvent(Bluetooth.device_uuid_change_event, {
         device: deviceToCentral(device),
         uuids: uuids
       });
-    } else if (action === android.bluetooth.BluetoothDevice.ACTION_ACL_DISCONNECTED) {
+    } else if (
+      action === android.bluetooth.BluetoothDevice.ACTION_ACL_DISCONNECTED
+    ) {
       // TODO: device here might be peripheral or central - need to
       //       figure out which one it is!
       this._owner.get().sendEvent(Bluetooth.device_acl_disconnected_event, {

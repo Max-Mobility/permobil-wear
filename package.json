@@ -1,12 +1,6 @@
 {
   "nativescript": {
-    "id": "com.permobil.watch",
-    "tns-ios": {
-      "version": "4.2.0"
-    },
-    "tns-android": {
-      "version": "4.3.0-2018-08-29-02"
-    }
+    "id": "com.permobil.watch"
   },
   "main": "app.js",
   "description": "NativeScript Application",
@@ -18,10 +12,10 @@
     "start.ios": "tns run ios",
     "build-bluetooth": "cd nativescript-bluetooth && npm i && tsc && rm -rf *.tgz && npm pack",
     "build-accelerometer": "cd nativescript-accelerometer && npm i && tsc && rm -rf *.tgz && npm pack",
-    "build-complications": "cd nativescript-complications && npm i && tsc && rm -rf *.tgz && npm pack",
+    "build-packages": "npm run build-bluetooth && npm run build-accelerometer",
     "nuke": "rm -rf platforms hooks node_modules package-lock.json",
     "nuki": "npm run nuke && npm run setup",
-    "setup": "npm i && npm run build-bluetooth && npm run build-accelerometer && npm run build-complications"
+    "setup": "npm i && npm run build-packages"
   },
   "dependencies": {
     "buffer": "^5.2.0",
@@ -39,6 +33,7 @@
     "husky": "^0.14.3",
     "lint-staged": "^7.2.2",
     "nativescript-dev-typescript": "~0.7.2",
+    "nativescript-dev-webpack": "^0.17.0-2018-10-25-144355-01",
     "prettier": "^1.14.2",
     "prompt": "^1.0.0",
     "tns-platform-declarations": "^4.2.0",

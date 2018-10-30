@@ -1,8 +1,7 @@
 /// <reference path="../node_modules/tns-platform-declarations/android.d.ts" />
-/// <reference path="../typings/android27.d.ts" />
 
-import { Bluetooth } from './android_main';
 import { CLog, CLogTypes } from '../common';
+import { Bluetooth } from './android_main';
 
 /**
  * Callback interface used to deliver LE scan results.
@@ -10,7 +9,8 @@ import { CLog, CLogTypes } from '../common';
  */
 @JavaProxy('com.nativescript.TNS_LeScanCallback')
 // tslint:disable-next-line:class-name
-export class TNS_LeScanCallback extends android.bluetooth.BluetoothAdapter.LeScanCallback {
+export class TNS_LeScanCallback extends android.bluetooth.BluetoothAdapter
+  .LeScanCallback {
   private _owner: WeakRef<Bluetooth>;
 
   constructor() {
@@ -21,7 +21,11 @@ export class TNS_LeScanCallback extends android.bluetooth.BluetoothAdapter.LeSca
        * @param rssi [number] - The RSSI value for the remote device as reported by the Bluetooth hardware. 0 if no RSSI value is available.
        * @param scanRecord [byte[]] - The content of the advertisement record offered by the remote device.
        */
-      onLeScan(device: android.bluetooth.BluetoothDevice, rssi: number, scanRecord) {
+      onLeScan(
+        device: android.bluetooth.BluetoothDevice,
+        rssi: number,
+        scanRecord
+      ) {
         CLog(
           CLogTypes.info,
           `---- TNS_LeScanCallback.onLeScan ---- device: ${device}, rssi: ${rssi}, scanRecord: ${scanRecord}`
@@ -35,13 +39,27 @@ export class TNS_LeScanCallback extends android.bluetooth.BluetoothAdapter.LeSca
 
           let manufacturerId;
           let manufacturerData;
-          const manufacturerDataRaw = this._owner.get().extractManufacturerRawData(scanRecord);
-          CLog(CLogTypes.info, `---- TNS_LeScanCallback.onLeScan ---- manufacturerDataRaw: ${manufacturerDataRaw}`);
+          const manufacturerDataRaw = this._owner
+            .get()
+            .extractManufacturerRawData(scanRecord);
+          CLog(
+            CLogTypes.info,
+            `---- TNS_LeScanCallback.onLeScan ---- manufacturerDataRaw: ${manufacturerDataRaw}`
+          );
           if (manufacturerDataRaw) {
-            manufacturerId = new DataView(manufacturerDataRaw, 0).getUint16(0, true);
-            CLog(CLogTypes.info, `---- TNS_LeScanCallback.onLeScan ---- manufacturerId: ${manufacturerId}`);
+            manufacturerId = new DataView(manufacturerDataRaw, 0).getUint16(
+              0,
+              true
+            );
+            CLog(
+              CLogTypes.info,
+              `---- TNS_LeScanCallback.onLeScan ---- manufacturerId: ${manufacturerId}`
+            );
             manufacturerData = manufacturerDataRaw.slice(2);
-            CLog(CLogTypes.info, `---- TNS_LeScanCallback.onLeScan ---- manufacturerData: ${manufacturerData}`);
+            CLog(
+              CLogTypes.info,
+              `---- TNS_LeScanCallback.onLeScan ---- manufacturerData: ${manufacturerData}`
+            );
           }
 
           CLog(
@@ -65,6 +83,9 @@ export class TNS_LeScanCallback extends android.bluetooth.BluetoothAdapter.LeSca
 
   onInit(owner: WeakRef<Bluetooth>) {
     this._owner = owner;
-    CLog(CLogTypes.info, `---- TNS_LeScanCallback.onInit ---- this._owner: ${this._owner}`);
+    CLog(
+      CLogTypes.info,
+      `---- TNS_LeScanCallback.onInit ---- this._owner: ${this._owner}`
+    );
   }
 }
