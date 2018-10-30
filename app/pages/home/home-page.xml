@@ -28,6 +28,14 @@
                 <FlexboxLayout visibility="{{ connected ? 'visible' : 'collapsed' }}" flexDirection="row" justifyContent="center">
                     <Button text="Disconnect" tap="{{ onDisconnectTap }}" class="btn" />
                 </FlexboxLayout>
+
+
+
+                <StackLayout id="colorLayout" width="75%" horizontalAlignment="center">
+                    <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ rColor }}" />
+                    <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ gColor }}" />
+                    <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ bColor }}" />
+                </StackLayout>
             </FlexboxLayout>
         </FlexboxLayout>
     </ScrollView>

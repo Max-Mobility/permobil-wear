@@ -1,6 +1,9 @@
 {
   "nativescript": {
-    "id": "com.permobil.watch"
+    "id": "com.permobil.watch",
+    "tns-android": {
+      "version": "5.0.0-rc-2018-10-26-162351-01"
+    }
   },
   "main": "app.js",
   "description": "NativeScript Application",
@@ -26,17 +29,17 @@
     "nativescript-lottie": "^2.1.1",
     "nativescript-permissions": "^1.2.3",
     "nativescript-theme-core": "~1.0.4",
-    "nativescript-toast": "^1.4.6",
-    "tns-core-modules": "~4.2.0"
+    "nativescript-toasty": "1.2.0",
+    "tns-core-modules": "^5.0.0-rc-2018-10-30-144157-01"
   },
   "devDependencies": {
-    "husky": "^0.14.3",
-    "lint-staged": "^7.2.2",
-    "nativescript-dev-typescript": "~0.7.2",
+    "husky": "^1.1.2",
+    "lint-staged": "^8.0.3",
+    "nativescript-dev-typescript": "~0.7.4",
     "nativescript-dev-webpack": "^0.17.0-2018-10-25-144355-01",
-    "prettier": "^1.14.2",
+    "prettier": "^1.14.3",
     "prompt": "^1.0.0",
-    "tns-platform-declarations": "^4.2.0",
+    "tns-platform-declarations": "^4.2.1",
     "tslint": "~5.11.0",
     "typescript": "~2.8.2"
   },

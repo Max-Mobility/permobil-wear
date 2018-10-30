@@ -23,3 +23,10 @@
   font-size: 13;
   color: #fff;
 }
+
+.colorSlider {
+  /* margin: 5%; */
+  height: 20;
+  width: 60%;
+  color: #f05d25;
+}

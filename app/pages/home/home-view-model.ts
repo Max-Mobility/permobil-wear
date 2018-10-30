@@ -1,12 +1,18 @@
-import { Observable } from 'tns-core-modules/data/observable';
+/// <reference path="../../../node_modules/tns-platform-declarations/android.d.ts" />
+
+import {
+  Observable,
+  PropertyChangeData
+} from 'tns-core-modules/data/observable';
 import { alert, action } from 'tns-core-modules/ui/dialogs';
 import { device, screen } from 'tns-core-modules/platform';
 // import { Bluetooth } from 'nativescript-bluetooth';
 import { Prop } from '../../obs-prop';
 import * as application from 'tns-core-modules/application';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
-import * as Toast from 'nativescript-toast';
+import { Toasty } from 'nativescript-toasty';
 import { topmost, Page } from 'tns-core-modules/ui/frame';
+import { StackLayout } from 'tns-core-modules/ui/layouts/stack-layout';
 import * as permissions from 'nativescript-permissions';
 import { LottieView } from 'nativescript-lottie';
 import { BluetoothService } from '../../services';
@@ -54,6 +60,15 @@ export class HelloWorldModel extends Observable {
   @Prop()
   public connected = false;
 
+  @Prop()
+  public rColor = '00';
+  @Prop()
+  public gColor = '00';
+  @Prop()
+  public bColor = '00';
+  @Prop()
+  public hexValue: '#000000';
+
   /**
    * Boolean to track if accelerometer is already registered listener events.
    */
@@ -64,10 +79,13 @@ export class HelloWorldModel extends Observable {
   private _motionDetectedLottie: LottieView;
   private _heartRateLottie: LottieView;
   private _bluetoothService: BluetoothService;
+  private _colorLayout: StackLayout;
 
   constructor(page: Page) {
     super();
     this._page = page;
+
+    this._colorLayout = page.getViewById('colorLayout') as StackLayout;
     this._bluetoothService = new BluetoothService();
     console.log(
       { device },
@@ -81,6 +99,26 @@ export class HelloWorldModel extends Observable {
       device.language,
       device.uuid
     );
+
+    this.on(Observable.propertyChangeEvent, (args: PropertyChangeData) => {
+      // Do your magic here
+      console.log('propertyName', args.propertyName, 'value : ' + args.value);
+      const hexColor = this._setColor(this.rColor, this.gColor, this.bColor);
+      this._colorLayout.backgroundColor = hexColor;
+    });
+  }
+
+  private _setColor(r, g, b) {
+    const r_hex = parseInt(r, 10).toString(16);
+    const g_hex = parseInt(g, 10).toString(16);
+    const b_hex = parseInt(b, 10).toString(16);
+    const hex = '#' + this._pad(r_hex) + this._pad(g_hex) + this._pad(b_hex);
+    console.log('hex === ', hex);
+    return hex;
+  }
+
+  private _pad(n) {
+    return n.length < 2 ? '0' + n : n;
   }
 
   motionDetectedLoaded(args) {
@@ -188,7 +226,7 @@ export class HelloWorldModel extends Observable {
             );
             this._smartDrive.connect();
             this.connected = true;
-            Toast.makeText('Connecting to ' + result).show();
+            new Toasty('Connecting to ' + result).show();
           }
         });
       })
@@ -211,7 +249,7 @@ export class HelloWorldModel extends Observable {
       );
       this._smartDrive.disconnect().then(() => {
         this.connected = false;
-        Toast.makeText('Disconnected from ' + this._smartDrive.address).show();
+        new Toasty('Disconnected from ' + this._smartDrive.address).show();
       });
     }
   }
@@ -241,7 +279,7 @@ export class HelloWorldModel extends Observable {
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
-            appSettings.setNumber('heartrate', this.heartRate);
+            appSettings.setNumber('heartrate', parseInt(this.heartRate));
             // this._heartRateLottie.playAnimation();
             // setTimeout(() => {
             //   // this._heartRateLottie.cancelAnimation();
