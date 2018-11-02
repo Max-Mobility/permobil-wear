@@ -32,6 +32,7 @@
 
                 <Button text="{{ isSearchingBluetooth ? 'Scanning...' : 'Scan For BlueFruits' }}" isEnabled="{{ !isSearchingBluetooth }}" tap="{{ scanForBluefruit }}" />
 
+                <Label text="" class="hr-light m-20" textWrap="true" />
 
                 <StackLayout id="colorLayout" width="75%" horizontalAlignment="center">
                     <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ rColor }}" />
@@ -41,11 +42,13 @@
 
                 <Button text="Send Color to Bluefruit" tap="{{ sendColorToBluefruit }}" />
 
-                <Label text="" class="hr-light" textWrap="true" />
+                <Label text="" class="hr-light m-20" textWrap="true" />
 
                 <Label text="Brightness Slider" color="white" textWrap="true" horizontalAlignment="center" />
                 <Slider minValue="0" maxValue="100" value="{{ brightnessSlider }}" margin="10" />
                 <Button text="Send Brightness to Bluefruit" tap="{{ sendBrightnessToBoard }}" />
+
+                <Label text="" class="hr-light m-20" textWrap="true" />
 
 
                 <Button text="Clear Bluefruit Board" tap="{{ clearBluefruitBoard }}" />

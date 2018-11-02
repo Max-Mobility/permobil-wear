@@ -73,7 +73,7 @@ export class HelloWorldModel extends Observable {
   public bluefruitScanningText = 'Scan For BlueFruits';
 
   @Prop()
-  public brightnessSlider = 0;
+  public brightnessSlider = 100;
 
   @Prop()
   public rColor = '00';
@@ -95,6 +95,7 @@ export class HelloWorldModel extends Observable {
   private _heartRateLottie: LottieView;
   private _bluetoothService: BluetoothService;
   private _colorLayout: StackLayout;
+  private _currentHexColor = '#ffffff';
   private _bluefruitDevice: BlueFruit = null;
   private _blueFruitConnected = false;
 
@@ -129,9 +130,10 @@ export class HelloWorldModel extends Observable {
         this.brightnessSlider = args.value;
       } else {
         // right now this is handling the color sliders changing
+        const hexColor = this._setColor(this.rColor, this.gColor, this.bColor);
+        this._currentHexColor = hexColor;
+        this._colorLayout.backgroundColor = hexColor;
       }
-      const hexColor = this._setColor(this.rColor, this.gColor, this.bColor);
-      this._colorLayout.backgroundColor = hexColor;
     });
   }
 
@@ -207,20 +209,17 @@ export class HelloWorldModel extends Observable {
   async clearBluefruitBoard() {
     const ourColor = new Color('green').android;
     const red = android.graphics.Color.red(ourColor);
-    console.log('red', red);
     const green = android.graphics.Color.green(ourColor);
-    console.log('green', green);
     const blue = android.graphics.Color.blue(ourColor);
-    console.log('blue', blue);
 
-    // const colorWValue = 0.5 * 255;
+    const colorWValue = 0;
 
     const byteArray = Array.create('byte', 20);
     byteArray[0] = '0x43'; // 0x43 === 'C' - this is the "Command: Clear"
     byteArray[1] = red;
     byteArray[2] = green;
     byteArray[3] = blue;
-    // byteArray[4] = colorWValue;
+    byteArray[4] = colorWValue;
 
     this._bluetoothService._bluetooth
       .write({
@@ -241,7 +240,7 @@ export class HelloWorldModel extends Observable {
     try {
       // we should be connected to the Bluefruit when we try this
 
-      const ourColor = new Color('purple').android;
+      const ourColor = new Color(this._currentHexColor).android;
 
       const red = android.graphics.Color.red(ourColor);
       console.log('red', red);
@@ -253,7 +252,7 @@ export class HelloWorldModel extends Observable {
       const colorArray = Array.create('byte', 20);
       colorArray[0] = '0x50'; // '0x50' === 'P' this is Command: Set Pixel
       colorArray[1] = 0;
-      colorArray[2] = 0;
+      colorArray[2] = 1;
       colorArray[3] = red;
       colorArray[4] = green;
       colorArray[5] = blue;
@@ -268,10 +267,10 @@ export class HelloWorldModel extends Observable {
         })
         .then(
           function(result) {
-            console.log('value written');
+            console.log('success sending color to bluefruit');
           },
           function(err) {
-            console.log('write error: ' + err);
+            console.log('sending color error: ' + err);
           }
         );
     } catch (error) {
@@ -282,7 +281,7 @@ export class HelloWorldModel extends Observable {
   async sendBrightnessToBoard() {
     try {
       // try setting the brightness
-      const brightness = 1 * 255; //
+      const brightness = this.brightnessSlider * 255; //
       const brightnessArray = Array.create('byte', 20);
       brightnessArray[0] = '0x42'; // 0x42 === 'B' - which is Command: set Brightness
       brightnessArray[1] = brightness;
