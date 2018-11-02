@@ -34,7 +34,7 @@
 
                 <Label text="" class="hr-light m-20" textWrap="true" />
 
-                <StackLayout id="colorLayout" width="75%" horizontalAlignment="center">
+                <StackLayout id="colorLayout" backgroundColor="{{ currentHexColor }}" width="75%" horizontalAlignment="center">
                     <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ rColor }}" />
                     <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ gColor }}" />
                     <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ bColor }}" />

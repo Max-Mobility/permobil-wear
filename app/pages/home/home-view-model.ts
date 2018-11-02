@@ -81,8 +81,9 @@ export class HelloWorldModel extends Observable {
   public gColor = '00';
   @Prop()
   public bColor = '00';
+
   @Prop()
-  public hexValue: '#000000';
+  public currentHexColor = '#336699';
 
   /**
    * Boolean to track if accelerometer is already registered listener events.
@@ -95,7 +96,6 @@ export class HelloWorldModel extends Observable {
   private _heartRateLottie: LottieView;
   private _bluetoothService: BluetoothService;
   private _colorLayout: StackLayout;
-  private _currentHexColor = '#ffffff';
   private _bluefruitDevice: BlueFruit = null;
   private _blueFruitConnected = false;
 
@@ -131,8 +131,8 @@ export class HelloWorldModel extends Observable {
       } else {
         // right now this is handling the color sliders changing
         const hexColor = this._setColor(this.rColor, this.gColor, this.bColor);
-        this._currentHexColor = hexColor;
-        this._colorLayout.backgroundColor = hexColor;
+        this.currentHexColor = hexColor;
+        // this._colorLayout.backgroundColor = hexColor;
       }
     });
   }
@@ -240,7 +240,7 @@ export class HelloWorldModel extends Observable {
     try {
       // we should be connected to the Bluefruit when we try this
 
-      const ourColor = new Color(this._currentHexColor).android;
+      const ourColor = new Color(this.currentHexColor).android;
 
       const red = android.graphics.Color.red(ourColor);
       console.log('red', red);
