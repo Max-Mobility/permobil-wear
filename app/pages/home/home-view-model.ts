@@ -1,27 +1,25 @@
 /// <reference path="../../../node_modules/tns-platform-declarations/android.d.ts" />
 
+import * as accelerometer from 'nativescript-accelerometer-advanced';
+import * as geoLocation from 'nativescript-geolocation';
+import { LottieView } from 'nativescript-lottie';
+import * as permissions from 'nativescript-permissions';
+import { Toasty } from 'nativescript-toasty';
+import * as application from 'tns-core-modules/application';
+import * as appSettings from 'tns-core-modules/application-settings';
+// import { Bluetooth } from 'nativescript-bluetooth';
+import { Color } from 'tns-core-modules/color';
 import {
   Observable,
   PropertyChangeData
 } from 'tns-core-modules/data/observable';
-import { alert, action } from 'tns-core-modules/ui/dialogs';
-import { device, screen } from 'tns-core-modules/platform';
-// import { Bluetooth } from 'nativescript-bluetooth';
-import { Prop } from '../../obs-prop';
-import * as application from 'tns-core-modules/application';
-import * as accelerometer from 'nativescript-accelerometer-advanced';
-import { Toasty } from 'nativescript-toasty';
-import { topmost, Page } from 'tns-core-modules/ui/frame';
+import { device } from 'tns-core-modules/platform';
+import { action, alert, confirm } from 'tns-core-modules/ui/dialogs';
+import { Page } from 'tns-core-modules/ui/frame';
 import { StackLayout } from 'tns-core-modules/ui/layouts/stack-layout';
-import * as permissions from 'nativescript-permissions';
-import { LottieView } from 'nativescript-lottie';
-import { Bluetooth } from 'nativescript-bluetooth';
+import { BlueFruit, SmartDrive } from '../../core';
+import { Prop } from '../../obs-prop';
 import { BluetoothService } from '../../services';
-import * as complications from '../../complications';
-import { Packet, SmartDrive, BlueFruit } from '../../core';
-
-import * as appSettings from 'tns-core-modules/application-settings';
-import { StartScanningOptions } from 'nativescript-bluetooth/common';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -62,6 +60,21 @@ export class HelloWorldModel extends Observable {
   @Prop()
   public connected = false;
 
+  /**
+   * Boolean to handle logic for when bluetooth is scanning
+   */
+  @Prop()
+  public isSearchingBluetooth = false;
+
+  /**
+   * Button text for scanning for blue fruits
+   */
+  @Prop()
+  public bluefruitScanningText = 'Scan For BlueFruits';
+
+  @Prop()
+  public brightnessSlider = 0;
+
   @Prop()
   public rColor = '00';
   @Prop()
@@ -82,7 +95,10 @@ export class HelloWorldModel extends Observable {
   private _heartRateLottie: LottieView;
   private _bluetoothService: BluetoothService;
   private _colorLayout: StackLayout;
-  private _bluetooth: Bluetooth;
+  private _bluefruitDevice: BlueFruit = null;
+  private _blueFruitConnected = false;
+
+  public static UUID_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 
   constructor(page: Page) {
     super();
@@ -90,7 +106,6 @@ export class HelloWorldModel extends Observable {
 
     this._colorLayout = page.getViewById('colorLayout') as StackLayout;
     this._bluetoothService = new BluetoothService();
-    this._bluetooth = new Bluetooth();
 
     console.log(
       { device },
@@ -105,49 +120,189 @@ export class HelloWorldModel extends Observable {
       device.uuid
     );
 
+    // Listener for prop changes - used to calc the sliders for color value and set background
     this.on(Observable.propertyChangeEvent, (args: PropertyChangeData) => {
       // Do your magic here
       console.log('propertyName', args.propertyName, 'value : ' + args.value);
+      // handle the brightness slider updating
+      if (args.propertyName === 'brightnessSlider') {
+        this.brightnessSlider = args.value;
+      } else {
+        // right now this is handling the color sliders changing
+      }
       const hexColor = this._setColor(this.rColor, this.gColor, this.bColor);
       this._colorLayout.backgroundColor = hexColor;
     });
   }
 
-  scanForBluefruit() {
-    console.log('scan for bluefruits');
-    // const scanOpts: StartScanningOptions = {
-    //   serviceUUIDs: [BlueFruit.UART_Service],
-    //   seconds: 10,
-    //   onDiscovered: peripheral => {
-    //     console.log('Periperhal found with UUID: ' + peripheral.UUID);
-    //     if (peripheral.name.includes('Bluefruit')) {
-    //       alert('BLUEFRUIT FOUND 🧟‍♂️');
-    //     }
+  async scanForBluefruit() {
+    try {
+      // check and see if already connected to a bluefruit device
+      // const x = BluetoothService.BlueFruits.forEach()
 
-    //     if (BlueFruit.isBlueFruitDevice(peripheral)) {
-    //       console.log('*** found the bluefruit device ***');
-    //       console.dir(peripheral);
-    //     }
-    //   }
-    // };
+      console.log('scan for bluefruits');
+      // make sure location is enabled or can't scan for peripherals
+      const geoEnabled = await !geoLocation.isEnabled();
+      console.log('geoEnabled', geoEnabled);
 
-    this._bluetoothService
-      .scan([], 5)
-      .then(result => {
-        console.log('scan reslt', result);
+      this.isSearchingBluetooth = true;
+
+      await this._bluetoothService.scanForBluefruits();
+
+      console.log('bluefruits on service', BluetoothService.BlueFruits.length);
+      if (BluetoothService.BlueFruits.length >= 1) {
+        const cResult = await confirm({
+          message: `Found ${
+            BluetoothService.BlueFruits.length
+          } Bluefruits nearby.`,
+          okButtonText: 'Okay',
+          cancelButtonText: 'Cancel'
+        });
+        if (cResult === true) {
+          const bf = BluetoothService.BlueFruits.getItem(0);
+          this._bluefruitDevice = BluetoothService.BlueFruits.getItem(0);
+          console.log('attempting to connect to Bluefruit ', bf.address);
+          this._bluetoothService._bluetooth.connect({
+            UUID: bf.address,
+            onConnected: peripheral => {
+              console.log('connected to the bluefruit, now what?');
+              // the peripheral object now has a list of available services:
+              peripheral.services.forEach(service => {
+                // console.log('service found: ' + JSON.stringify(service));
+                console.log(service);
+              });
+            },
+            onDisconnected: () => {
+              console.log('oh crap we disconnected from the bluefruit...');
+            }
+          });
+          // this._bluetoothService.connect(
+          //   bf.address,
+          //   peripheral => {
+          //     console.log('connected to the bluefruit, now what?');
+          //     // the peripheral object now has a list of available services:
+          //     peripheral.services.forEach(function(service) {
+          //       console.log('service found: ' + JSON.stringify(service));
+          //     });
+          //   },
+          //   () => {
+          //     console.log('oh crap we disconnected from the bluefruit...');
+          //   }
+          // );
+        }
+      } else {
+        alert({
+          message:
+            'No Bluefruits found nearby. Check that your location is enabled to scan for peripherals and the Bluefruit you are trying to find is not currently connected to a device.',
+          okButtonText: 'Okay'
+        });
+      }
+
+      this.isSearchingBluetooth = false;
+    } catch (error) {
+      this.isSearchingBluetooth = false;
+    }
+  }
+
+  async clearBluefruitBoard() {
+    const ourColor = new Color('green').android;
+    const red = android.graphics.Color.red(ourColor);
+    console.log('red', red);
+    const green = android.graphics.Color.green(ourColor);
+    console.log('green', green);
+    const blue = android.graphics.Color.blue(ourColor);
+    console.log('blue', blue);
+
+    // const colorWValue = 0.5 * 255;
+
+    const byteArray = Array.create('byte', 20);
+    byteArray[0] = '0x43'; // 0x43 === 'C' - this is the "Command: Clear"
+    byteArray[1] = red;
+    byteArray[2] = green;
+    byteArray[3] = blue;
+    // byteArray[4] = colorWValue;
+
+    this._bluetoothService._bluetooth
+      .write({
+        peripheralUUID: this._bluefruitDevice.address,
+        serviceUUID: BlueFruit.UART_Service,
+        characteristicUUID: BlueFruit.TXD,
+        value: byteArray
+      })
+      .then(() => {
+        console.log('success clearing the board');
       })
       .catch(error => {
-        console.log('scan error', error);
+        console.log('error writing brightness ' + error);
       });
+  }
 
-    // this._bluetooth.startScanning(scanOpts).then(
-    //   () => {
-    //     console.log('scanning complete');
-    //   },
-    //   err => {
-    //     console.log('error while scanning: ' + err);
-    //   }
-    // );
+  async sendColorToBluefruit() {
+    try {
+      // we should be connected to the Bluefruit when we try this
+
+      const ourColor = new Color('purple').android;
+
+      const red = android.graphics.Color.red(ourColor);
+      console.log('red', red);
+      const green = android.graphics.Color.green(ourColor);
+      console.log('green', green);
+      const blue = android.graphics.Color.blue(ourColor);
+      console.log('blue', blue);
+
+      const colorArray = Array.create('byte', 20);
+      colorArray[0] = '0x50'; // '0x50' === 'P' this is Command: Set Pixel
+      colorArray[1] = 0;
+      colorArray[2] = 0;
+      colorArray[3] = red;
+      colorArray[4] = green;
+      colorArray[5] = blue;
+      // colorArray[6] = colorWValue;
+
+      this._bluetoothService._bluetooth
+        .write({
+          peripheralUUID: this._bluefruitDevice.address,
+          serviceUUID: BlueFruit.UART_Service,
+          characteristicUUID: BlueFruit.TXD,
+          value: colorArray
+        })
+        .then(
+          function(result) {
+            console.log('value written');
+          },
+          function(err) {
+            console.log('write error: ' + err);
+          }
+        );
+    } catch (error) {
+      console.log('Error writing to Bluefruit device.', error);
+    }
+  }
+
+  async sendBrightnessToBoard() {
+    try {
+      // try setting the brightness
+      const brightness = 1 * 255; //
+      const brightnessArray = Array.create('byte', 20);
+      brightnessArray[0] = '0x42'; // 0x42 === 'B' - which is Command: set Brightness
+      brightnessArray[1] = brightness;
+
+      this._bluetoothService._bluetooth
+        .write({
+          peripheralUUID: this._bluefruitDevice.address,
+          serviceUUID: BlueFruit.UART_Service,
+          characteristicUUID: BlueFruit.TXD,
+          value: brightnessArray
+        })
+        .then(() => {
+          console.log('success writing brightness');
+        })
+        .catch(error => {
+          console.log('error writing brightness ' + error);
+        });
+    } catch (error) {
+      console.log('error sending brightness', error);
+    }
   }
 
   motionDetectedLoaded(args) {
@@ -383,5 +538,19 @@ export class HelloWorldModel extends Observable {
 
   private _pad(n) {
     return n.length < 2 ? '0' + n : n;
+  }
+}
+
+class Board {
+  name: string;
+  width: any; // byte
+  height: any; // byte
+  stride: any; // byte;
+
+  constructor(name: string, width, height, stride) {
+    this.name = name;
+    this.width = width;
+    this.height = height;
+    this.stride = stride;
   }
 }

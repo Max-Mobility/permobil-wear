@@ -1,16 +1,13 @@
-// /// <reference path="../../../typings/android27.d.ts" />
-import { Packet, PushTracker, SmartDrive, BlueFruit } from '../core';
 import {
   Bluetooth,
   BondState,
   Central,
   ConnectionState
 } from 'nativescript-bluetooth';
-// import { Feedback } from 'nativescript-feedback';
-// import { SnackBar } from 'nativescript-snackbar';
 import { ObservableArray } from 'tns-core-modules/data/observable-array';
 import { isAndroid, isIOS } from 'tns-core-modules/platform';
 import * as dialogsModule from 'tns-core-modules/ui/dialogs';
+import { BlueFruit, Packet, PushTracker, SmartDrive } from '../core';
 
 export class BluetoothService {
   // static members
@@ -24,7 +21,7 @@ export class BluetoothService {
   public initialized = false;
 
   // private members
-  private _bluetooth = new Bluetooth();
+  public _bluetooth = new Bluetooth();
   private PushTrackerDataCharacteristic: any = null;
   private AppService: any = null;
   // private snackbar = new SnackBar();
@@ -32,7 +29,7 @@ export class BluetoothService {
 
   constructor() {
     // enabling `debug` will output console.logs from the bluetooth source code
-    this._bluetooth.debug = false;
+    this._bluetooth.debug = true;
     this.advertise().catch(err => {
       const msg = `bluetooth.service::advertise error: ${err}`;
       dialogsModule
@@ -149,6 +146,17 @@ export class BluetoothService {
     );
   }
 
+  public clearBlueFruits() {
+    const connectedBlueFruits = BluetoothService.BlueFruits.slice().filter(
+      bf => bf.connected
+    );
+    BluetoothService.BlueFruits.splice(
+      0,
+      BluetoothService.BlueFruits.length,
+      ...connectedBlueFruits
+    );
+  }
+
   public radioEnabled(): Promise<boolean> {
     return this._bluetooth.isBluetoothEnabled();
   }
@@ -257,15 +265,24 @@ export class BluetoothService {
     });
   }
 
+  public scanForBluefruits(seconds = 4) {
+    this.clearBlueFruits();
+    return this.scan([BlueFruit.UART_Service], seconds);
+  }
+
   public stopScanning(): Promise<any> {
     return this._bluetooth.stopScanning();
   }
 
-  public connect(address: string, onConnected?: any, onDisconnected?: any) {
+  public connect(
+    address: string,
+    onConnected?: (peripheral) => void,
+    onDisconnected?: () => void
+  ) {
     this._bluetooth.connect({
       UUID: address,
-      onConnected: onConnected,
-      onDisconnected: onDisconnected
+      onConnected,
+      onDisconnected
     });
   }
 
@@ -393,8 +410,8 @@ export class BluetoothService {
     if (this.isSmartDrive(peripheral)) {
       const sd = this.getOrMakeSmartDrive(peripheral);
     } else if (BlueFruit.isBlueFruitDevice(peripheral)) {
+      // this will check if the bluefruit is already in the static observableArray, if not it will push a new BlueFruit into the array
       const bf = this._getOrMakeBlueFruit(peripheral);
-      console.log('brads bf', bf);
     }
   }
 
@@ -689,6 +706,7 @@ export class BluetoothService {
     console.log('Found bluefruit ' + bf);
     if (!bf) {
       bf = new BlueFruit(this, { address: device.address });
+      console.log('pushing new Bluefruit to the array...');
       BluetoothService.BlueFruits.push(bf);
     }
 
