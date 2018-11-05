@@ -1,5 +1,6 @@
 /// <reference path="../../../node_modules/tns-platform-declarations/android.d.ts" />
 
+import { Packet } from '../../core';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 import * as geoLocation from 'nativescript-geolocation';
 import { LottieView } from 'nativescript-lottie';
@@ -178,6 +179,8 @@ export class HelloWorldModel extends Observable {
               peripheral.services.forEach(service => {
                 console.log('service found: ' + service);
               });
+
+              this._configureNotifying(bf.address);
             },
             onDisconnected: () => {
               console.log('oh crap we disconnected from the bluefruit...');
@@ -558,9 +561,9 @@ export class HelloWorldModel extends Observable {
       // byteArray[3] = android.graphics.Color.blue(androidColor);
       // byteArray[4] = android.graphics.Color.alpha(androidColor);
       byteArray[1] = 255;
-      byteArray[2] = 255;
-      byteArray[3] = 255;
-      byteArray[4] = 255;
+      byteArray[2] = 0;
+      byteArray[3] = 0;
+      byteArray[4] = 0;
 
       this._writeToBluefruit(byteArray).catch(error => {
         console.log('*** ERROR clearing board ***', error);
@@ -593,10 +596,21 @@ export class HelloWorldModel extends Observable {
       }
     });
   }
+
+  private _configureNotifying(address) {
+    this._bluetoothService._bluetooth.startNotifying({
+      peripheralUUID: address,
+      serviceUUID: BlueFruit.UART_Service,
+      characteristicUUID: BlueFruit.TXD,
+      onNotify: args => {
+        console.log('onNotify TXD args', args);
+      }
+    });
+  }
 }
 
 class NeopixelBoard {
-  static kDefaultType = 82;
+  static kDefaultType = 210;
   name: string;
   width: any; // byte
   height: any; // byte

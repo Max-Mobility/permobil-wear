@@ -65,7 +65,7 @@ export class BlueFruit extends Observable {
     const uArray = new Uint8Array(value);
     const p = new Packet();
     p.initialize(uArray);
-    // console.log(`${p.Type()}::${p.SubType()} ${p.toString()}`);
+    console.log(`${p.Type()}::${p.SubType()} ${p.toString()}`);
     this.handlePacket(p);
     p.destroy();
   }
@@ -76,9 +76,11 @@ export class BlueFruit extends Observable {
     if (!packetType || !subType) {
       return;
     } else if (packetType === 'Data') {
+      console.log('subType', subType);
+
       switch (subType) {
         case 'DeviceInfo':
-          this.handleDeviceInfo(p);
+          // this.handleDeviceInfo(p);
           break;
         case 'MotorInfo':
         default:
