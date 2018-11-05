@@ -95,18 +95,26 @@ export class HelloWorldModel extends Observable {
   private _motionDetectedLottie: LottieView;
   private _heartRateLottie: LottieView;
   private _bluetoothService: BluetoothService;
-  private _colorLayout: StackLayout;
+  private: StackLayout;
   private _bluefruitDevice: BlueFruit = null;
-  private _blueFruitConnected = false;
 
-  public static UUID_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+  private _neopixelBoard: NeopixelBoard = null;
 
   constructor(page: Page) {
     super();
     this._page = page;
 
-    this._colorLayout = page.getViewById('colorLayout') as StackLayout;
     this._bluetoothService = new BluetoothService();
+
+    this._neopixelBoard = new NeopixelBoard(
+      '1x8',
+      8,
+      1,
+      4,
+      8,
+      NeopixelBoard.kDefaultType
+    );
+    console.log('neopixelBoard', this._neopixelBoard);
 
     console.log(
       { device },
@@ -123,25 +131,23 @@ export class HelloWorldModel extends Observable {
 
     // Listener for prop changes - used to calc the sliders for color value and set background
     this.on(Observable.propertyChangeEvent, (args: PropertyChangeData) => {
-      // Do your magic here
-      console.log('propertyName', args.propertyName, 'value : ' + args.value);
+      // console.log('propertyName', args.propertyName, 'value : ' + args.value);
       // handle the brightness slider updating
       if (args.propertyName === 'brightnessSlider') {
         this.brightnessSlider = args.value;
       } else {
         // right now this is handling the color sliders changing
-        const hexColor = this._setColor(this.rColor, this.gColor, this.bColor);
-        this.currentHexColor = hexColor;
-        // this._colorLayout.backgroundColor = hexColor;
+        this.currentHexColor = this._setColor(
+          this.rColor,
+          this.gColor,
+          this.bColor
+        );
       }
     });
   }
 
   async scanForBluefruit() {
     try {
-      // check and see if already connected to a bluefruit device
-      // const x = BluetoothService.BlueFruits.forEach()
-
       console.log('scan for bluefruits');
       // make sure location is enabled or can't scan for peripherals
       const geoEnabled = await !geoLocation.isEnabled();
@@ -149,7 +155,7 @@ export class HelloWorldModel extends Observable {
 
       this.isSearchingBluetooth = true;
 
-      await this._bluetoothService.scanForBluefruits();
+      await this._bluetoothService.scanForBluefruits(2);
 
       console.log('bluefruits on service', BluetoothService.BlueFruits.length);
       if (BluetoothService.BlueFruits.length >= 1) {
@@ -170,27 +176,13 @@ export class HelloWorldModel extends Observable {
               console.log('connected to the bluefruit, now what?');
               // the peripheral object now has a list of available services:
               peripheral.services.forEach(service => {
-                // console.log('service found: ' + JSON.stringify(service));
-                console.log(service);
+                console.log('service found: ' + service);
               });
             },
             onDisconnected: () => {
               console.log('oh crap we disconnected from the bluefruit...');
             }
           });
-          // this._bluetoothService.connect(
-          //   bf.address,
-          //   peripheral => {
-          //     console.log('connected to the bluefruit, now what?');
-          //     // the peripheral object now has a list of available services:
-          //     peripheral.services.forEach(function(service) {
-          //       console.log('service found: ' + JSON.stringify(service));
-          //     });
-          //   },
-          //   () => {
-          //     console.log('oh crap we disconnected from the bluefruit...');
-          //   }
-          // );
         }
       } else {
         alert({
@@ -206,73 +198,55 @@ export class HelloWorldModel extends Observable {
     }
   }
 
+  async addNeopixelBoard() {
+    try {
+      const result = await this._setupNeopixel(this._neopixelBoard);
+      console.log('Result of setting up neopixel ' + result);
+      if (result) {
+        // board was successful in setup
+        this._clearBoard('white');
+      }
+    } catch (error) {
+      console.log('ERROR SETUP NEOPIXEL', error);
+    }
+  }
+
   async clearBluefruitBoard() {
-    const ourColor = new Color('green').android;
-    const red = android.graphics.Color.red(ourColor);
-    const green = android.graphics.Color.green(ourColor);
-    const blue = android.graphics.Color.blue(ourColor);
-
-    const colorWValue = 0;
-
-    const byteArray = Array.create('byte', 20);
-    byteArray[0] = '0x43'; // 0x43 === 'C' - this is the "Command: Clear"
-    byteArray[1] = red;
-    byteArray[2] = green;
-    byteArray[3] = blue;
-    byteArray[4] = colorWValue;
-
-    this._bluetoothService._bluetooth
-      .write({
-        peripheralUUID: this._bluefruitDevice.address,
-        serviceUUID: BlueFruit.UART_Service,
-        characteristicUUID: BlueFruit.TXD,
-        value: byteArray
-      })
-      .then(() => {
-        console.log('success clearing the board');
-      })
-      .catch(error => {
-        console.log('error writing brightness ' + error);
-      });
+    this._clearBoard('red');
   }
 
   async sendColorToBluefruit() {
     try {
       // we should be connected to the Bluefruit when we try this
+      const x = new Color(this.currentHexColor);
+      const ledColor = x.android;
+      console.log('hex color = ' + x);
+      console.log('android color = ' + ledColor);
 
-      const ourColor = new Color(this.currentHexColor).android;
+      const red = android.graphics.Color.red(ledColor);
+      // console.log('red', red);
+      const green = android.graphics.Color.green(ledColor);
+      // console.log('green', green);
+      const blue = android.graphics.Color.blue(ledColor);
+      // console.log('blue', blue);
 
-      const red = android.graphics.Color.red(ourColor);
-      console.log('red', red);
-      const green = android.graphics.Color.green(ourColor);
-      console.log('green', green);
-      const blue = android.graphics.Color.blue(ourColor);
-      console.log('blue', blue);
+      for (let i = 0; i < this._neopixelBoard.width; i++) {
+        console.log('**** creating byte array ' + i + ' ******');
+        const colorArray = Array.create('byte', 7);
+        colorArray[0] = '0x50'; // '0x50' === 'P' this is Command: Set Pixel
+        colorArray[1] = i % this._neopixelBoard.width;
+        colorArray[2] = i / this._neopixelBoard.width;
+        colorArray[3] = red;
+        colorArray[4] = green;
+        colorArray[5] = blue;
+        colorArray[6] = 255;
 
-      const colorArray = Array.create('byte', 20);
-      colorArray[0] = '0x50'; // '0x50' === 'P' this is Command: Set Pixel
-      colorArray[1] = 0;
-      colorArray[2] = 1;
-      colorArray[3] = red;
-      colorArray[4] = green;
-      colorArray[5] = blue;
-      // colorArray[6] = colorWValue;
+        const result = await this._writeToBluefruit(colorArray).catch(error => {
+          console.log('Error writing color to bluefruit ' + error);
+        });
 
-      this._bluetoothService._bluetooth
-        .write({
-          peripheralUUID: this._bluefruitDevice.address,
-          serviceUUID: BlueFruit.UART_Service,
-          characteristicUUID: BlueFruit.TXD,
-          value: colorArray
-        })
-        .then(
-          function(result) {
-            console.log('success sending color to bluefruit');
-          },
-          function(err) {
-            console.log('sending color error: ' + err);
-          }
-        );
+        console.log('result of writing color array', result);
+      }
     } catch (error) {
       console.log('Error writing to Bluefruit device.', error);
     }
@@ -531,25 +505,110 @@ export class HelloWorldModel extends Observable {
     const g_hex = parseInt(g, 10).toString(16);
     const b_hex = parseInt(b, 10).toString(16);
     const hex = '#' + this._pad(r_hex) + this._pad(g_hex) + this._pad(b_hex);
-    console.log('hex === ', hex);
+    // console.log('hex === ', hex);
     return hex;
   }
 
   private _pad(n) {
     return n.length < 2 ? '0' + n : n;
   }
+
+  private _setupNeopixel(device: NeopixelBoard) {
+    return new Promise((resolve, reject) => {
+      try {
+        console.log('*** Setup Board ***');
+
+        const pixelType = device.type;
+        console.log('pixel type', pixelType);
+
+        const byteArray = Array.create('byte', 7);
+        byteArray[0] = 0x53; // 0x53 === 'S' - this is the "Command: Setup"
+        byteArray[1] = device.width; // device width
+        byteArray[2] = device.height; // device height
+        byteArray[3] = device.components; // device components
+        byteArray[4] = device.stride; // stride
+        byteArray[5] = pixelType; // pixelType (byte)
+        byteArray[6] = (pixelType >> 8) & 0xff; // (pixelType >> 8) & 0xff (byte)
+
+        this._writeToBluefruit(byteArray)
+          .then(() => {
+            resolve(true);
+          })
+          .catch(error => {
+            console.log('ERROR writing to bluefruit for setup neopixel', error);
+            reject(false);
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  private _clearBoard(color: string) {
+    console.log('clearing the board');
+    if (this._neopixelBoard !== null) {
+      const androidColor = new Color(color).android;
+      console.log('androidColor', androidColor);
+
+      const byteArray = Array.create('byte', 5);
+      byteArray[0] = 0x43; // CLEAR command
+      // byteArray[0] = '67'; // CLEAR command
+      // byteArray[1] = android.graphics.Color.red(androidColor);
+      // byteArray[2] = android.graphics.Color.green(androidColor);
+      // byteArray[3] = android.graphics.Color.blue(androidColor);
+      // byteArray[4] = android.graphics.Color.alpha(androidColor);
+      byteArray[1] = 255;
+      byteArray[2] = 255;
+      byteArray[3] = 255;
+      byteArray[4] = 255;
+
+      this._writeToBluefruit(byteArray).catch(error => {
+        console.log('*** ERROR clearing board ***', error);
+      });
+    }
+  }
+
+  private _writeToBluefruit(data: Array<any>) {
+    for (let i = 0; i < data.length; i++) {
+      const item = data[i];
+      console.log(`item ${i} in byte array = ${item}`);
+    }
+    return new Promise((resolve, reject) => {
+      try {
+        this._bluetoothService._bluetooth
+          .write({
+            peripheralUUID: this._bluefruitDevice.address,
+            serviceUUID: BlueFruit.UART_Service,
+            characteristicUUID: BlueFruit.TXD,
+            value: data
+          })
+          .then(() => {
+            resolve(true);
+          })
+          .catch(error => {
+            reject(error);
+          });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
 }
 
-class Board {
+class NeopixelBoard {
+  static kDefaultType = 82;
   name: string;
   width: any; // byte
   height: any; // byte
-  stride: any; // byte;
-
-  constructor(name: string, width, height, stride) {
+  components: any; // byte
+  stride: any; // byte
+  type: any; // short
+  constructor(name: string, width, height, components, stride, type) {
     this.name = name;
     this.width = width;
     this.height = height;
+    this.components = components;
     this.stride = stride;
+    this.type = type;
   }
 }
