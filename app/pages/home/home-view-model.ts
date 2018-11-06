@@ -207,7 +207,7 @@ export class HelloWorldModel extends Observable {
       console.log('Result of setting up neopixel ' + result);
       if (result) {
         // board was successful in setup
-        this._clearBoard('white');
+        this._clearBoard(255, 255, 255, 255);
       }
     } catch (error) {
       console.log('ERROR SETUP NEOPIXEL', error);
@@ -215,33 +215,53 @@ export class HelloWorldModel extends Observable {
   }
 
   async clearBluefruitBoard() {
-    this._clearBoard('red');
+    const color = this.getCurrentColor();
+    this._clearBoard(color.red, color.green, color.blue, color.white);
+  }
+
+  getCurrentColor() {
+    const x = new Color(this.currentHexColor);
+    const ledColor = x.android;
+    console.log('hex color = ' + x);
+    console.log('android color = ' + ledColor);
+
+    const red = android.graphics.Color.red(ledColor);
+    // console.log('red', red);
+    const green = android.graphics.Color.green(ledColor);
+    // console.log('green', green);
+    const blue = android.graphics.Color.blue(ledColor);
+    const whtie = 0;
+
+    return {
+      red,
+      green,
+      blue,
+      white
+    };
   }
 
   async sendColorToBluefruit() {
     try {
       // we should be connected to the Bluefruit when we try this
-      const x = new Color(this.currentHexColor);
-      const ledColor = x.android;
-      console.log('hex color = ' + x);
-      console.log('android color = ' + ledColor);
+      const color = this.getCurrentColor();
+      // send to smartdrive
+      if (this._smartDrive && this._smartDrive.ableToSend) {
+        console.log('Sending color to smartdrive');
+        this._smartDrive
+          .setLEDColor(color.red, color.green, color.blue)
+          .catch(err => console.log('could not send led color', err));
+      }
 
-      const red = android.graphics.Color.red(ledColor);
-      // console.log('red', red);
-      const green = android.graphics.Color.green(ledColor);
-      // console.log('green', green);
-      const blue = android.graphics.Color.blue(ledColor);
-      // console.log('blue', blue);
-
+      // send to neopixel board
       for (let i = 0; i < this._neopixelBoard.width; i++) {
         console.log('**** creating byte array ' + i + ' ******');
         const colorArray = Array.create('byte', 7);
         colorArray[0] = '0x50'; // '0x50' === 'P' this is Command: Set Pixel
         colorArray[1] = i % this._neopixelBoard.width;
         colorArray[2] = i / this._neopixelBoard.width;
-        colorArray[3] = red;
-        colorArray[4] = green;
-        colorArray[5] = blue;
+        colorArray[3] = color.red;
+        colorArray[4] = color.green;
+        colorArray[5] = color.blue;
         colorArray[6] = 255;
 
         const result = await this._writeToBluefruit(colorArray).catch(error => {
@@ -547,23 +567,23 @@ export class HelloWorldModel extends Observable {
     });
   }
 
-  private _clearBoard(color: string) {
+  private _clearBoard(red: number, green: number, blue: number, white: number) {
     console.log('clearing the board');
+    // send to smartdrive
+    if (this._smartDrive && this._smartDrive.ableToSend) {
+      console.log('Sending color to smartdrive');
+      this._smartDrive
+        .setLEDColor(red, green, blue)
+        .catch(err => console.log('could not send led color', err));
+    }
+    // send to neopixel
     if (this._neopixelBoard !== null) {
-      const androidColor = new Color(color).android;
-      console.log('androidColor', androidColor);
-
       const byteArray = Array.create('byte', 5);
       byteArray[0] = 0x43; // CLEAR command
-      // byteArray[0] = '67'; // CLEAR command
-      // byteArray[1] = android.graphics.Color.red(androidColor);
-      // byteArray[2] = android.graphics.Color.green(androidColor);
-      // byteArray[3] = android.graphics.Color.blue(androidColor);
-      // byteArray[4] = android.graphics.Color.alpha(androidColor);
-      byteArray[1] = 255;
-      byteArray[2] = 0;
-      byteArray[3] = 0;
-      byteArray[4] = 0;
+      byteArray[1] = green;
+      byteArray[2] = red;
+      byteArray[3] = blue;
+      byteArray[4] = white;
 
       this._writeToBluefruit(byteArray).catch(error => {
         console.log('*** ERROR clearing board ***', error);
