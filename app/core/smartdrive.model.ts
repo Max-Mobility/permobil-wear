@@ -954,11 +954,11 @@ export class SmartDrive extends Observable {
     green = clamp(green);
     blue = clamp(blue);
     // now fill in the packet
-    ledSettings.red = red;
-    ledSettings.green = green;
-    ledSettings.blue = blue;
-    ledSettings.state = Packet.makeBoundData('LEDState', state);
-    ledSettings.mode = Packet.makeBoundData('LEDMode', mode);
+    ledSettings.Red = red;
+    ledSettings.Green = green;
+    ledSettings.Blue = blue;
+    ledSettings.State = Packet.makeBoundData('LEDState', state);
+    ledSettings.Mode = Packet.makeBoundData('LEDMode', mode);
     p.destroy();
     return this.sendPacket(
       'Command',

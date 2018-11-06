@@ -230,7 +230,7 @@ export class HelloWorldModel extends Observable {
     const green = android.graphics.Color.green(ledColor);
     // console.log('green', green);
     const blue = android.graphics.Color.blue(ledColor);
-    const whtie = 0;
+    const white = 0;
 
     return {
       red,
@@ -249,7 +249,7 @@ export class HelloWorldModel extends Observable {
         console.log('Sending color to smartdrive');
         this._smartDrive
           .setLEDColor(color.red, color.green, color.blue)
-          .catch(err => console.log('could not send led color', err));
+          .catch(err => console.log);
       }
 
       // send to neopixel board
@@ -572,9 +572,7 @@ export class HelloWorldModel extends Observable {
     // send to smartdrive
     if (this._smartDrive && this._smartDrive.ableToSend) {
       console.log('Sending color to smartdrive');
-      this._smartDrive
-        .setLEDColor(red, green, blue)
-        .catch(err => console.log('could not send led color', err));
+      this._smartDrive.setLEDColor(red, green, blue).catch(err => console.log);
     }
     // send to neopixel
     if (this._neopixelBoard !== null) {
