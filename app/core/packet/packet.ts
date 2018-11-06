@@ -95,8 +95,8 @@ export class Packet {
   }
 
   public makeOTAPacket(device: string, startIndex: number, firmware: any) {
-    const length = Math.min(firmware.length - startIndex, 16);
-    const bytes = new PacketBinding.VectorInt();
+    let length = Math.min(firmware.length - startIndex, 16);
+    let bytes = new PacketBinding.VectorInt();
     for (let i = 0; i < length; i++) {
       bytes.push_back(firmware[startIndex + i]);
     }
