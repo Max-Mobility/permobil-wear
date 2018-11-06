@@ -933,6 +933,42 @@ export class SmartDrive extends Observable {
     }
   }
 
+  public setLEDColor(red: number, green: number, blue: number): Promise<any> {
+    return this.sendLEDSettings(red, green, blue, 'On', 'SingleColor');
+  }
+
+  public sendLEDSettings(
+    red: number,
+    green: number,
+    blue: number,
+    state: string,
+    mode: string
+  ): Promise<any> {
+    const p = new Packet();
+    const ledSettings = p.data('ledSettings');
+    // clamp numbers
+    const clamp = n => {
+      return Math.max(0, Math.min(n, 255));
+    };
+    red = clamp(red);
+    green = clamp(green);
+    blue = clamp(blue);
+    // now fill in the packet
+    ledSettings.red = red;
+    ledSettings.green = green;
+    ledSettings.blue = blue;
+    ledSettings.state = Packet.makeBoundData('LEDState', state);
+    ledSettings.mode = Packet.makeBoundData('LEDMode', mode);
+    p.destroy();
+    return this.sendPacket(
+      'Command',
+      'SetLEDSettings',
+      'ledSettings',
+      null,
+      ledSettings
+    );
+  }
+
   public sendSettings(
     mode: string,
     units: string,
