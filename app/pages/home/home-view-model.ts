@@ -251,7 +251,7 @@ export class HelloWorldModel extends Observable {
             color.red,
             color.green,
             color.blue,
-            255
+            0x00
           ]);
 
           this._writeToBluefruit(colorArray)
@@ -565,7 +565,7 @@ export class HelloWorldModel extends Observable {
     setTimeout(() => {
       // send to neopixel
       if (this._neopixelBoard !== null) {
-        const byteArray = Uint8Array.from([0x43, green, red, blue, 0x00]);
+        const byteArray = Uint8Array.from([0x43, red, green, blue, 0x00]);
 
         this._writeToBluefruit(byteArray).catch(error => {
           console.log('*** ERROR clearing board ***', error);
