@@ -14,6 +14,30 @@ public:
   };
 };
 
+/*** LED  ***/
+class LED {
+public:
+  enum class State : uint8_t {
+	Off,
+	  On
+	  };
+
+  enum class Mode : uint8_t {
+	Off,
+	  SingleColor,
+	  Sequence1,
+	  Sequence2
+	  };
+
+  struct Settings {
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+	State   state;
+	Mode    mode;
+  };
+};
+
 /*** Smart Drive ***/
 class SmartDrive {
 public:
@@ -51,7 +75,7 @@ public:
     TwoPressed
   };
 
-  // settings flags values are the bit numbers 
+  // settings flags values are the bit numbers
   enum class BoolSettingFlag  : uint8_t { EZMODE = 0 };
 
   struct Settings {
@@ -127,7 +151,7 @@ public:
     ConnectMPGame,
     DisconnectMPGame,
     SetPushSettings,
-    SetLEDColor
+    SetLEDSettings
   };
 
   enum class OTA : uint8_t {
@@ -285,6 +309,7 @@ public:
     ErrorInfo            errorInfo;
     BatteryInfo          batteryInfo;
     DistanceInfo         distanceInfo;
+	LED::Settings        ledSettings;
 
     /**
      * Used with StartOTA / StopOTA commands, tells which device the
@@ -479,8 +504,8 @@ public:
       case Packet::Command::SetPushSettings:
         dataLen = sizeof(pushSettings);
         break;
-      case Packet::Command::SetLEDColor:
-		// TODO: need to flesh out this packet def.
+      case Packet::Command::SetLEDSettings:
+		dataLen = sizeof(ledSettings);
         break;
       default:
         break;
@@ -572,6 +597,27 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .field("TapSensitivity", &SmartDrive::Settings::tapSensitivity)
     .field("Acceleration", &SmartDrive::Settings::acceleration)
     .field("MaxSpeed", &SmartDrive::Settings::maxSpeed)
+    ;
+    ;
+
+  emscripten::enum_<LED::State>("LEDState")
+    .value("Off", LED::State::Off)
+    .value("On", LED::State::On)
+    ;
+
+  emscripten::enum_<LED::Mode>("LEDMode")
+    .value("Off", LED::Mode::Off)
+    .value("SingleColor", LED::Mode::SingleColor)
+    .value("Sequence1", LED::Mode::Sequence1)
+    .value("Sequence2", LED::Mode::Sequence2)
+    ;
+
+  emscripten::value_object<LED::Settings>("LEDSettings")
+    .field("Red", &LED::Settings::red)
+    .field("Green", &LED::Settings::green)
+    .field("Blue", &LED::Settings::blue)
+    .field("State", &LED::Settings::state)
+    .field("Mode", &LED::Settings::mode)
     ;
 
   // PACKET BINDINGS
@@ -697,7 +743,7 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .value("ConnectMPGame", Packet::Command::ConnectMPGame)
     .value("DisconnectMPGame", Packet::Command::DisconnectMPGame)
     .value("SetPushSettings", Packet::Command::SetPushSettings)
-    .value("SetLEDColor", Packet::Command::SetLEDColor)
+    .value("SetLEDSettings", Packet::Command::SetLEDSettings)
     ;
 
   emscripten::enum_<Packet::OTA>("PacketOTAType")
@@ -739,6 +785,7 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     // Actual payload info
     .property("settings", &Packet::settings)
     .property("pushSettings", &Packet::pushSettings)
+    .property("ledSettings", &Packet::ledSettings)
     .property("versionInfo", &Packet::versionInfo)
     .property("dailyInfo", &Packet::dailyInfo)
     .property("journeyInfo", &Packet::journeyInfo)
