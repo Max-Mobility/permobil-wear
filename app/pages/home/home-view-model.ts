@@ -18,7 +18,7 @@ import { device } from 'tns-core-modules/platform';
 import { action, alert, confirm } from 'tns-core-modules/ui/dialogs';
 import { Page } from 'tns-core-modules/ui/frame';
 import { StackLayout } from 'tns-core-modules/ui/layouts/stack-layout';
-import { BlueFruit, SmartDrive } from '../../core';
+import { BlueFruit, Neopixel, SmartDrive } from '../../core';
 import { Prop } from '../../obs-prop';
 import { BluetoothService } from '../../services';
 
@@ -91,37 +91,23 @@ export class HelloWorldModel extends Observable {
    */
   private _isListeningAccelerometer = false;
   private _heartrateListener;
-  private _page: Page;
-  private _smartDrive: SmartDrive;
+
   private _motionDetectedLottie: LottieView;
   private _heartRateLottie: LottieView;
-  private _bluetoothService: BluetoothService;
-  private: StackLayout;
-  private _bluefruitDevice: BlueFruit = null;
 
-  private _neopixelBoard: NeopixelBoard = null;
+  private _bluetoothService: BluetoothService;
+
+  private _smartDrive: SmartDrive;
+  private _blueFruit: BlueFruit;
+
+  private: StackLayout;
+  private _page: Page;
 
   constructor(page: Page) {
     super();
     this._page = page;
 
     this._bluetoothService = new BluetoothService();
-
-    this._neopixelBoard = new NeopixelBoard('1x8', 8, 1, 4, 8, true);
-    console.log('neopixelBoard', this._neopixelBoard);
-
-    console.log(
-      { device },
-      'Device Info: ',
-      device.manufacturer,
-      device.model,
-      device.os,
-      device.osVersion,
-      device.sdkVersion,
-      device.region,
-      device.language,
-      device.uuid
-    );
 
     // Listener for prop changes - used to calc the sliders for color value and set background
     this.on(Observable.propertyChangeEvent, (args: PropertyChangeData) => {
@@ -140,83 +126,131 @@ export class HelloWorldModel extends Observable {
     });
   }
 
-  async scanForBluefruit() {
+  async onScanTap() {
+    console.log('onScanTap()');
+    this.isSearchingBluetooth = false;
+    // make sure location is enabled or can't scan for peripherals
     try {
-      console.log('scan for bluefruits');
-      // make sure location is enabled or can't scan for peripherals
       const geoEnabled = await !geoLocation.isEnabled();
-      console.log('geoEnabled', geoEnabled);
+    } catch (err) {
+      console.log('geo error', err);
+      return;
+    }
+    console.log('geoEnabled', geoEnabled);
 
-      this.isSearchingBluetooth = true;
+    this.isSearchingBluetooth = true;
+    return this.scanForSmartDrive()
+      .then(() => {
+        return this.scanForBlueFruit();
+      })
+      .then(() => {
+        this.isSearchingBluetooth = false;
+      })
+      .catch(err => {
+        this.isSearchingBluetooth = false;
+      });
+  }
 
-      await this._bluetoothService.scanForBluefruits(2);
-
-      console.log('bluefruits on service', BluetoothService.BlueFruits.length);
-      if (BluetoothService.BlueFruits.length >= 1) {
-        const cResult = await confirm({
-          message: `Found ${
-            BluetoothService.BlueFruits.length
-          } Bluefruits nearby.`,
-          okButtonText: 'Okay',
-          cancelButtonText: 'Cancel'
-        });
-        if (cResult === true) {
-          const bf = BluetoothService.BlueFruits.getItem(0);
-          this._bluefruitDevice = BluetoothService.BlueFruits.getItem(0);
-          console.log('attempting to connect to Bluefruit ', bf.address);
-          this._bluetoothService.connect(
-            bf.address,
-            peripheral => {
-              console.log('connected to the bluefruit');
-              this._configureNotifying(bf.address);
-            },
-            () => {
-              console.log('oh crap we disconnected from the bluefruit...');
+  async scanForSmartDrive() {
+    console.log('scan for smartdrive');
+    return this._bluetoothService
+      .scanForSmartDrive(2)
+      .then(() => {
+        const sds = BluetoothService.SmartDrives;
+        const addresses = sds.map(sd => sd.address);
+        let address = null;
+        let smartDrive = null;
+        if (addresses.length !== 1) {
+          return action({
+            message: `Found ${sds && sds.length} SmartDrives!.`,
+            actions: addresses,
+            cancelButtonText: 'Dismiss'
+          }).then(result => {
+            if (addresses.indexOf(result) > -1) {
+              address = result;
             }
-          );
+            if (address) {
+              smartDrive = sds.filter(sd => sd.address === address)[0];
+            }
+            return smartDrive;
+          });
+        } else {
+          return sds.filter(sd => sd.address === addresses[0])[0];
         }
-      } else {
-        alert({
-          message:
-            'No Bluefruits found nearby. Check that your location is enabled to scan for peripherals and the Bluefruit you are trying to find is not currently connected to a device.',
-          okButtonText: 'Okay'
-        });
-      }
-
-      this.isSearchingBluetooth = false;
-    } catch (error) {
-      this.isSearchingBluetooth = false;
-    }
+      })
+      .then(sd => {
+        if (!sd) {
+          return;
+        }
+        this._smartDrive = sd;
+        this._smartDrive.on(
+          SmartDrive.smartdrive_mcu_version_event,
+          this.onSmartDriveVersion,
+          this
+        );
+        this._smartDrive.on(
+          SmartDrive.smartdrive_distance_event,
+          this.onDistance,
+          this
+        );
+        this._smartDrive.connect();
+        this.connected = true;
+        new Toasty('Connecting to ' + sd.address).show();
+        return Promise.resolve();
+      })
+      .catch(err => {
+        console.log('could not scan', err);
+      });
   }
 
-  async addNeopixelBoard() {
-    try {
-      const result = await this._setupNeopixel(this._neopixelBoard);
-      console.log('Result of setting up neopixel ' + result);
-      if (result) {
-        // board was successful in setup
-        this._clearBoard(255, 255, 255, 255);
-      }
-    } catch (error) {
-      console.log('ERROR SETUP NEOPIXEL', error);
-    }
-  }
-
-  async clearBluefruitBoard() {
-    const color = this.getCurrentColor();
-    this._clearBoard(color.red, color.green, color.blue, color.white);
+  async scanForBluefruit() {
+    console.log('scan for bluefruits');
+    return this._bluetoothService
+      .scanForBlueFruits(2)
+      .then(() => {
+        const bfs = BluetoothService.BlueFruits;
+        const addresses = bfs.map(bf => bf.address);
+        let address = null;
+        let blueFruit = null;
+        if (addresses.length !== 1) {
+          return action({
+            message: `Found ${bfs && bfs.length} BlueFruits!.`,
+            actions: addresses,
+            cancelButtonText: 'Dismiss'
+          }).then(result => {
+            if (addresses.indexOf(result) > -1) {
+              address = result;
+            }
+            if (address) {
+              bfs.filter(bf => bf.address === address)[0];
+            }
+            return blueFruit;
+          });
+        } else {
+          return bfs.filter(bf => bf.address === addresses[0])[0];
+        }
+      })
+      .then(bf => {
+        if (!bf) {
+          return;
+        }
+        this._blueFruit = bf;
+        this._blueFruit.connect();
+        this.connected = true;
+        new Toasty('Connecting to ' + bf.address).show();
+        return Promise.resolve();
+      })
+      .catch(err => {
+        console.log('could not scan', err);
+      });
   }
 
   getCurrentColor() {
     const x = new Color(this.currentHexColor);
     const ledColor = x.android;
-    console.log('hex color = ' + x);
-    console.log('android color = ' + ledColor);
 
     const red = android.graphics.Color.red(ledColor);
-    // console.log('red', red);
     const green = android.graphics.Color.green(ledColor);
-    // console.log('green', green);
     const blue = android.graphics.Color.blue(ledColor);
     const white = 0;
 
@@ -228,68 +262,32 @@ export class HelloWorldModel extends Observable {
     };
   }
 
-  async sendColorToBluefruit() {
-    try {
-      // we should be connected to the Bluefruit when we try this
-      const color = this.getCurrentColor();
-      // send to smartdrive
+  async sendColor() {
+    // we should be connected to the Bluefruit when we try this
+    const color = this.getCurrentColor();
+    console.log('sending color', color);
+
+    const sendSD = () => {
       if (this._smartDrive && this._smartDrive.ableToSend) {
         console.log('Sending color to smartdrive');
-        this._smartDrive
+        return this._smartDrive
           .setLEDColor(color.red, color.green, color.blue)
           .catch(err => console.log);
+      } else {
+        return Promise.resolve();
       }
+    };
 
-      setTimeout(() => {
-        // send to neopixel board
-        for (let i = 0; i < this._neopixelBoard.width; i++) {
-          console.log('**** creating byte array ' + i + ' ******');
-          const colorArray = Uint8Array.from([
-            0x50,
-            i % this._neopixelBoard.width,
-            i / this._neopixelBoard.width,
-            color.red,
-            color.green,
-            color.blue,
-            0x00
-          ]);
-
-          this._writeToBluefruit(colorArray)
-            .then(result => {
-              console.log('result of writing color array', result);
-            })
-            .catch(error => {
-              console.log('Error writing color to bluefruit ' + error);
-            });
-        }
-      }, 250);
-    } catch (error) {
-      console.log('Error writing to Bluefruit device.', error);
-    }
-  }
-
-  async sendBrightnessToBoard() {
-    try {
-      // try setting the brightness
-      const brightness = this.brightnessSlider * 255; //
-      const brightnessArray = Uint8Array.from([0x42, brightness]);
-
-      this._bluetoothService
-        .write({
-          peripheralUUID: this._bluefruitDevice.address,
-          serviceUUID: BlueFruit.UART_Service,
-          characteristicUUID: BlueFruit.TXD,
-          value: brightnessArray
-        })
-        .then(() => {
-          console.log('success writing brightness');
-        })
-        .catch(error => {
-          console.log('error writing brightness ' + error);
-        });
-    } catch (error) {
-      console.log('error sending brightness', error);
-    }
+    const sendBF = () => {
+      if (this._blueFruit && this._blueFruit.connected) {
+        return this._blueFruit
+          .clearColor(color.red, color.green, color.blue)
+          .catch(err => console.log);
+      } else {
+        return Promise.resolve();
+      }
+    };
+    return sendSD().then(sendBF);
   }
 
   motionDetectedLoaded(args) {
@@ -357,6 +355,7 @@ export class HelloWorldModel extends Observable {
     this.accelerometerBtnText = 'Stop Accelerometer';
   }
 
+  // SmartDrive Events:
   async onDistance(args: any) {
     // save the updated distance
     appSettings.setNumber('sd.distance.case', this._smartDrive.coastDistance);
@@ -370,44 +369,9 @@ export class HelloWorldModel extends Observable {
     appSettings.setNumber('sd.battery', this._smartDrive.battery);
   }
 
-  async onScanTap() {
-    console.log('onScanTap()');
-    return this._bluetoothService
-      .scanForSmartDrive()
-      .then(() => {
-        const sds = BluetoothService.SmartDrives;
-        const addresses = sds.map(sd => sd.address);
-        action({
-          message: `Found ${sds && sds.length} SmartDrives!.`,
-          actions: addresses,
-          cancelButtonText: 'Dismiss'
-        }).then(result => {
-          console.log('result', result);
-          if (addresses.indexOf(result) > -1) {
-            this._smartDrive = sds.filter(sd => sd.address === result)[0];
-            this._smartDrive.on(
-              SmartDrive.smartdrive_mcu_version_event,
-              this.onSmartDriveVersion,
-              this
-            );
-            this._smartDrive.on(
-              SmartDrive.smartdrive_distance_event,
-              this.onDistance,
-              this
-            );
-            this._smartDrive.connect();
-            this.connected = true;
-            new Toasty('Connecting to ' + result).show();
-          }
-        });
-      })
-      .catch(err => {
-        console.log('could not scan', err);
-      });
-  }
-
+  // Button Handlers:
   async onDisconnectTap() {
-    if (this._smartDrive.connected) {
+    if (this._smartDrive && this._smartDrive.connected) {
       this._smartDrive.off(
         SmartDrive.smartdrive_mcu_version_event,
         this.onSmartDriveVersion,
@@ -421,6 +385,12 @@ export class HelloWorldModel extends Observable {
       this._smartDrive.disconnect().then(() => {
         this.connected = false;
         new Toasty('Disconnected from ' + this._smartDrive.address).show();
+      });
+    }
+    if (this._blueFruit && this._blueFruit.connected) {
+      this._blueFruit.disconnect().then(() => {
+        this.connected = false;
+        new Toasty('Disconnected from ' + this._blueFruit.address).show();
       });
     }
   }
@@ -525,113 +495,5 @@ export class HelloWorldModel extends Observable {
 
   private _pad(n) {
     return n.length < 2 ? '0' + n : n;
-  }
-
-  private _setupNeopixel(device: NeopixelBoard) {
-    return new Promise((resolve, reject) => {
-      try {
-        console.log('*** Setup Board ***');
-
-        const byteArray = Uint8Array.from([
-          0x53, // 0x53 === 'S' - this is the "Command: Setup"
-          device.width, // device width
-          device.height, // device height
-          device.stride, // stride
-          210, // NEO_GRBW code from https://github.com/adafruit/Bluefruit_LE_Connect_Android_V2/blob/master/app/src/main/java/com/adafruit/bluefruit/le/connect/app/neopixel/NeopixelComponents.java
-          0x00
-        ]);
-
-        this._writeToBluefruit(byteArray)
-          .then(() => {
-            resolve(true);
-          })
-          .catch(error => {
-            console.log('ERROR writing to bluefruit for setup neopixel', error);
-            reject(false);
-          });
-      } catch (error) {
-        reject(error);
-      }
-    });
-  }
-
-  private _clearBoard(red: number, green: number, blue: number, white: number) {
-    console.log('clearing the board');
-    // send to smartdrive
-    if (this._smartDrive && this._smartDrive.ableToSend) {
-      console.log('Sending color to smartdrive');
-      this._smartDrive.setLEDColor(red, green, blue).catch(err => console.log);
-    }
-    setTimeout(() => {
-      // send to neopixel
-      if (this._neopixelBoard !== null) {
-        const byteArray = Uint8Array.from([0x43, red, green, blue, 0x00]);
-
-        this._writeToBluefruit(byteArray).catch(error => {
-          console.log('*** ERROR clearing board ***', error);
-        });
-      }
-    }, 250);
-  }
-
-  private _writeToBluefruit(data: any) {
-    for (let i = 0; i < data.length; i++) {
-      const item = data[i];
-      console.log(`item ${i} in byte array = ${item.toString(16)}`);
-    }
-    return new Promise((resolve, reject) => {
-      try {
-        this._bluetoothService
-          .write({
-            peripheralUUID: this._bluefruitDevice.address,
-            serviceUUID: BlueFruit.UART_Service,
-            characteristicUUID: BlueFruit.TXD,
-            value: data
-          })
-          .then(() => {
-            resolve(true);
-          })
-          .catch(error => {
-            reject(error);
-          });
-      } catch (error) {
-        reject(error);
-      }
-    });
-  }
-
-  private _configureNotifying(address) {
-    console.log('notifying txd');
-    this._bluetoothService.startNotifying({
-      peripheralUUID: address,
-      serviceUUID: BlueFruit.UART_Service,
-      characteristicUUID: BlueFruit.TXD.toUpperCase()
-    });
-    setTimeout(() => {
-      console.log('notifying rxd');
-      this._bluetoothService.startNotifying({
-        peripheralUUID: address,
-        serviceUUID: BlueFruit.UART_Service,
-        characteristicUUID: BlueFruit.RXD.toUpperCase()
-      });
-    }, 250);
-  }
-}
-
-class NeopixelBoard {
-  is400Hz: boolean;
-  name: string;
-  width: any; // byte
-  height: any; // byte
-  components: any; // byte
-  stride: any; // byte
-  type: any; // short
-  constructor(name: string, width, height, components, stride, is400Hz) {
-    this.name = name;
-    this.width = width;
-    this.height = height;
-    this.components = components;
-    this.stride = stride;
-    this.is400Hz = is400Hz;
   }
 }

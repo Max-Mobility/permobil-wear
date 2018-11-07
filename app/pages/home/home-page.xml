@@ -22,20 +22,14 @@
                         <Label row="0" col="0" text="{{ heartRate }}" class="heart-rate" textWrap="true" />
                     </GridLayout>
                 </FlexboxLayout>
-                <FlexboxLayout flexDirection="row" justifyContent="center">
-                    <Button text="Scan For SmartDrives" tap="{{ onScanTap }}" class="btn" />
-                </FlexboxLayout>
                 <FlexboxLayout visibility="{{ connected ? 'visible' : 'collapsed' }}" flexDirection="row" justifyContent="center">
                     <Button text="Disconnect" tap="{{ onDisconnectTap }}" class="btn" />
                 </FlexboxLayout>
 
 
-                <Button text="{{ isSearchingBluetooth ? 'Scanning...' : 'Scan For BlueFruits' }}" isEnabled="{{ !isSearchingBluetooth }}" tap="{{ scanForBluefruit }}" />
+                <Button text="{{ isSearchingBluetooth ? 'Scanning...' : 'Scan For SmartDrives and BlueFruits' }}" isEnabled="{{ !isSearchingBluetooth }}" tap="{{ onScanTap }}" />
 
                 <Label text="" class="hr-light m-20" textWrap="true" />
-
-                <Button text="Add NeoPixel" tap="{{ addNeopixelBoard }}" />
-
 
                 <StackLayout id="colorLayout" backgroundColor="{{ currentHexColor }}" width="75%" horizontalAlignment="center">
                     <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ rColor }}" />
@@ -43,18 +37,7 @@
                     <Slider class="colorSlider" minValue="0" maxValue="255" value="{{ bColor }}" />
                 </StackLayout>
 
-                <Button text="Send Color to Bluefruit" tap="{{ sendColorToBluefruit }}" />
-
-                <Label text="" class="hr-light m-20" textWrap="true" />
-
-                <Label text="Brightness Slider" color="white" textWrap="true" horizontalAlignment="center" />
-                <Slider minValue="0" maxValue="100" value="{{ brightnessSlider }}" margin="10" />
-                <Button text="Send Brightness to Bluefruit" tap="{{ sendBrightnessToBoard }}" />
-
-                <Label text="" class="hr-light m-20" textWrap="true" />
-
-
-                <Button text="Clear Bluefruit Board" tap="{{ clearBluefruitBoard }}" />
+                <Button text="Send Color" tap="{{ sendColor }}" />
 
             </FlexboxLayout>
         </FlexboxLayout>

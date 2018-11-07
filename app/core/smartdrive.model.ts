@@ -79,6 +79,15 @@ export class SmartDrive extends Observable {
   public static smartdrive_ota_timeout_event = 'smartdrive_ota_timeout_event';
 
   // static methods:
+  public static isSmartDriveDevice(dev: any): boolean {
+    const name = dev && dev.name;
+    const uuid = dev && dev.UUID;
+    const hasUUID =
+      uuid && uuid.toUpperCase() === SmartDrive.ServiceUUID.toUpperCase();
+    const isSD = (name && name.includes('Smart Drive DU')) || hasUUID;
+    return isSD;
+  }
+
   public static motorTicksToMiles(ticks: number): number {
     return (ticks * (2.0 * 3.14159265358 * 3.8)) / (265.714 * 63360.0);
   }
