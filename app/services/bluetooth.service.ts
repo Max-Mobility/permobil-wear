@@ -251,8 +251,8 @@ export class BluetoothService {
     if (SmartDrive.isSmartDriveDevice(device)) {
       const sd = this.getOrMakeSmartDrive(device);
       sd.handleDisconnect();
-    } else if (BlueFruit.isBlueFruitDevice(peripheral)) {
-      const bf = this.getOrMakeBlueFruit(peripheral);
+    } else if (BlueFruit.isBlueFruitDevice(device)) {
+      const bf = this.getOrMakeBlueFruit(device);
       bf.handleDisconnect();
     }
     // console.log('finished acl disconnect');
@@ -355,10 +355,8 @@ export class BluetoothService {
       (x: BlueFruit) => x.address === device.address
     )[0];
 
-    console.log('Found bluefruit ' + bf);
     if (!bf) {
       bf = new BlueFruit(this, { address: device.address });
-      console.log('pushing new Bluefruit to the array...');
       BluetoothService.BlueFruits.push(bf);
     }
 

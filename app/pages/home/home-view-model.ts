@@ -132,11 +132,11 @@ export class HelloWorldModel extends Observable {
     // make sure location is enabled or can't scan for peripherals
     try {
       const geoEnabled = await !geoLocation.isEnabled();
+      console.log('geoEnabled', geoEnabled);
     } catch (err) {
       console.log('geo error', err);
       return;
     }
-    console.log('geoEnabled', geoEnabled);
 
     this.isSearchingBluetooth = true;
     return this.scanForSmartDrive()
@@ -168,8 +168,6 @@ export class HelloWorldModel extends Observable {
           }).then(result => {
             if (addresses.indexOf(result) > -1) {
               address = result;
-            }
-            if (address) {
               smartDrive = sds.filter(sd => sd.address === address)[0];
             }
             return smartDrive;
@@ -182,28 +180,30 @@ export class HelloWorldModel extends Observable {
         if (!sd) {
           return;
         }
-        this._smartDrive = sd;
-        this._smartDrive.on(
-          SmartDrive.smartdrive_mcu_version_event,
-          this.onSmartDriveVersion,
-          this
-        );
-        this._smartDrive.on(
-          SmartDrive.smartdrive_distance_event,
-          this.onDistance,
-          this
-        );
-        this._smartDrive.connect();
-        this.connected = true;
-        new Toasty('Connecting to ' + sd.address).show();
-        return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          this._smartDrive = sd;
+          this._smartDrive.on(
+            SmartDrive.mcu_version_event,
+            this.onSmartDriveVersion,
+            this
+          );
+          this._smartDrive.on(SmartDrive.distance_event, this.onDistance, this);
+          const onConn = () => {
+            this.connected = true;
+            this._smartDrive.off(SmartDrive.connect_event);
+            resolve();
+          };
+          this._smartDrive.on(SmartDrive.connect_event, onConn, this);
+          this._smartDrive.connect();
+          new Toasty('Connecting to ' + sd.address).show();
+        });
       })
       .catch(err => {
         console.log('could not scan', err);
       });
   }
 
-  async scanForBluefruit() {
+  async scanForBlueFruit() {
     console.log('scan for bluefruits');
     return this._bluetoothService
       .scanForBlueFruits(2)
@@ -220,9 +220,7 @@ export class HelloWorldModel extends Observable {
           }).then(result => {
             if (addresses.indexOf(result) > -1) {
               address = result;
-            }
-            if (address) {
-              bfs.filter(bf => bf.address === address)[0];
+              blueFruit = bfs.filter(bf => bf.address === address)[0];
             }
             return blueFruit;
           });
@@ -268,11 +266,13 @@ export class HelloWorldModel extends Observable {
     console.log('sending color', color);
 
     const sendSD = () => {
-      if (this._smartDrive && this._smartDrive.ableToSend) {
+      if (this._smartDrive && this._smartDrive.connected) {
         console.log('Sending color to smartdrive');
         return this._smartDrive
           .setLEDColor(color.red, color.green, color.blue)
-          .catch(err => console.log);
+          .catch(err => {
+            console.log('err sending LED to SD', err);
+          });
       } else {
         return Promise.resolve();
       }
@@ -280,9 +280,12 @@ export class HelloWorldModel extends Observable {
 
     const sendBF = () => {
       if (this._blueFruit && this._blueFruit.connected) {
+        console.log('Sending color to bluefruit');
         return this._blueFruit
           .clearColor(color.red, color.green, color.blue)
-          .catch(err => console.log);
+          .catch(err => {
+            console.log('err sending LED to BF', err);
+          });
       } else {
         return Promise.resolve();
       }
@@ -373,15 +376,11 @@ export class HelloWorldModel extends Observable {
   async onDisconnectTap() {
     if (this._smartDrive && this._smartDrive.connected) {
       this._smartDrive.off(
-        SmartDrive.smartdrive_mcu_version_event,
+        SmartDrive.mcu_version_event,
         this.onSmartDriveVersion,
         this
       );
-      this._smartDrive.off(
-        SmartDrive.smartdrive_distance_event,
-        this.onDistance,
-        this
-      );
+      this._smartDrive.off(SmartDrive.distance_event, this.onDistance, this);
       this._smartDrive.disconnect().then(() => {
         this.connected = false;
         new Toasty('Disconnected from ' + this._smartDrive.address).show();

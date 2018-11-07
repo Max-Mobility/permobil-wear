@@ -49,34 +49,31 @@ export class SmartDrive extends Observable {
   // public static BLEOTADongleCharacteristic = SmartDrive.Characteristics[3];
 
   // Event names
-  public static smartdrive_connect_event = 'smartdrive_connect_event';
-  public static smartdrive_disconnect_event = 'smartdrive_disconnect_event';
+  public static connect_event = 'connect_event';
+  public static disconnect_event = 'disconnect_event';
 
-  public static smartdrive_service_discovered_event =
-    'smartdrive_service_discovered_event';
-  public static smartdrive_characteristic_discovered_event =
-    'smartdrive_characteristic_discovered_event';
+  public static service_discovered_event = 'service_discovered_event';
+  public static characteristic_discovered_event =
+    'characteristic_discovered_event';
 
-  public static smartdrive_ble_version_event = 'smartdrive_ble_version_event';
-  public static smartdrive_mcu_version_event = 'smartdrive_mcu_version_event';
+  public static ble_version_event = 'ble_version_event';
+  public static mcu_version_event = 'mcu_version_event';
 
-  public static smartdrive_distance_event = 'smartdrive_distance_event';
+  public static distance_event = 'distance_event';
 
-  public static smartdrive_ota_ready_event = 'smartdrive_ota_ready_event';
-  public static smartdrive_ota_ready_ble_event =
-    'smartdrive_ota_ready_ble_event';
-  public static smartdrive_ota_ready_mcu_event =
-    'smartdrive_ota_ready_mcu_event';
+  public static ota_ready_event = 'ota_ready_event';
+  public static ota_ready_ble_event = 'ota_ready_ble_event';
+  public static ota_ready_mcu_event = 'ota_ready_mcu_event';
 
   // user interaction events
-  public static smartdrive_ota_start_event = 'smartdrive_ota_start_event';
-  public static smartdrive_ota_pause_event = 'smartdrive_ota_pause_event';
-  public static smartdrive_ota_resume_event = 'smartdrive_ota_resume_event';
-  public static smartdrive_ota_cancel_event = 'smartdrive_ota_cancel_event';
-  public static smartdrive_ota_force_event = 'smartdrive_ota_force_event';
-  public static smartdrive_ota_retry_event = 'smartdrive_ota_retry_event';
-  public static smartdrive_ota_failed_event = 'smartdrive_ota_failed_event';
-  public static smartdrive_ota_timeout_event = 'smartdrive_ota_timeout_event';
+  public static ota_start_event = 'ota_start_event';
+  public static ota_pause_event = 'ota_pause_event';
+  public static ota_resume_event = 'ota_resume_event';
+  public static ota_cancel_event = 'ota_cancel_event';
+  public static ota_force_event = 'ota_force_event';
+  public static ota_retry_event = 'ota_retry_event';
+  public static ota_failed_event = 'ota_failed_event';
+  public static ota_timeout_event = 'ota_timeout_event';
 
   // static methods:
   public static isSmartDriveDevice(dev: any): boolean {
@@ -256,22 +253,22 @@ export class SmartDrive extends Observable {
     console.log(`OTA Action: ${action}`);
     switch (action) {
       case 'ota.action.start':
-        this.sendEvent(SmartDrive.smartdrive_ota_start_event);
+        this.sendEvent(SmartDrive.ota_start_event);
         break;
       case 'ota.action.pause':
-        this.sendEvent(SmartDrive.smartdrive_ota_pause_event);
+        this.sendEvent(SmartDrive.ota_pause_event);
         break;
       case 'ota.action.resume':
-        this.sendEvent(SmartDrive.smartdrive_ota_resume_event);
+        this.sendEvent(SmartDrive.ota_resume_event);
         break;
       case 'ota.action.cancel':
-        this.sendEvent(SmartDrive.smartdrive_ota_cancel_event);
+        this.sendEvent(SmartDrive.ota_cancel_event);
         break;
       case 'ota.action.force':
-        this.sendEvent(SmartDrive.smartdrive_ota_force_event);
+        this.sendEvent(SmartDrive.ota_force_event);
         break;
       case 'ota.action.retry':
-        this.sendEvent(SmartDrive.smartdrive_ota_retry_event);
+        this.sendEvent(SmartDrive.ota_retry_event);
         break;
       default:
         break;
@@ -279,7 +276,7 @@ export class SmartDrive extends Observable {
   }
 
   public cancelOTA() {
-    this.sendEvent(SmartDrive.smartdrive_ota_cancel_event);
+    this.sendEvent(SmartDrive.ota_cancel_event);
   }
 
   public performOTA(
@@ -339,50 +336,38 @@ export class SmartDrive extends Observable {
         // define our functions here
         const unregister = () => {
           // unregister for events
-          this.off(SmartDrive.smartdrive_connect_event, connectHandler);
-          this.off(SmartDrive.smartdrive_disconnect_event, disconnectHandler);
-          this.off(SmartDrive.smartdrive_ble_version_event, bleVersionHandler);
-          this.off(SmartDrive.smartdrive_mcu_version_event, mcuVersionHandler);
-          this.off(SmartDrive.smartdrive_ota_ready_event, otaReadyHandler);
-          this.off(
-            SmartDrive.smartdrive_ota_ready_mcu_event,
-            otaMCUReadyHandler
-          );
-          this.off(
-            SmartDrive.smartdrive_ota_ready_ble_event,
-            otaBLEReadyHandler
-          );
-          this.off(SmartDrive.smartdrive_ota_start_event, otaStartHandler);
-          this.off(SmartDrive.smartdrive_ota_retry_event, otaRetryHandler);
-          this.off(SmartDrive.smartdrive_ota_force_event, otaForceHandler);
-          this.off(SmartDrive.smartdrive_ota_pause_event, otaPauseHandler);
-          this.off(SmartDrive.smartdrive_ota_resume_event, otaResumeHandler);
-          this.off(SmartDrive.smartdrive_ota_cancel_event, otaCancelHandler);
-          this.off(SmartDrive.smartdrive_ota_timeout_event, otaTimeoutHandler);
+          this.off(SmartDrive.connect_event, connectHandler);
+          this.off(SmartDrive.disconnect_event, disconnectHandler);
+          this.off(SmartDrive.ble_version_event, bleVersionHandler);
+          this.off(SmartDrive.mcu_version_event, mcuVersionHandler);
+          this.off(SmartDrive.ota_ready_event, otaReadyHandler);
+          this.off(SmartDrive.ota_ready_mcu_event, otaMCUReadyHandler);
+          this.off(SmartDrive.ota_ready_ble_event, otaBLEReadyHandler);
+          this.off(SmartDrive.ota_start_event, otaStartHandler);
+          this.off(SmartDrive.ota_retry_event, otaRetryHandler);
+          this.off(SmartDrive.ota_force_event, otaForceHandler);
+          this.off(SmartDrive.ota_pause_event, otaPauseHandler);
+          this.off(SmartDrive.ota_resume_event, otaResumeHandler);
+          this.off(SmartDrive.ota_cancel_event, otaCancelHandler);
+          this.off(SmartDrive.ota_timeout_event, otaTimeoutHandler);
         };
         const register = () => {
           unregister();
           // register for connection events
-          this.on(SmartDrive.smartdrive_connect_event, connectHandler);
-          this.on(SmartDrive.smartdrive_disconnect_event, disconnectHandler);
-          this.on(SmartDrive.smartdrive_ble_version_event, bleVersionHandler);
-          this.on(SmartDrive.smartdrive_mcu_version_event, mcuVersionHandler);
-          this.on(
-            SmartDrive.smartdrive_ota_ready_mcu_event,
-            otaMCUReadyHandler
-          );
-          this.on(
-            SmartDrive.smartdrive_ota_ready_ble_event,
-            otaBLEReadyHandler
-          );
-          this.on(SmartDrive.smartdrive_ota_ready_event, otaReadyHandler);
-          this.on(SmartDrive.smartdrive_ota_start_event, otaStartHandler);
-          this.on(SmartDrive.smartdrive_ota_retry_event, otaRetryHandler);
-          this.on(SmartDrive.smartdrive_ota_pause_event, otaPauseHandler);
-          this.on(SmartDrive.smartdrive_ota_resume_event, otaResumeHandler);
-          this.on(SmartDrive.smartdrive_ota_force_event, otaForceHandler);
-          this.on(SmartDrive.smartdrive_ota_cancel_event, otaCancelHandler);
-          this.on(SmartDrive.smartdrive_ota_timeout_event, otaTimeoutHandler);
+          this.on(SmartDrive.connect_event, connectHandler);
+          this.on(SmartDrive.disconnect_event, disconnectHandler);
+          this.on(SmartDrive.ble_version_event, bleVersionHandler);
+          this.on(SmartDrive.mcu_version_event, mcuVersionHandler);
+          this.on(SmartDrive.ota_ready_mcu_event, otaMCUReadyHandler);
+          this.on(SmartDrive.ota_ready_ble_event, otaBLEReadyHandler);
+          this.on(SmartDrive.ota_ready_event, otaReadyHandler);
+          this.on(SmartDrive.ota_start_event, otaStartHandler);
+          this.on(SmartDrive.ota_retry_event, otaRetryHandler);
+          this.on(SmartDrive.ota_pause_event, otaPauseHandler);
+          this.on(SmartDrive.ota_resume_event, otaResumeHandler);
+          this.on(SmartDrive.ota_force_event, otaForceHandler);
+          this.on(SmartDrive.ota_cancel_event, otaCancelHandler);
+          this.on(SmartDrive.ota_timeout_event, otaTimeoutHandler);
         };
         const begin = () => {
           console.log(`Beginning OTA for SmartDrive: ${this.address}`);
@@ -427,7 +412,7 @@ export class SmartDrive extends Observable {
             timer.clearTimeout(otaTimeoutID);
           }
           otaTimeoutID = timer.setTimeout(() => {
-            this.sendEvent(SmartDrive.smartdrive_ota_timeout_event);
+            this.sendEvent(SmartDrive.ota_timeout_event);
           }, otaTimeout);
         };
         const otaForceHandler = () => {
@@ -617,8 +602,8 @@ export class SmartDrive extends Observable {
           // if we are supposed to retry
           const retry = () => {
             cancelOTA = false;
-            this.on(SmartDrive.smartdrive_ota_retry_event, otaRetryHandler);
-            this.on(SmartDrive.smartdrive_ota_cancel_event, otaCancelHandler);
+            this.on(SmartDrive.ota_retry_event, otaRetryHandler);
+            this.on(SmartDrive.ota_cancel_event, otaCancelHandler);
             this.otaActions = ['ota.action.retry'];
             otaIntervalID = timer.setInterval(runOTA, 250);
           };
@@ -1172,7 +1157,7 @@ export class SmartDrive extends Observable {
     // now that we're connected, subscribe to the characteristics
     this.startNotifyCharacteristics(SmartDrive.Characteristics)
       .then(() => {
-        this.sendEvent(SmartDrive.smartdrive_connect_event);
+        this.sendEvent(SmartDrive.connect_event);
       })
       .catch(err => {});
   }
@@ -1185,7 +1170,7 @@ export class SmartDrive extends Observable {
     console.log(`disconnected from smartdrive!`);
     // now that we're disconnected - make sure we unsubscribe to the characteristics
     this.stopNotifyCharacteristics(SmartDrive.Characteristics).then(() => {
-      this.sendEvent(SmartDrive.smartdrive_disconnect_event);
+      this.sendEvent(SmartDrive.disconnect_event);
     });
   }
 
@@ -1249,7 +1234,7 @@ export class SmartDrive extends Observable {
         */
     this.ble_version = devInfo.version;
     // TODO: send version event (for BLE_VERSION) to subscribers
-    this.sendEvent(SmartDrive.smartdrive_ble_version_event, {
+    this.sendEvent(SmartDrive.ble_version_event, {
       ble: this.ble_version
     });
   }
@@ -1272,7 +1257,7 @@ export class SmartDrive extends Observable {
     this.mcu_version = motorInfo.version;
     this.battery = motorInfo.batteryLevel;
     // TODO: send version event (for MCU_VERSION) to subscribers
-    this.sendEvent(SmartDrive.smartdrive_mcu_version_event, {
+    this.sendEvent(SmartDrive.mcu_version_event, {
       mcu: this.mcu_version
     });
     // so they get updated about this smartDrive's version
@@ -1298,7 +1283,7 @@ export class SmartDrive extends Observable {
     console.log(`Got distance info: ${motorTicks}, ${caseTicks}`);
     console.log(`                 : ${motorMiles}, ${caseMiles}`);
 	  */
-    this.sendEvent(SmartDrive.smartdrive_distance_event, {
+    this.sendEvent(SmartDrive.distance_event, {
       driveDistance: motorTicks,
       coastDistance: caseTicks
     });
@@ -1310,13 +1295,13 @@ export class SmartDrive extends Observable {
     const otaDevice = bindingTypeToString('PacketOTAType', p.data('OTADevice'));
     switch (otaDevice) {
       case 'SmartDrive':
-        this.sendEvent(SmartDrive.smartdrive_ota_ready_mcu_event);
+        this.sendEvent(SmartDrive.ota_ready_mcu_event);
         break;
       case 'SmartDriveBluetooth':
-        this.sendEvent(SmartDrive.smartdrive_ota_ready_ble_event);
+        this.sendEvent(SmartDrive.ota_ready_ble_event);
         break;
       default:
-        this.sendEvent(SmartDrive.smartdrive_ota_ready_event);
+        this.sendEvent(SmartDrive.ota_ready_event);
         break;
     }
   }
@@ -1326,15 +1311,15 @@ export class SmartDrive extends Observable {
  * All of the events for SmartDrive that can be emitted and listened to.
  */
 export interface ISmartDriveEvents {
-  smartdrive_disconnect_event: string;
-  smartdrive_connect_event: string;
+  disconnect_event: string;
+  connect_event: string;
 
-  smartdrive_ble_version_event: string;
-  smartdrive_mcu_version_event: string;
+  ble_version_event: string;
+  mcu_version_event: string;
 
-  smartdrive_ota_timeout_event: string;
-  smartdrive_ota_progress_event: string;
-  smartdrive_ota_version_event: string;
-  smartdrive_ota_complete_event: string;
-  smartdrive_ota_failure_event: string;
+  ota_timeout_event: string;
+  ota_progress_event: string;
+  ota_version_event: string;
+  ota_complete_event: string;
+  ota_failure_event: string;
 }

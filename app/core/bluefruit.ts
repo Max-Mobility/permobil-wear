@@ -1,6 +1,5 @@
 import { Observable } from 'tns-core-modules/data/observable';
 import { BluetoothService } from '../services';
-import { Packet } from './';
 
 export class Neopixel {
   name: string;
@@ -25,7 +24,7 @@ export class Neopixel {
 
   setupData() {
     return Uint8Array.from([
-      'S',
+      0x53, // 'S'
       this.width,
       this.height,
       this.stride,
@@ -43,28 +42,31 @@ export class Neopixel {
     white: number
   ) {
     return Uint8Array.from([
-      'P',
+      0x50, // 'P'
       x,
       y,
-      clamp(red),
-      clamp(green),
-      clamp(blue),
-      clamp(white)
+      this.clamp(red),
+      this.clamp(green),
+      this.clamp(blue),
+      this.clamp(white)
     ]);
   }
 
   clearColorData(red: number, green: number, blue: number, white: number) {
     return Uint8Array.from([
-      'C',
-      clamp(red),
-      clamp(green),
-      clamp(blue),
-      clamp(white)
+      0x43, // 'C'
+      this.clamp(red),
+      this.clamp(green),
+      this.clamp(blue),
+      this.clamp(white)
     ]);
   }
 
   brightnessData(brightness: any) {
-    return Uint8Array.from(['B', clamp(brightness)]);
+    return Uint8Array.from([
+      0x42, // 'B'
+      this.clamp(brightness)
+    ]);
   }
 }
 
@@ -78,11 +80,11 @@ export class BlueFruit extends Observable {
   static DFU_VERSION = '00001534-1212-EFDE-1523-785FEABCD123';
 
   public static Characteristics = [
-    '6E400002-B5A3-F393-E0A9-E50E24DCCA9E',
-    '6E400003-B5A3-F393-E0A9-E50E24DCCA9E'
+    '6E400003-B5A3-F393-E0A9-E50E24DCCA9E',
+    '6E400002-B5A3-F393-E0A9-E50E24DCCA9E'
   ];
-  public static TXDCharacteristic = BlueFruit.Characteristics[0];
-  public static RXDCharacteristic = BlueFruit.Characteristics[1];
+  public static TXDCharacteristic = BlueFruit.Characteristics[1];
+  public static RXDCharacteristic = BlueFruit.Characteristics[0];
 
   static kUartTxMaxBytes = 20;
   static kUartReplyDefaultTimeout = 2000;
@@ -119,6 +121,7 @@ export class BlueFruit extends Observable {
   }
 
   public setup(): Promise<any> {
+    console.log('setting up neopixel', this.address);
     const data = this.neopixel.setupData();
     return this.sendData(data);
   }
@@ -154,12 +157,12 @@ export class BlueFruit extends Observable {
     if (this.connected) {
       return this._bluetoothService.write({
         peripheralUUID: this.address,
-        serviceUUID: BlueFruit.UART_Serivce,
+        serviceUUID: BlueFruit.UART_Service,
         characteristicUUID: BlueFruit.TXDCharacteristic.toUpperCase(),
         value: data
       });
     } else {
-      return Promise.reject('Bluefruit is unable to send!');
+      return Promise.reject('BlueFruit is unable to send!');
     }
   }
 
@@ -202,7 +205,7 @@ export class BlueFruit extends Observable {
     console.log(`disconnected from bluefruit!`);
     // now that we're disconnected - make sure we unsubscribe to the characteristics
     this.stopNotifyCharacteristics(BlueFruit.Characteristics).then(() => {
-      this.sendEvent(Bluefruit.disconnect_event);
+      this.sendEvent(BlueFruit.disconnect_event);
     });
   }
 
@@ -213,26 +216,7 @@ export class BlueFruit extends Observable {
     // handle the packet here
     const value = args.value;
     const uArray = new Uint8Array(value);
-    console.log(`bluefruit data: ${uArray}`);
-  }
-
-  public handlePacket(p: Packet) {
-    const packetType = p.Type();
-    const subType = p.SubType();
-    if (!packetType || !subType) {
-      return;
-    } else if (packetType === 'Data') {
-      console.log('subType', subType);
-
-      switch (subType) {
-        case 'DeviceInfo':
-          // this.handleDeviceInfo(p);
-          break;
-        case 'MotorInfo':
-        default:
-          break;
-      }
-    }
+    console.log(`received bluefruit data: ${uArray}`);
   }
 
   private stoppingNotify = false;
@@ -259,7 +243,7 @@ export class BlueFruit extends Observable {
         return p.then(() => {
           return retry(retries, () => {
             return new Promise((resolve, reject) => {
-              timer.setTimeout(() => {
+              setTimeout(() => {
                 console.log(`Stop Notifying ${characteristic}`);
                 this._bluetoothService
                   .stopNotifying({
@@ -313,7 +297,7 @@ export class BlueFruit extends Observable {
         return p.then(() => {
           return retry(3, () => {
             return new Promise((resolve, reject) => {
-              timer.setTimeout(() => {
+              setTimeout(() => {
                 console.log(`Start Notifying ${characteristic}`);
                 this._bluetoothService
                   .startNotifying({
