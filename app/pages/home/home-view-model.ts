@@ -139,10 +139,7 @@ export class HelloWorldModel extends Observable {
     }
 
     this.isSearchingBluetooth = true;
-    return this.scanForSmartDrive()
-      .then(() => {
-        return this.scanForBlueFruit();
-      })
+    return this.scan()
       .then(() => {
         this.isSearchingBluetooth = false;
       })
@@ -151,10 +148,10 @@ export class HelloWorldModel extends Observable {
       });
   }
 
-  async scanForSmartDrive() {
-    console.log('scan for smartdrive');
+  async scan() {
+    console.log('scanning');
     return this._bluetoothService
-      .scanForSmartDrive(2)
+      .scanForSmartDrivesAndBlueFruits(2)
       .then(() => {
         const sds = BluetoothService.SmartDrives;
         const addresses = sds.map(sd => sd.address);
@@ -198,15 +195,6 @@ export class HelloWorldModel extends Observable {
           new Toasty('Connecting to ' + sd.address).show();
         });
       })
-      .catch(err => {
-        console.log('could not scan', err);
-      });
-  }
-
-  async scanForBlueFruit() {
-    console.log('scan for bluefruits');
-    return this._bluetoothService
-      .scanForBlueFruits(2)
       .then(() => {
         const bfs = BluetoothService.BlueFruits;
         const addresses = bfs.map(bf => bf.address);
@@ -266,7 +254,7 @@ export class HelloWorldModel extends Observable {
     console.log('sending color', color);
 
     const sendSD = () => {
-      if (this._smartDrive && this._smartDrive.connected) {
+      if (this._smartDrive && this._smartDrive.ableToSend) {
         console.log('Sending color to smartdrive');
         return this._smartDrive
           .setLEDColor(color.red, color.green, color.blue)

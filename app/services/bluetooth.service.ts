@@ -135,6 +135,12 @@ export class BluetoothService {
     return this.scan([], timeout);
   }
 
+  public scanForSmartDrivesAndBlueFruits(timeout: number = 4): Promise<any> {
+    this.clearSmartDrives();
+    this.clearBlueFruits();
+    return this.scan([BlueFruit.UART_Service, SmartDrive.ServiceUUID], timeout);
+  }
+
   public scanForSmartDrive(timeout: number = 4): Promise<any> {
     this.clearSmartDrives();
     return this.scan([SmartDrive.ServiceUUID], timeout);
