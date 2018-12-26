@@ -1,8 +1,8 @@
-import { bindingTypeToString, Packet } from './';
-import { BluetoothService } from '../services/bluetooth.service';
 import { Observable } from 'tns-core-modules/data/observable/observable';
 import { isIOS } from 'tns-core-modules/platform/platform';
 import * as timer from 'tns-core-modules/timer/timer';
+import { BluetoothService } from '../services/bluetooth.service';
+import { bindingTypeToString, Packet } from './';
 
 // TODO: TRANSLATE
 enum OTAState {

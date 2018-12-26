@@ -1,9 +1,4 @@
-import * as app from 'tns-core-modules/application';
-import {
-  ComplicationTapBroadcastReceiver,
-  getPreferenceKey,
-  KEYS
-} from './complication_tap_broadcast_receiver';
+import { ComplicationTapBroadcastReceiver, getPreferenceKey, KEYS } from './complication_tap_broadcast_receiver';
 
 @JavaProxy('com.permobil.CustomComplicationProviderService')
 export class CustomComplicationProviderService extends android.support.wearable
@@ -59,8 +54,8 @@ export class CustomComplicationProviderService extends android.support.wearable
 
     // Used to create a unique key to use with SharedPreferences for this complication.
     console.log('CONTEXT', this);
-    const thisProvider = new (android as any).content.ComponentName(
-      this,
+    const thisProvider = new android.content.ComponentName(
+      this as any,
       java.lang.Class.forName('com.permobil.CustomComplicationProviderService')
     );
 

@@ -770,8 +770,8 @@ export class SmartDrive extends Observable {
                 }
               } else {
                 this.otaState = this.doMCUUpdate
-                  ? SmartDrive.OTAState.rebooting_mcu
-                  : SmartDrive.OTAState.complete;
+                ? SmartDrive.OTAState.rebooting_mcu
+                : SmartDrive.OTAState.complete;
               }
               // update the progress bar
               this.bleOTAProgress = ((index + 16) * 100) / bleFirmware.length;

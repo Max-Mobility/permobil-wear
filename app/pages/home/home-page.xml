@@ -1,6 +1,5 @@
-
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" 
-    xmlns:Lottie="nativescript-lottie" navigatingTo="navigatingTo" actionBarHidden="true" class="permobil-page">
+    xmlns:Lottie="nativescript-lottie" navigatingTo="navigatingTo" actionBarHidden="true">
 
     <ScrollView>
         <FlexboxLayout flexDirection="column" justifyContent="space-between" padding="30 0">
