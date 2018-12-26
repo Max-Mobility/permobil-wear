@@ -3920,4 +3920,1373 @@ declare module android {
 			export module view {
 				export module drawer {
 					export class PageIndicatorView {
-						public static class: java.lang.Class<android.support.wearable.view.drawer.PageIn
+						public static class: java.lang.Class<android.support.wearable.view.drawer.PageIndicatorView>;
+						public getDotShadowRadius(): number;
+						public getDotFadeOutDuration(): number;
+						public getDotRadiusSelected(): number;
+						public setPager(param0: android.support.v4.view.ViewPager): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet, param2: number);
+						public setDotColor(param0: number): void;
+						public constructor(param0: android.content.Context);
+						public onPageScrollStateChanged(param0: number): void;
+						public getDotColorSelected(): number;
+						public getDotFadeInDuration(): number;
+						public setDotFadeOutDuration(param0: number, param1: java.util.concurrent.TimeUnit): void;
+						public setDotFadeWhenIdle(param0: boolean): void;
+						public getDotFadeOutDelay(): number;
+						public onMeasure(param0: number, param1: number): void;
+						public setDotShadowDx(param0: number): void;
+						public setDotRadiusSelected(param0: number): void;
+						public setDotColorSelected(param0: number): void;
+						public getDotFadeWhenIdle(): boolean;
+						public setDotShadowColor(param0: number): void;
+						public onDraw(param0: android.graphics.Canvas): void;
+						public getDotShadowDx(): number;
+						public getDotRadius(): number;
+						public getDotShadowColor(): number;
+						public setPagerAdapter(param0: android.support.v4.view.PagerAdapter): void;
+						public setDotFadeOutDelay(param0: number): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet);
+						public getDotColor(): number;
+						public setDotFadeInDuration(param0: number, param1: java.util.concurrent.TimeUnit): void;
+						public setDotRadius(param0: number): void;
+						public onPageSelected(param0: number): void;
+						public notifyDataSetChanged(): void;
+						public onPageScrolled(param0: number, param1: number, param2: number): void;
+						public getDotShadowDy(): number;
+						public setDotSpacing(param0: number): void;
+						public setDotShadowRadius(param0: number): void;
+						public getDotSpacing(): number;
+						public setDotShadowDy(param0: number): void;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module view {
+				export module drawer {
+					export class ViewDragHelper {
+						public static class: java.lang.Class<android.support.wearable.view.drawer.ViewDragHelper>;
+						public static INVALID_POINTER: number;
+						public static STATE_IDLE: number;
+						public static STATE_DRAGGING: number;
+						public static STATE_SETTLING: number;
+						public static EDGE_LEFT: number;
+						public static EDGE_RIGHT: number;
+						public static EDGE_TOP: number;
+						public static EDGE_BOTTOM: number;
+						public static EDGE_ALL: number;
+						public static DIRECTION_HORIZONTAL: number;
+						public static DIRECTION_VERTICAL: number;
+						public static DIRECTION_ALL: number;
+						public getViewDragState(): number;
+						public getEdgeSize(): number;
+						public processTouchEvent(param0: android.view.MotionEvent): void;
+						public setEdgeTrackingEnabled(param0: number): void;
+						public getTouchSlop(): number;
+						public getMinVelocity(): number;
+						public static create(param0: android.view.ViewGroup, param1: android.support.wearable.view.drawer.ViewDragHelper.Callback): android.support.wearable.view.drawer.ViewDragHelper;
+						public flingCapturedView(param0: number, param1: number, param2: number, param3: number): void;
+						public abort(): void;
+						public shouldInterceptTouchEvent(param0: android.view.MotionEvent): boolean;
+						public isCapturedViewUnder(param0: number, param1: number): boolean;
+						public isEdgeTouched(param0: number): boolean;
+						public getCapturedView(): android.view.View;
+						public isViewUnder(param0: android.view.View, param1: number, param2: number): boolean;
+						public checkTouchSlop(param0: number): boolean;
+						public findTopChildUnder(param0: number, param1: number): android.view.View;
+						public getActivePointerId(): number;
+						public setMinVelocity(param0: number): void;
+						public isEdgeTouched(param0: number, param1: number): boolean;
+						public cancel(): void;
+						public static create(param0: android.view.ViewGroup, param1: number, param2: android.support.wearable.view.drawer.ViewDragHelper.Callback): android.support.wearable.view.drawer.ViewDragHelper;
+						public continueSettling(param0: boolean): boolean;
+						public captureChildView(param0: android.view.View, param1: number): void;
+						public isPointerDown(param0: number): boolean;
+						public canScroll(param0: android.view.View, param1: boolean, param2: number, param3: number, param4: number, param5: number): boolean;
+						public smoothSlideViewTo(param0: android.view.View, param1: number, param2: number): boolean;
+						public checkTouchSlop(param0: number, param1: number): boolean;
+						public settleCapturedViewAt(param0: number, param1: number): boolean;
+						public refreshEdgeSize(): void;
+					}
+					export module ViewDragHelper {
+						export abstract class Callback {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.ViewDragHelper.Callback>;
+							public constructor();
+							public clampViewPositionHorizontal(param0: android.view.View, param1: number, param2: number): number;
+							public tryCaptureView(param0: android.view.View, param1: number): boolean;
+							public onEdgeLock(param0: number): boolean;
+							public onViewCaptured(param0: android.view.View, param1: number): void;
+							public onEdgeDragStarted(param0: number, param1: number): void;
+							public onEdgeTouched(param0: number, param1: number): void;
+							public getOrderedChildIndex(param0: number): number;
+							public onViewPositionChanged(param0: android.view.View, param1: number, param2: number, param3: number, param4: number): void;
+							public clampViewPositionVertical(param0: android.view.View, param1: number, param2: number): number;
+							public getViewHorizontalDragRange(param0: android.view.View): number;
+							public onViewDragStateChanged(param0: number): void;
+							public getViewVerticalDragRange(param0: android.view.View): number;
+							public onViewReleased(param0: android.view.View, param1: number, param2: number): void;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module view {
+				export module drawer {
+					export class WearableActionDrawer extends android.support.wearable.view.drawer.WearableDrawerView {
+						public static class: java.lang.Class<android.support.wearable.view.drawer.WearableActionDrawer>;
+						public onPeekContainerClicked(param0: android.view.View): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet);
+						public setTitle(param0: string): void;
+						public setOnMenuItemClickListener(param0: android.support.wearable.view.drawer.WearableActionDrawer.OnMenuItemClickListener): void;
+						public getMenu(): android.view.Menu;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet, param2: number, param3: number);
+						public canScrollHorizontally(param0: number): boolean;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet, param2: number);
+						public constructor(param0: android.content.Context);
+					}
+					export module WearableActionDrawer {
+						export class ActionItemViewHolder {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableActionDrawer.ActionItemViewHolder>;
+							public view: android.view.View;
+							public iconView: android.widget.ImageView;
+							public textView: android.widget.TextView;
+							public constructor(param0: android.support.wearable.view.drawer.WearableActionDrawer, param1: android.view.View);
+						}
+						export class ActionListAdapter extends android.support.v7.widget.RecyclerView.Adapter<android.support.v7.widget.RecyclerView.ViewHolder> {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableActionDrawer.ActionListAdapter>;
+							public static TYPE_ACTION: number;
+							public static TYPE_TITLE: number;
+							public constructor(param0: android.support.wearable.view.drawer.WearableActionDrawer, param1: android.view.Menu);
+							public getItemViewType(param0: number): number;
+							public getItemCount(): number;
+							public onBindViewHolder(param0: android.support.v7.widget.RecyclerView.ViewHolder, param1: number): void;
+							public onCreateViewHolder(param0: android.view.ViewGroup, param1: number): android.support.v7.widget.RecyclerView.ViewHolder;
+						}
+						export class OnMenuItemClickListener {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableActionDrawer.OnMenuItemClickListener>;
+							/**
+							 * Constructs a new instance of the android.support.wearable.view.drawer.WearableActionDrawer$OnMenuItemClickListener interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+							 */
+							public constructor(implementation: {
+								onMenuItemClick(param0: android.view.MenuItem): boolean;
+							});
+							public constructor();
+							public onMenuItemClick(param0: android.view.MenuItem): boolean;
+						}
+						export class TitleViewHolder {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableActionDrawer.TitleViewHolder>;
+							public view: android.view.View;
+							public textView: android.widget.TextView;
+							public constructor(param0: android.view.View);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module view {
+				export module drawer {
+					export class WearableActionDrawerMenu {
+						public static class: java.lang.Class<android.support.wearable.view.drawer.WearableActionDrawerMenu>;
+						public add(param0: number, param1: number, param2: number, param3: string): android.view.MenuItem;
+						public close(): void;
+						public add(param0: string): android.view.MenuItem;
+						public getItem(param0: number): android.view.MenuItem;
+						public addSubMenu(param0: number, param1: number, param2: number, param3: string): android.view.SubMenu;
+						public performIdentifierAction(param0: number, param1: number): boolean;
+						public setGroupVisible(param0: number, param1: boolean): void;
+						public removeItem(param0: number): void;
+						public add(param0: number, param1: number, param2: number, param3: number): android.view.MenuItem;
+						public size(): number;
+						public hasVisibleItems(): boolean;
+						public setQwertyMode(param0: boolean): void;
+						public findItem(param0: number): android.view.MenuItem;
+						public performShortcut(param0: number, param1: android.view.KeyEvent, param2: number): boolean;
+						public addIntentOptions(param0: number, param1: number, param2: number, param3: android.content.ComponentName, param4: native.Array<android.content.Intent>, param5: android.content.Intent, param6: number, param7: native.Array<android.view.MenuItem>): number;
+						public isShortcutKey(param0: number, param1: android.view.KeyEvent): boolean;
+						public constructor(param0: android.content.Context, param1: android.support.wearable.view.drawer.WearableActionDrawerMenu.WearableActionDrawerMenuListener);
+						public addSubMenu(param0: number): android.view.SubMenu;
+						public add(param0: number): android.view.MenuItem;
+						public clear(): void;
+						public setGroupCheckable(param0: number, param1: boolean, param2: boolean): void;
+						public addSubMenu(param0: number, param1: number, param2: number, param3: number): android.view.SubMenu;
+						public removeGroup(param0: number): void;
+						public addSubMenu(param0: string): android.view.SubMenu;
+						public setGroupEnabled(param0: number, param1: boolean): void;
+					}
+					export module WearableActionDrawerMenu {
+						export class WearableActionDrawerMenuItem {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableActionDrawerMenu.WearableActionDrawerMenuItem>;
+							public setTitleCondensed(param0: string): android.view.MenuItem;
+							public getIcon(): android.graphics.drawable.Drawable;
+							public isActionViewExpanded(): boolean;
+							public setOnMenuItemClickListener(param0: android.view.MenuItem.OnMenuItemClickListener): android.view.MenuItem;
+							public setActionView(param0: number): android.view.MenuItem;
+							public setIcon(param0: android.graphics.drawable.Drawable): android.view.MenuItem;
+							public hasSubMenu(): boolean;
+							public getNumericShortcut(): string;
+							public setIntent(param0: android.content.Intent): android.view.MenuItem;
+							public setOnActionExpandListener(param0: android.view.MenuItem.OnActionExpandListener): android.view.MenuItem;
+							public getSubMenu(): android.view.SubMenu;
+							public getActionProvider(): android.view.ActionProvider;
+							public getActionView(): android.view.View;
+							public setChecked(param0: boolean): android.view.MenuItem;
+							public setNumericShortcut(param0: string): android.view.MenuItem;
+							public setIcon(param0: number): android.view.MenuItem;
+							public isCheckable(): boolean;
+							public getItemId(): number;
+							public setTitle(param0: string): android.view.MenuItem;
+							public setAlphabeticShortcut(param0: string): android.view.MenuItem;
+							public setVisible(param0: boolean): android.view.MenuItem;
+							public setEnabled(param0: boolean): android.view.MenuItem;
+							public getGroupId(): number;
+							public setShortcut(param0: string, param1: string): android.view.MenuItem;
+							public getTitleCondensed(): string;
+							public setActionView(param0: android.view.View): android.view.MenuItem;
+							public getTitle(): string;
+							public isVisible(): boolean;
+							public expandActionView(): boolean;
+							public setShowAsAction(param0: number): void;
+							public getAlphabeticShortcut(): string;
+							public collapseActionView(): boolean;
+							public isEnabled(): boolean;
+							public constructor(param0: android.content.Context, param1: number, param2: string, param3: android.support.wearable.view.drawer.WearableActionDrawerMenu.WearableActionDrawerMenuItem.MenuItemChangedListener);
+							public getMenuInfo(): android.view.ContextMenu.ContextMenuInfo;
+							public setShowAsActionFlags(param0: number): android.view.MenuItem;
+							public setTitle(param0: number): android.view.MenuItem;
+							public isChecked(): boolean;
+							public setActionProvider(param0: android.view.ActionProvider): android.view.MenuItem;
+							public getIntent(): android.content.Intent;
+							public setCheckable(param0: boolean): android.view.MenuItem;
+							public getOrder(): number;
+						}
+						export module WearableActionDrawerMenuItem {
+							export class MenuItemChangedListener {
+								public static class: java.lang.Class<android.support.wearable.view.drawer.WearableActionDrawerMenu.WearableActionDrawerMenuItem.MenuItemChangedListener>;
+								/**
+								 * Constructs a new instance of the android.support.wearable.view.drawer.WearableActionDrawerMenu$WearableActionDrawerMenuItem$MenuItemChangedListener interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+								 */
+								public constructor(implementation: {
+									itemChanged(param0: android.support.wearable.view.drawer.WearableActionDrawerMenu.WearableActionDrawerMenuItem): void;
+								});
+								public constructor();
+								public itemChanged(param0: android.support.wearable.view.drawer.WearableActionDrawerMenu.WearableActionDrawerMenuItem): void;
+							}
+						}
+						export class WearableActionDrawerMenuListener {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableActionDrawerMenu.WearableActionDrawerMenuListener>;
+							/**
+							 * Constructs a new instance of the android.support.wearable.view.drawer.WearableActionDrawerMenu$WearableActionDrawerMenuListener interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+							 */
+							public constructor(implementation: {
+								menuItemChanged(param0: number): void;
+								menuItemAdded(param0: number): void;
+								menuItemRemoved(param0: number): void;
+								menuChanged(): void;
+							});
+							public constructor();
+							public menuItemRemoved(param0: number): void;
+							public menuItemAdded(param0: number): void;
+							public menuChanged(): void;
+							public menuItemChanged(param0: number): void;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module view {
+				export module drawer {
+					export class WearableDrawerLayout implements android.support.wearable.view.drawer.FlingWatcher.FlingListener {
+						public static class: java.lang.Class<android.support.wearable.view.drawer.WearableDrawerLayout>;
+						public onStopNestedScroll(param0: android.view.View): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet, param2: number);
+						public constructor(param0: android.content.Context);
+						public computeScroll(): void;
+						public onLayout(param0: boolean, param1: number, param2: number, param3: number, param4: number): void;
+						public onLayoutChange(param0: android.view.View, param1: number, param2: number, param3: number, param4: number, param5: number, param6: number, param7: number, param8: number): void;
+						public setDrawerStateCallback(param0: android.support.wearable.view.drawer.WearableDrawerLayout.DrawerStateCallback): void;
+						public onSizeChanged(param0: number, param1: number, param2: number, param3: number): void;
+						public getNestedScrollAxes(): number;
+						public onInterceptTouchEvent(param0: android.view.MotionEvent): boolean;
+						public onNestedPreFling(param0: android.view.View, param1: number, param2: number): boolean;
+						public onNestedScrollAccepted(param0: android.view.View, param1: android.view.View, param2: number): void;
+						public closeDrawer(param0: number): void;
+						public onStartNestedScroll(param0: android.view.View, param1: android.view.View, param2: number): boolean;
+						public peekDrawer(param0: android.support.wearable.view.drawer.WearableDrawerView): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet, param2: number, param3: number);
+						public onApplyWindowInsets(param0: android.view.WindowInsets): android.view.WindowInsets;
+						public onNestedScroll(param0: android.view.View, param1: number, param2: number, param3: number, param4: number): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet);
+						public openDrawer(param0: number): void;
+						public onNestedPreScroll(param0: android.view.View, param1: number, param2: number, param3: native.Array<number>): void;
+						public onTouchEvent(param0: android.view.MotionEvent): boolean;
+						public closeDrawer(param0: android.view.View): void;
+						public addView(param0: android.view.View, param1: number, param2: android.view.ViewGroup.LayoutParams): void;
+						public onNestedFling(param0: android.view.View, param1: number, param2: number, param3: boolean): boolean;
+						public onFlingComplete(param0: android.view.View): void;
+						public openDrawer(param0: android.view.View): void;
+						public peekDrawer(param0: number): void;
+					}
+					export module WearableDrawerLayout {
+						export class BottomDrawerDraggerCallback extends android.support.wearable.view.drawer.WearableDrawerLayout.DrawerDraggerCallback {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableDrawerLayout.BottomDrawerDraggerCallback>;
+							public getDrawerView(): android.support.wearable.view.drawer.WearableDrawerView;
+							public clampViewPositionVertical(param0: android.view.View, param1: number, param2: number): number;
+							public onViewPositionChanged(param0: android.view.View, param1: number, param2: number, param3: number, param4: number): void;
+							public onEdgeDragStarted(param0: number, param1: number): void;
+							public onViewReleased(param0: android.view.View, param1: number, param2: number): void;
+						}
+						export class ClosePeekRunnable {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableDrawerLayout.ClosePeekRunnable>;
+							public run(): void;
+						}
+						export abstract class DrawerDraggerCallback extends android.support.wearable.view.drawer.ViewDragHelper.Callback {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableDrawerLayout.DrawerDraggerCallback>;
+							public getDrawerView(): android.support.wearable.view.drawer.WearableDrawerView;
+							public tryCaptureView(param0: android.view.View, param1: number): boolean;
+							public onViewCaptured(param0: android.view.View, param1: number): void;
+							public onViewDragStateChanged(param0: number): void;
+							public getViewVerticalDragRange(param0: android.view.View): number;
+						}
+						export abstract class DrawerStateCallback {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableDrawerLayout.DrawerStateCallback>;
+							public constructor();
+							public onDrawerOpened(param0: android.view.View): void;
+							public onDrawerStateChanged(param0: number): void;
+							public onDrawerClosed(param0: android.view.View): void;
+						}
+						export class TopDrawerDraggerCallback extends android.support.wearable.view.drawer.WearableDrawerLayout.DrawerDraggerCallback {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableDrawerLayout.TopDrawerDraggerCallback>;
+							public getDrawerView(): android.support.wearable.view.drawer.WearableDrawerView;
+							public clampViewPositionVertical(param0: android.view.View, param1: number, param2: number): number;
+							public onViewPositionChanged(param0: android.view.View, param1: number, param2: number, param3: number, param4: number): void;
+							public onEdgeDragStarted(param0: number, param1: number): void;
+							public onViewReleased(param0: android.view.View, param1: number, param2: number): void;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module view {
+				export module drawer {
+					export class WearableDrawerView {
+						public static class: java.lang.Class<android.support.wearable.view.drawer.WearableDrawerView>;
+						public hasDrawerContent(): boolean;
+						public peekDrawer(): void;
+						public setShouldLockWhenNotOpenOrPeeking(param0: boolean): void;
+						public onAttachedToWindow(): void;
+						public onFinishInflate(): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet, param2: number);
+						public constructor(param0: android.content.Context);
+						public onDrawerOpened(): void;
+						public lockDrawerClosed(): void;
+						public setPeekContent(param0: android.view.View): void;
+						public isClosed(): boolean;
+						public shouldLockWhenNotOpenOrPeeking(): boolean;
+						public shouldPeekOnScrollDown(): boolean;
+						public isOpened(): boolean;
+						public getDrawerContent(): android.view.View;
+						public lockDrawerOpened(): void;
+						public setDrawerContent(param0: android.view.View): void;
+						public openDrawer(): void;
+						public closeDrawer(): void;
+						public setCanAutoPeek(param0: boolean): void;
+						public isLocked(): boolean;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet, param2: number, param3: number);
+						public setShouldOnlyOpenWhenAtTop(param0: boolean): void;
+						public getDrawerState(): number;
+						public canAutoPeek(): boolean;
+						public onDrawerStateChanged(param0: number): void;
+						public unlockDrawer(): void;
+						public onPeekContainerClicked(param0: android.view.View): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet);
+						public setShouldPeekOnScrollDown(param0: boolean): void;
+						public shouldOnlyOpenWhenAtTop(): boolean;
+						public isPeeking(): boolean;
+						public addView(param0: android.view.View, param1: number, param2: android.view.ViewGroup.LayoutParams): void;
+						public onDrawerClosed(): void;
+					}
+					export module WearableDrawerView {
+						export class DrawerState {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableDrawerView.DrawerState>;
+							/**
+							 * Constructs a new instance of the android.support.wearable.view.drawer.WearableDrawerView$DrawerState interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+							 */
+							public constructor(implementation: {
+							});
+							public constructor();
+							public static STATE_DRAGGING: number;
+							public static STATE_SETTLING: number;
+							public static STATE_IDLE: number;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module view {
+				export module drawer {
+					export class WearableNavigationDrawer extends android.support.wearable.view.drawer.WearableDrawerView {
+						public static class: java.lang.Class<android.support.wearable.view.drawer.WearableNavigationDrawer>;
+						public setAdapter(param0: android.support.wearable.view.drawer.WearableNavigationDrawer.WearableNavigationDrawerAdapter): void;
+						public onDrawerOpened(): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet);
+						public constructor(param0: android.content.Context, param1: android.support.wearable.internal.view.drawer.WearableNavigationDrawerPresenter, param2: android.view.GestureDetector);
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet, param2: number, param3: number);
+						public onInterceptTouchEvent(param0: android.view.MotionEvent): boolean;
+						public canScrollHorizontally(param0: number): boolean;
+						public onDrawerClosed(): void;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet, param2: number);
+						public setCurrentItem(param0: number, param1: boolean): void;
+						public constructor(param0: android.content.Context);
+					}
+					export module WearableNavigationDrawer {
+						export class NavigationStyle {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableNavigationDrawer.NavigationStyle>;
+							/**
+							 * Constructs a new instance of the android.support.wearable.view.drawer.WearableNavigationDrawer$NavigationStyle interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+							 */
+							public constructor(implementation: {
+							});
+							public constructor();
+							public static SINGLE_PAGE: number;
+							public static MULTI_PAGE: number;
+						}
+						export abstract class WearableNavigationDrawerAdapter {
+							public static class: java.lang.Class<android.support.wearable.view.drawer.WearableNavigationDrawer.WearableNavigationDrawerAdapter>;
+							public constructor();
+							public getItemText(param0: number): string;
+							public notifyDataSetChanged(): void;
+							public getItemDrawable(param0: number): android.graphics.drawable.Drawable;
+							public onItemSelected(param0: number): void;
+							public getCount(): number;
+							public setPresenter(param0: android.support.wearable.internal.view.drawer.WearableNavigationDrawerPresenter): void;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export abstract class CanvasWatchFaceService extends android.support.wearable.watchface.WatchFaceService {
+					public static class: java.lang.Class<android.support.wearable.watchface.CanvasWatchFaceService>;
+					public constructor();
+					public onCreateEngine(): android.support.wearable.watchface.CanvasWatchFaceService.Engine;
+					public onCreateEngine(): android.support.wearable.watchface.WatchFaceService.Engine;
+				}
+				export module CanvasWatchFaceService {
+					export class Engine extends android.support.wearable.watchface.WatchFaceService.Engine {
+						public static class: java.lang.Class<android.support.wearable.watchface.CanvasWatchFaceService.Engine>;
+						public constructor(param0: android.support.wearable.watchface.WatchFaceService);
+						public onDestroy(): void;
+						public invalidate(): void;
+						public onVisibilityChanged(param0: boolean): void;
+						public constructor(param0: android.support.wearable.watchface.CanvasWatchFaceService);
+						public onDraw(param0: android.graphics.Canvas, param1: android.graphics.Rect): void;
+						public onSurfaceChanged(param0: android.view.SurfaceHolder, param1: number, param2: number, param3: number): void;
+						public onSurfaceCreated(param0: android.view.SurfaceHolder): void;
+						public postInvalidate(): void;
+						public onSurfaceRedrawNeeded(param0: android.view.SurfaceHolder): void;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export abstract class Gles2WatchFaceService extends android.support.wearable.watchface.WatchFaceService {
+					public static class: java.lang.Class<android.support.wearable.watchface.Gles2WatchFaceService>;
+					public constructor();
+					public onCreateEngine(): android.support.wearable.watchface.WatchFaceService.Engine;
+					public onCreateEngine(): android.support.wearable.watchface.Gles2WatchFaceService.Engine;
+				}
+				export module Gles2WatchFaceService {
+					export class Engine extends android.support.wearable.watchface.WatchFaceService.Engine {
+						public static class: java.lang.Class<android.support.wearable.watchface.Gles2WatchFaceService.Engine>;
+						public constructor(param0: android.support.wearable.watchface.WatchFaceService);
+						public onCreate(param0: android.view.SurfaceHolder): void;
+						public onSurfaceDestroyed(param0: android.view.SurfaceHolder): void;
+						public onGlSurfaceCreated(param0: number, param1: number): void;
+						public constructor(param0: android.support.wearable.watchface.Gles2WatchFaceService);
+						public chooseEglConfig(param0: android.opengl.EGLDisplay): android.opengl.EGLConfig;
+						public createWindowSurface(param0: android.opengl.EGLDisplay, param1: android.opengl.EGLConfig, param2: android.view.SurfaceHolder): android.opengl.EGLSurface;
+						public postInvalidate(): void;
+						public onSurfaceRedrawNeeded(param0: android.view.SurfaceHolder): void;
+						public onApplyWindowInsets(param0: android.view.WindowInsets): void;
+						public onDraw(): void;
+						public onDestroy(): void;
+						public invalidate(): void;
+						public onGlContextCreated(): void;
+						public onSurfaceChanged(param0: android.view.SurfaceHolder, param1: number, param2: number, param3: number): void;
+						public createEglContext(param0: android.opengl.EGLDisplay, param1: android.opengl.EGLConfig): android.opengl.EGLContext;
+						public initializeEglDisplay(): android.opengl.EGLDisplay;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export class IWatchFaceService {
+					public static class: java.lang.Class<android.support.wearable.watchface.IWatchFaceService>;
+					/**
+					 * Constructs a new instance of the android.support.wearable.watchface.IWatchFaceService interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+					 */
+					public constructor(implementation: {
+						setStyle(param0: android.support.wearable.watchface.WatchFaceStyle): void;
+						setActiveComplications(param0: native.Array<number>, param1: boolean): void;
+						setDefaultComplicationProvider(param0: number, param1: android.content.ComponentName, param2: number): void;
+						setDefaultSystemComplicationProvider(param0: number, param1: number, param2: number): void;
+						setContentDescriptionLabels(param0: native.Array<android.support.wearable.watchface.accessibility.ContentDescriptionLabel>): void;
+						updateDecomposition(param0: android.support.wearable.watchface.decomposition.WatchFaceDecomposition): void;
+					});
+					public constructor();
+					public setDefaultComplicationProvider(param0: number, param1: android.content.ComponentName, param2: number): void;
+					public setDefaultSystemComplicationProvider(param0: number, param1: number, param2: number): void;
+					public setStyle(param0: android.support.wearable.watchface.WatchFaceStyle): void;
+					public setActiveComplications(param0: native.Array<number>, param1: boolean): void;
+					public setContentDescriptionLabels(param0: native.Array<android.support.wearable.watchface.accessibility.ContentDescriptionLabel>): void;
+					public updateDecomposition(param0: android.support.wearable.watchface.decomposition.WatchFaceDecomposition): void;
+				}
+				export module IWatchFaceService {
+					export abstract class Stub extends android.support.wearable.internal.aidl.BaseStub implements android.support.wearable.watchface.IWatchFaceService {
+						public static class: java.lang.Class<android.support.wearable.watchface.IWatchFaceService.Stub>;
+						public updateDecomposition(param0: android.support.wearable.watchface.decomposition.WatchFaceDecomposition): void;
+						public constructor();
+						public setDefaultComplicationProvider(param0: number, param1: android.content.ComponentName, param2: number): void;
+						public setActiveComplications(param0: native.Array<number>, param1: boolean): void;
+						public static asInterface(param0: android.os.IBinder): android.support.wearable.watchface.IWatchFaceService;
+						public dispatchTransaction(param0: number, param1: android.os.Parcel, param2: android.os.Parcel, param3: number): boolean;
+						public setDefaultSystemComplicationProvider(param0: number, param1: number, param2: number): void;
+						public setContentDescriptionLabels(param0: native.Array<android.support.wearable.watchface.accessibility.ContentDescriptionLabel>): void;
+						public constructor(param0: string);
+						public setStyle(param0: android.support.wearable.watchface.WatchFaceStyle): void;
+					}
+					export module Stub {
+						export class Proxy extends android.support.wearable.internal.aidl.BaseProxy implements android.support.wearable.watchface.IWatchFaceService {
+							public static class: java.lang.Class<android.support.wearable.watchface.IWatchFaceService.Stub.Proxy>;
+							public setContentDescriptionLabels(param0: native.Array<android.support.wearable.watchface.accessibility.ContentDescriptionLabel>): void;
+							public setActiveComplications(param0: native.Array<number>, param1: boolean): void;
+							public setDefaultComplicationProvider(param0: number, param1: android.content.ComponentName, param2: number): void;
+							public setStyle(param0: android.support.wearable.watchface.WatchFaceStyle): void;
+							public updateDecomposition(param0: android.support.wearable.watchface.decomposition.WatchFaceDecomposition): void;
+							public setDefaultSystemComplicationProvider(param0: number, param1: number, param2: number): void;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export abstract class WatchFaceService {
+					public static class: java.lang.Class<android.support.wearable.watchface.WatchFaceService>;
+					public static COMMAND_AMBIENT_UPDATE: string;
+					public static COMMAND_BACKGROUND_ACTION: string;
+					public static COMMAND_SET_PROPERTIES: string;
+					public static COMMAND_SET_BINDER: string;
+					public static COMMAND_REQUEST_STYLE: string;
+					public static COMMAND_REQUEST_DECOMPOSITION: string;
+					public static COMMAND_TOUCH: string;
+					public static COMMAND_TOUCH_CANCEL: string;
+					public static COMMAND_TAP: string;
+					public static COMMAND_COMPLICATION_DATA: string;
+					public static TAP_TYPE_TOUCH: number;
+					public static TAP_TYPE_TOUCH_CANCEL: number;
+					public static TAP_TYPE_TAP: number;
+					public static ACTION_REQUEST_STATE: string;
+					public static EXTRA_WATCH_FACE_VISIBLE: string;
+					public static EXTRA_CARD_LOCATION: string;
+					public static EXTRA_AMBIENT_MODE: string;
+					public static EXTRA_INTERRUPTION_FILTER: string;
+					public static EXTRA_UNREAD_COUNT: string;
+					public static EXTRA_NOTIFICATION_COUNT: string;
+					public static EXTRA_INDICATOR_STATUS: string;
+					public static EXTRA_BINDER: string;
+					public static EXTRA_TAP_TIME: string;
+					public static EXTRA_COMPLICATION_ID: string;
+					public static EXTRA_COMPLICATION_DATA: string;
+					public static PROPERTY_BURN_IN_PROTECTION: string;
+					public static PROPERTY_LOW_BIT_AMBIENT: string;
+					public static PROPERTY_IN_RETAIL_MODE: string;
+					public static PROPERTY_OFFLOAD_SUPPORTED: string;
+					public static PROPERTY_PHYSICAL_HANDS: string;
+					public static STATUS_CHARGING: string;
+					public static STATUS_AIRPLANE_MODE: string;
+					public static STATUS_CONNECTED: string;
+					public static STATUS_THEATER_MODE: string;
+					public static STATUS_GPS_ACTIVE: string;
+					public static STATUS_KEYGUARD_LOCKED: string;
+					public static STATUS_INTERRUPTION_FILTER: string;
+					public static INTERRUPTION_FILTER_UNKNOWN: number;
+					public static INTERRUPTION_FILTER_ALL: number;
+					public static INTERRUPTION_FILTER_PRIORITY: number;
+					public static INTERRUPTION_FILTER_NONE: number;
+					public static INTERRUPTION_FILTER_ALARMS: number;
+					public constructor();
+					public onCreateEngine(): android.support.wearable.watchface.WatchFaceService.Engine;
+				}
+				export module WatchFaceService {
+					export abstract class Engine {
+						public static class: java.lang.Class<android.support.wearable.watchface.WatchFaceService.Engine>;
+						public updateDecomposition(param0: android.support.wearable.watchface.decomposition.WatchFaceDecomposition): void;
+						public onTimeTick(): void;
+						public onInterruptionFilterChanged(param0: number): void;
+						public onCreate(param0: android.view.SurfaceHolder): void;
+						public setWatchFaceStyle(param0: android.support.wearable.watchface.WatchFaceStyle): void;
+						public onAmbientModeChanged(param0: boolean): void;
+						public getUnreadCount(): number;
+						public setTouchEventsEnabled(param0: boolean): void;
+						public onDestroy(): void;
+						public onTapCommand(param0: number, param1: number, param2: number, param3: number): void;
+						public onTouchEvent(param0: android.view.MotionEvent): void;
+						public setActiveComplications(param0: native.Array<number>): void;
+						public onStatusChanged(param0: android.os.Bundle): void;
+						public setDefaultComplicationProvider(param0: number, param1: android.content.ComponentName, param2: number): void;
+						public constructor(param0: android.support.wearable.watchface.WatchFaceService);
+						public onPropertiesChanged(param0: android.os.Bundle): void;
+						public setContentDescriptionLabels(param0: native.Array<android.support.wearable.watchface.accessibility.ContentDescriptionLabel>): void;
+						public isInAmbientMode(): boolean;
+						public onNotificationCountChanged(param0: number): void;
+						public onCommand(param0: string, param1: number, param2: number, param3: number, param4: android.os.Bundle, param5: boolean): android.os.Bundle;
+						public onComplicationDataUpdate(param0: number, param1: android.support.wearable.complications.ComplicationData): void;
+						public onPeekCardPositionUpdate(param0: android.graphics.Rect): void;
+						public getInterruptionFilter(): number;
+						public getNotificationCount(): number;
+						public onVisibilityChanged(param0: boolean): void;
+						public setDefaultSystemComplicationProvider(param0: number, param1: number, param2: number): void;
+						public onUnreadCountChanged(param0: number): void;
+						public getPeekCardPosition(): android.graphics.Rect;
+					}
+					export class ProviderConfig {
+						public static class: java.lang.Class<android.support.wearable.watchface.WatchFaceService.ProviderConfig>;
+						public provider: android.content.ComponentName;
+						public systemProvider: number;
+						public type: number;
+						public constructor(param0: android.content.ComponentName, param1: number);
+						public constructor(param0: number, param1: number);
+					}
+					export class TapType {
+						public static class: java.lang.Class<android.support.wearable.watchface.WatchFaceService.TapType>;
+						/**
+						 * Constructs a new instance of the android.support.wearable.watchface.WatchFaceService$TapType interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+						 */
+						public constructor(implementation: {
+						});
+						public constructor();
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export class WatchFaceStyle {
+					public static class: java.lang.Class<android.support.wearable.watchface.WatchFaceStyle>;
+					public static PEEK_MODE_VARIABLE: number;
+					public static PEEK_MODE_SHORT: number;
+					public static PEEK_MODE_NONE: number;
+					public static PROGRESS_MODE_NONE: number;
+					public static PROGRESS_MODE_DISPLAY: number;
+					public static PEEK_OPACITY_MODE_OPAQUE: number;
+					public static PEEK_OPACITY_MODE_TRANSLUCENT: number;
+					public static BACKGROUND_VISIBILITY_INTERRUPTIVE: number;
+					public static BACKGROUND_VISIBILITY_PERSISTENT: number;
+					public static AMBIENT_PEEK_MODE_VISIBLE: number;
+					public static AMBIENT_PEEK_MODE_HIDDEN: number;
+					public static PROTECT_STATUS_BAR: number;
+					public static PROTECT_HOTWORD_INDICATOR: number;
+					public static PROTECT_WHOLE_SCREEN: number;
+					public static DEFAULT_ACCENT_COLOR: number;
+					public static KEY_COMPONENT: string;
+					public static KEY_CARD_PEEK_MODE: string;
+					public static KEY_CARD_PROGRESS_MODE: string;
+					public static KEY_BACKGROUND_VISIBILITY: string;
+					public static KEY_SHOW_SYSTEM_UI_TIME: string;
+					public static KEY_AMBIENT_PEEK_MODE: string;
+					public static KEY_PEEK_CARD_OPACITY: string;
+					public static KEY_VIEW_PROTECTION_MODE: string;
+					public static KEY_STATUS_BAR_GRAVITY: string;
+					public static KEY_HOTWORD_INDICATOR_GRAVITY: string;
+					public static KEY_SHOW_UNREAD_INDICATOR: string;
+					public static KEY_HIDE_NOTIFICATION_INDICATOR: string;
+					public static KEY_ACCENT_COLOR: string;
+					public static KEY_ACCEPTS_TAPS: string;
+					public static KEY_HIDE_HOTWORD_INDICATOR: string;
+					public static KEY_HIDE_STATUS_BAR: string;
+					public static CREATOR: android.os.Parcelable.Creator<android.support.wearable.watchface.WatchFaceStyle>;
+					public constructor(param0: android.os.Bundle);
+					public getShowUnreadCountIndicator(): boolean;
+					public getHotwordIndicatorGravity(): number;
+					public getCardPeekMode(): number;
+					public describeContents(): number;
+					public toBundle(): android.os.Bundle;
+					public getShowSystemUiTime(): boolean;
+					public equals(param0: any): boolean;
+					public getAccentColor(): number;
+					public toString(): string;
+					public getHideNotificationIndicator(): boolean;
+					public getCardProgressMode(): number;
+					public getPeekOpacityMode(): number;
+					public getAmbientPeekMode(): number;
+					public getViewProtectionMode(): number;
+					public getBackgroundVisibility(): number;
+					public getHideStatusBar(): boolean;
+					public getComponent(): android.content.ComponentName;
+					public getStatusBarGravity(): number;
+					public getAcceptsTapEvents(): boolean;
+					public getHideHotwordIndicator(): boolean;
+					public hashCode(): number;
+					public writeToParcel(param0: android.os.Parcel, param1: number): void;
+				}
+				export module WatchFaceStyle {
+					export class Builder {
+						public static class: java.lang.Class<android.support.wearable.watchface.WatchFaceStyle.Builder>;
+						public setCardPeekMode(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public static forActivity(param0: android.app.Activity): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setPeekOpacityMode(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setHideNotificationIndicator(param0: boolean): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public build(): android.support.wearable.watchface.WatchFaceStyle;
+						public setAccentColor(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setShowSystemUiTime(param0: boolean): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public static forDefault(): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setViewProtection(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setShowUnreadCountIndicator(param0: boolean): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setAcceptsTapEvents(param0: boolean): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setBackgroundVisibility(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setCardProgressMode(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setHotwordIndicatorGravity(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setHideHotwordIndicator(param0: boolean): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setAmbientPeekMode(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public static forComponentName(param0: android.content.ComponentName): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public constructor(param0: android.app.Service);
+						public setHideStatusBar(param0: boolean): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setStatusBarGravity(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+						public setViewProtectionMode(param0: number): android.support.wearable.watchface.WatchFaceStyle.Builder;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module accessibility {
+					export class AccessibilityUtils {
+						public static class: java.lang.Class<android.support.wearable.watchface.accessibility.AccessibilityUtils>;
+						public constructor();
+						public static generateContentDescription(param0: android.content.Context, param1: android.support.wearable.complications.ComplicationData): android.support.wearable.complications.TimeDependentText;
+						public static makeTimeAsComplicationText(param0: android.content.Context): android.support.wearable.complications.ComplicationText;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module accessibility {
+					export class ContentDescriptionLabel {
+						public static class: java.lang.Class<android.support.wearable.watchface.accessibility.ContentDescriptionLabel>;
+						public static CREATOR: android.os.Parcelable.Creator<android.support.wearable.watchface.accessibility.ContentDescriptionLabel>;
+						public describeContents(): number;
+						public getText(): android.support.wearable.complications.TimeDependentText;
+						public equals(param0: any): boolean;
+						public hashCode(): number;
+						public toString(): string;
+						public constructor(param0: android.graphics.Rect, param1: android.support.wearable.complications.ComplicationTextTemplate);
+						public constructor(param0: android.content.Context, param1: android.graphics.Rect, param2: android.support.wearable.complications.ComplicationData);
+						public setTapAction(param0: android.app.PendingIntent): void;
+						public constructor(param0: android.graphics.Rect, param1: android.support.wearable.complications.ComplicationText);
+						public constructor(param0: android.os.Parcel);
+						public writeToParcel(param0: android.os.Parcel, param1: number): void;
+						public getBounds(): android.graphics.Rect;
+						public getTapAction(): android.app.PendingIntent;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decomposition {
+					export abstract class BaseComponent extends android.support.wearable.watchface.decomposition.WatchFaceDecomposition.Component {
+						public static class: java.lang.Class<android.support.wearable.watchface.decomposition.BaseComponent>;
+						public fields: android.os.Bundle;
+						public isInteractive(): boolean;
+						public getDisplayModes(): number;
+						public getComponentId(): number;
+						public isAmbient(): boolean;
+					}
+					export module BaseComponent {
+						export abstract class BaseBuilder<T, K>  extends java.lang.Object {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.BaseComponent.BaseBuilder<any,any>>;
+							public fields: android.os.Bundle;
+							public validate(): void;
+							public build(): K;
+							public setDisplayModes(param0: number): T;
+							public setComponentId(param0: number): T;
+						}
+						export class ComponentFactory<T>  extends java.lang.Object {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.BaseComponent.ComponentFactory<any>>;
+							/**
+							 * Constructs a new instance of the android.support.wearable.watchface.decomposition.BaseComponent$ComponentFactory interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+							 */
+							public constructor(implementation: {
+								buildComponent(param0: android.os.Bundle): T;
+							});
+							public constructor();
+							public buildComponent(param0: android.os.Bundle): T;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decomposition {
+					export abstract class BaseDrawnComponent extends android.support.wearable.watchface.decomposition.BaseComponent implements android.support.wearable.watchface.decomposition.WatchFaceDecomposition.DrawnComponent {
+						public static class: java.lang.Class<android.support.wearable.watchface.decomposition.BaseDrawnComponent>;
+						public getZOrder(): number;
+						public isInteractive(): boolean;
+						public getDisplayModes(): number;
+						public getComponentId(): number;
+						public isAmbient(): boolean;
+					}
+					export module BaseDrawnComponent {
+						export abstract class BaseDrawnBuilder<T, K>  extends android.support.wearable.watchface.decomposition.BaseComponent.BaseBuilder<any,any> {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.BaseDrawnComponent.BaseDrawnBuilder<any,any>>;
+							public setZOrder(param0: number): any;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decomposition {
+					export class ComplicationComponent extends android.support.wearable.watchface.decomposition.BaseDrawnComponent {
+						public static class: java.lang.Class<android.support.wearable.watchface.decomposition.ComplicationComponent>;
+						public static CREATOR: android.os.Parcelable.Creator<android.support.wearable.watchface.decomposition.ComplicationComponent>;
+						public describeContents(): number;
+						public getWatchFaceComplicationId(): number;
+						public getComplicationTypes(): native.Array<number>;
+						public getComplicationDrawable(): android.support.wearable.complications.rendering.ComplicationDrawable;
+						public isAmbient(): boolean;
+						public getZOrder(): number;
+						public writeToParcel(param0: android.os.Parcel, param1: number): void;
+						public getBounds(): android.graphics.RectF;
+						public getDefaultComplicationType(): number;
+						public isInteractive(): boolean;
+						public getDisplayModes(): number;
+						public getDefaultSystemProvider(): number;
+						public getComponentId(): number;
+					}
+					export module ComplicationComponent {
+						export class Builder extends android.support.wearable.watchface.decomposition.BaseDrawnComponent.BaseDrawnBuilder<android.support.wearable.watchface.decomposition.ComplicationComponent.Builder,android.support.wearable.watchface.decomposition.ComplicationComponent> {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.ComplicationComponent.Builder>;
+							public constructor();
+							public validate(): void;
+							public setDefaultSystemProvider(param0: number, param1: number): android.support.wearable.watchface.decomposition.ComplicationComponent.Builder;
+							public setBounds(param0: android.graphics.RectF): android.support.wearable.watchface.decomposition.ComplicationComponent.Builder;
+							public setWatchFaceComplicationId(param0: number): android.support.wearable.watchface.decomposition.ComplicationComponent.Builder;
+							public setComplicationDrawable(param0: android.support.wearable.complications.rendering.ComplicationDrawable): android.support.wearable.watchface.decomposition.ComplicationComponent.Builder;
+							public setComplicationTypes(param0: native.Array<number>): android.support.wearable.watchface.decomposition.ComplicationComponent.Builder;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decomposition {
+					export class FontComponent extends android.support.wearable.watchface.decomposition.BaseComponent {
+						public static class: java.lang.Class<android.support.wearable.watchface.decomposition.FontComponent>;
+						public static CREATOR: android.os.Parcelable.Creator<android.support.wearable.watchface.decomposition.FontComponent>;
+						public describeContents(): number;
+						public getDigitCount(): number;
+						public getImage(): any;
+						public writeToParcel(param0: android.os.Parcel, param1: number): void;
+						public isInteractive(): boolean;
+						public getDisplayModes(): number;
+						public getComponentId(): number;
+						public isAmbient(): boolean;
+					}
+					export module FontComponent {
+						export class Builder extends android.support.wearable.watchface.decomposition.BaseComponent.BaseBuilder<android.support.wearable.watchface.decomposition.FontComponent.Builder,android.support.wearable.watchface.decomposition.FontComponent> {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.FontComponent.Builder>;
+							public constructor();
+							public validate(): void;
+							public setDigitCount(param0: number): android.support.wearable.watchface.decomposition.FontComponent.Builder;
+							public setImage(param0: any): android.support.wearable.watchface.decomposition.FontComponent.Builder;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decomposition {
+					export class ImageComponent extends android.support.wearable.watchface.decomposition.BaseDrawnComponent {
+						public static class: java.lang.Class<android.support.wearable.watchface.decomposition.ImageComponent>;
+						public static CREATOR: android.os.Parcelable.Creator<android.support.wearable.watchface.decomposition.ImageComponent>;
+						public getDegreesPerDay(): number;
+						public describeContents(): number;
+						public getDegreesPerStep(): number;
+						public getPivot(): android.graphics.PointF;
+						public getOffsetDegrees(): number;
+						public isAmbient(): boolean;
+						public getZOrder(): number;
+						public getImage(): any;
+						public writeToParcel(param0: android.os.Parcel, param1: number): void;
+						public getBounds(): android.graphics.RectF;
+						public isInteractive(): boolean;
+						public getDisplayModes(): number;
+						public getComponentId(): number;
+					}
+					export module ImageComponent {
+						export class Builder extends android.support.wearable.watchface.decomposition.BaseDrawnComponent.BaseDrawnBuilder<android.support.wearable.watchface.decomposition.ImageComponent.Builder,android.support.wearable.watchface.decomposition.ImageComponent> {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.ImageComponent.Builder>;
+							public static SMOOTH_SECOND_HAND: number;
+							public static TICKING_SECOND_HAND: number;
+							public static MINUTE_HAND: number;
+							public static HOUR_HAND: number;
+							public static BPH_21600_SECOND_HAND: number;
+							public static BPH_28800_SECOND_HAND: number;
+							public constructor();
+							public setImage(param0: any): android.support.wearable.watchface.decomposition.ImageComponent.Builder;
+							public setPivot(param0: android.graphics.PointF): android.support.wearable.watchface.decomposition.ImageComponent.Builder;
+							public validate(): void;
+							public setBounds(param0: android.graphics.RectF): android.support.wearable.watchface.decomposition.ImageComponent.Builder;
+							public setOffsetDegrees(param0: number): android.support.wearable.watchface.decomposition.ImageComponent.Builder;
+							public setDegreesPerDay(param0: number): android.support.wearable.watchface.decomposition.ImageComponent.Builder;
+							public constructor(param0: number);
+							public setDegreesPerStep(param0: number): android.support.wearable.watchface.decomposition.ImageComponent.Builder;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decomposition {
+					export class NumberComponent extends android.support.wearable.watchface.decomposition.BaseDrawnComponent {
+						public static class: java.lang.Class<android.support.wearable.watchface.decomposition.NumberComponent>;
+						public static CREATOR: android.os.Parcelable.Creator<android.support.wearable.watchface.decomposition.NumberComponent>;
+						public describeContents(): number;
+						public getMinDigitsShown(): number;
+						public getDisplayStringForTime(param0: number): string;
+						public isAmbient(): boolean;
+						public getZOrder(): number;
+						public getMsPerIncrement(): number;
+						public getTimeOffsetMs(): number;
+						public getPosition(): android.graphics.PointF;
+						public writeToParcel(param0: android.os.Parcel, param1: number): void;
+						public isInteractive(): boolean;
+						public getLowestValue(): number;
+						public getDisplayModes(): number;
+						public getHighestValue(): number;
+						public getFontComponentId(): number;
+						public getComponentId(): number;
+					}
+					export module NumberComponent {
+						export class Builder extends android.support.wearable.watchface.decomposition.BaseDrawnComponent.BaseDrawnBuilder<android.support.wearable.watchface.decomposition.NumberComponent.Builder,android.support.wearable.watchface.decomposition.NumberComponent> {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.NumberComponent.Builder>;
+							public static SECONDS: number;
+							public static MINUTES: number;
+							public static HOURS_12: number;
+							public static HOURS_24: number;
+							public static DAY_OF_WEEK: number;
+							public static DAY_OF_MONTH: number;
+							public static MONTH_ZERO_INDEX: number;
+							public static MONTH_NUMERICAL: number;
+							public constructor();
+							public setHighestValue(param0: number): android.support.wearable.watchface.decomposition.NumberComponent.Builder;
+							public setMsPerIncrement(param0: number): android.support.wearable.watchface.decomposition.NumberComponent.Builder;
+							public validate(): void;
+							public setPosition(param0: android.graphics.PointF): android.support.wearable.watchface.decomposition.NumberComponent.Builder;
+							public setFontComponent(param0: android.support.wearable.watchface.decomposition.FontComponent): android.support.wearable.watchface.decomposition.NumberComponent.Builder;
+							public setLowestValue(param0: number): android.support.wearable.watchface.decomposition.NumberComponent.Builder;
+							public setFontComponentId(param0: number): android.support.wearable.watchface.decomposition.NumberComponent.Builder;
+							public setMinDigitsShown(param0: number): android.support.wearable.watchface.decomposition.NumberComponent.Builder;
+							public setTimeOffsetMs(param0: number): android.support.wearable.watchface.decomposition.NumberComponent.Builder;
+							public constructor(param0: number);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decomposition {
+					export class WatchFaceDecomposition {
+						public static class: java.lang.Class<android.support.wearable.watchface.decomposition.WatchFaceDecomposition>;
+						public static MAX_COMPONENT_ID: number;
+						public static CREATOR: android.os.Parcelable.Creator<android.support.wearable.watchface.decomposition.WatchFaceDecomposition>;
+						public getImageComponents(): java.util.List<android.support.wearable.watchface.decomposition.ImageComponent>;
+						public describeContents(): number;
+						public getComplicationComponents(): java.util.List<android.support.wearable.watchface.decomposition.ComplicationComponent>;
+						public writeToParcel(param0: android.os.Parcel, param1: number): void;
+						public getFontComponents(): java.util.List<android.support.wearable.watchface.decomposition.FontComponent>;
+						public getNumberComponents(): java.util.List<android.support.wearable.watchface.decomposition.NumberComponent>;
+					}
+					export module WatchFaceDecomposition {
+						export class Builder {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.WatchFaceDecomposition.Builder>;
+							public constructor();
+							public addComplicationComponents(param0: native.Array<android.support.wearable.watchface.decomposition.ComplicationComponent>): android.support.wearable.watchface.decomposition.WatchFaceDecomposition.Builder;
+							public addFontComponents(param0: native.Array<android.support.wearable.watchface.decomposition.FontComponent>): android.support.wearable.watchface.decomposition.WatchFaceDecomposition.Builder;
+							public addNumberComponents(param0: native.Array<android.support.wearable.watchface.decomposition.NumberComponent>): android.support.wearable.watchface.decomposition.WatchFaceDecomposition.Builder;
+							public addImageComponents(param0: native.Array<android.support.wearable.watchface.decomposition.ImageComponent>): android.support.wearable.watchface.decomposition.WatchFaceDecomposition.Builder;
+							public build(): android.support.wearable.watchface.decomposition.WatchFaceDecomposition;
+						}
+						export class Component {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.WatchFaceDecomposition.Component>;
+							/**
+							 * Constructs a new instance of the android.support.wearable.watchface.decomposition.WatchFaceDecomposition$Component interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+							 */
+							public constructor(implementation: {
+								getComponentId(): number;
+								getDisplayModes(): number;
+								isAmbient(): boolean;
+								isInteractive(): boolean;
+							});
+							public constructor();
+							public static DISPLAY_INTERACTIVE: number;
+							public static DISPLAY_AMBIENT: number;
+							public getDisplayModes(): number;
+							public isInteractive(): boolean;
+							public isAmbient(): boolean;
+							public getComponentId(): number;
+						}
+						export class DrawnComponent extends android.support.wearable.watchface.decomposition.WatchFaceDecomposition.Component {
+							public static class: java.lang.Class<android.support.wearable.watchface.decomposition.WatchFaceDecomposition.DrawnComponent>;
+							/**
+							 * Constructs a new instance of the android.support.wearable.watchface.decomposition.WatchFaceDecomposition$DrawnComponent interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+							 */
+							public constructor(implementation: {
+								getZOrder(): number;
+								getComponentId(): number;
+								getDisplayModes(): number;
+								isAmbient(): boolean;
+								isInteractive(): boolean;
+							});
+							public constructor();
+							public static DISPLAY_INTERACTIVE: number;
+							public static DISPLAY_AMBIENT: number;
+							public getDisplayModes(): number;
+							public isInteractive(): boolean;
+							public isAmbient(): boolean;
+							public getZOrder(): number;
+							public getComponentId(): number;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decompositionface {
+					export class CoordConverter {
+						public static class: java.lang.Class<android.support.wearable.watchface.decompositionface.CoordConverter>;
+						public getPixelRectFromProportional(param0: android.graphics.RectF, param1: android.graphics.Rect): void;
+						public constructor();
+						public getPixelY(param0: number): number;
+						public setPixelBounds(param0: android.graphics.Rect): void;
+						public getPixelX(param0: number): number;
+						public setPixelBounds(param0: number, param1: number, param2: number, param3: number): void;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decompositionface {
+					export abstract class DecompositionConfigActivity {
+						public static class: java.lang.Class<android.support.wearable.watchface.decompositionface.DecompositionConfigActivity>;
+						public constructor();
+						public onDestroy(): void;
+						public onActivityResult(param0: number, param1: number, param2: android.content.Intent): void;
+						public buildDecompositionForWatchFace(param0: string): android.support.wearable.watchface.decomposition.WatchFaceDecomposition;
+						public onCreate(param0: android.os.Bundle): void;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decompositionface {
+					export class DecompositionConfigView {
+						public static class: java.lang.Class<android.support.wearable.watchface.decompositionface.DecompositionConfigView>;
+						public constructor(param0: android.content.Context, param1: android.util.AttributeSet);
+						public getWatchFaceComplicationIds(): native.Array<number>;
+						public onTouchEvent(param0: android.view.MotionEvent): boolean;
+						public setDisplayTime(param0: number): void;
+						public setDecomposition(param0: android.support.wearable.watchface.decomposition.WatchFaceDecomposition): void;
+						public setProviderInfo(param0: number, param1: android.support.wearable.complications.ComplicationProviderInfo): void;
+						public constructor(param0: android.content.Context);
+						public setOnComplicationTapListener(param0: android.support.wearable.watchface.decompositionface.DecompositionConfigView.OnComplicationTapListener): void;
+					}
+					export module DecompositionConfigView {
+						export class OnComplicationTapListener {
+							public static class: java.lang.Class<android.support.wearable.watchface.decompositionface.DecompositionConfigView.OnComplicationTapListener>;
+							/**
+							 * Constructs a new instance of the android.support.wearable.watchface.decompositionface.DecompositionConfigView$OnComplicationTapListener interface with the provided implementation. An empty constructor exists calling super() when extending the interface class.
+							 */
+							public constructor(implementation: {
+								onComplicationTap(param0: number, param1: native.Array<number>): void;
+							});
+							public constructor();
+							public onComplicationTap(param0: number, param1: native.Array<number>): void;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decompositionface {
+					export class DecompositionDrawable {
+						public static class: java.lang.Class<android.support.wearable.watchface.decompositionface.DecompositionDrawable>;
+						public draw(param0: android.graphics.Canvas): void;
+						public setColorFilter(param0: android.graphics.ColorFilter): void;
+						public setInAmbientMode(param0: boolean): void;
+						public setComplicationData(param0: number, param1: android.support.wearable.complications.ComplicationData): void;
+						public onTap(param0: number, param1: number): boolean;
+						public getOpacity(): number;
+						public setLowBitAmbient(param0: boolean): void;
+						public setClipToCircle(param0: boolean): void;
+						public setAlpha(param0: number): void;
+						public constructor(param0: android.content.Context);
+						public static calculateStepIntervalMs(param0: android.support.wearable.watchface.decomposition.WatchFaceDecomposition, param1: number): number;
+						public onBoundsChange(param0: android.graphics.Rect): void;
+						public setDecomposition(param0: android.support.wearable.watchface.decomposition.WatchFaceDecomposition, param1: boolean): void;
+						public setCurrentTimeMillis(param0: number): void;
+						public setBurnInProtection(param0: boolean): void;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decompositionface {
+					export abstract class DecompositionWatchFaceService extends android.support.wearable.watchface.CanvasWatchFaceService {
+						public static class: java.lang.Class<android.support.wearable.watchface.decompositionface.DecompositionWatchFaceService>;
+						public constructor();
+						public buildDecomposition(): android.support.wearable.watchface.decomposition.WatchFaceDecomposition;
+						public onCreateEngine(): android.support.wearable.watchface.WatchFaceService.Engine;
+						public onCreateEngine(): android.support.wearable.watchface.decompositionface.DecompositionWatchFaceService.Engine;
+						public onCreateEngine(): android.support.wearable.watchface.CanvasWatchFaceService.Engine;
+					}
+					export module DecompositionWatchFaceService {
+						export class Engine extends android.support.wearable.watchface.CanvasWatchFaceService.Engine {
+							public static class: java.lang.Class<android.support.wearable.watchface.decompositionface.DecompositionWatchFaceService.Engine>;
+							public onCreate(param0: android.view.SurfaceHolder): void;
+							public onPropertiesChanged(param0: android.os.Bundle): void;
+							public onAmbientModeChanged(param0: boolean): void;
+							public onComplicationDataUpdate(param0: number, param1: android.support.wearable.complications.ComplicationData): void;
+							public onVisibilityChanged(param0: boolean): void;
+							public constructor(param0: android.support.wearable.watchface.CanvasWatchFaceService);
+							public onDraw(param0: android.graphics.Canvas, param1: android.graphics.Rect): void;
+							public constructor(param0: android.support.wearable.watchface.WatchFaceService);
+							public onTimeTick(): void;
+							public constructor(param0: android.support.wearable.watchface.decompositionface.DecompositionWatchFaceService);
+							public onTapCommand(param0: number, param1: number, param2: number, param3: number): void;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module android {
+	export module support {
+		export module wearable {
+			export module watchface {
+				export module decompositionface {
+					export class DigitDrawable {
+						public static class: java.lang.Class<android.support.wearable.watchface.decompositionface.DigitDrawable>;
+						public draw(param0: android.graphics.Canvas): void;
+						public setColorFilter(param0: android.graphics.ColorFilter): void;
+						public setCurrentDigit(param0: number): void;
+						public getIntrinsicWidth(): number;
+						public getIntrinsicHeight(): number;
+						public setFontDrawable(param0: android.graphics.drawable.Drawable): void;
+						public setDigitCount(param0: number): void;
+						public getOpacity(): number;
+						public setAlpha(param0: number): void;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module com {
+	export module google {
+		export module android {
+			export module wearable {
+				export module intent {
+					export class RemoteIntent {
+						public static class: java.lang.Class<com.google.android.wearable.intent.RemoteIntent>;
+						public static ACTION_REMOTE_INTENT: string;
+						public static EXTRA_INTENT: string;
+						public static EXTRA_NODE_ID: string;
+						public static EXTRA_RESULT_RECEIVER: string;
+						public static RESULT_OK: number;
+						public static RESULT_FAILED: number;
+						public static startRemoteActivity(param0: globalAndroid.content.Context, param1: globalAndroid.content.Intent, param2: globalAndroid.os.ResultReceiver, param3: string): void;
+						public constructor();
+						public static startRemoteActivity(param0: globalAndroid.content.Context, param1: globalAndroid.content.Intent, param2: globalAndroid.os.ResultReceiver): void;
+					}
+				}
+			}
+		}
+	}
+}
+
+declare module com {
+	export module google {
+		export module android {
+			export module wearable {
+				export module playstore {
+					export class PlayStoreAvailability {
+						public static class: java.lang.Class<com.google.android.wearable.playstore.PlayStoreAvailability>;
+						public static PLAY_STORE_ON_PHONE_ERROR_UNKNOWN: number;
+						public static PLAY_STORE_ON_PHONE_AVAILABLE: number;
+						public static PLAY_STORE_ON_PHONE_UNAVAILABLE: number;
+						public constructor();
+						public static getPlayStoreAvailabilityOnPhone(param0: globalAndroid.content.Context): number;
+					}
+				}
+			}
+		}
+	}
+}
+
+//Generics information:
+//android.support.wearable.view.WearableListView.GenericAdapter:1
+//android.support.wearable.watchface.decomposition.BaseComponent.BaseBuilder:2
+//android.support.wearable.watchface.decomposition.BaseComponent.ComponentFactory:1
+//android.support.wearable.watchface.decomposition.BaseDrawnComponent.BaseDrawnBuilder:2
