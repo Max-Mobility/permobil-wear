@@ -30,7 +30,7 @@ global.__awaiter =
 (global as any).__generator =
   (this && this.__generator) ||
   function(thisArg, body) {
-    const _ = {
+    let _ = {
         label: 0,
         sent: function() {
           if (t[0] & 1) throw t[1];
