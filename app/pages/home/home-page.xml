@@ -1,8 +1,10 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" 
-    xmlns:Lottie="nativescript-lottie" navigatingTo="navigatingTo" actionBarHidden="true">
+    xmlns:Lottie="nativescript-lottie" 
+    xmlns:wol="nativescript-wear-os/packages/wear-os-layout" navigatingTo="navigatingTo" actionBarHidden="true">
 
-    <ScrollView>
-        <FlexboxLayout flexDirection="column" justifyContent="space-between" padding="30 0">
+    <wol:WearOsLayout>
+        <FlexboxLayout flexDirection="column" justifyContent="space-between" paddingTop="10" paddingBottom="10">
+
             <FlexboxLayout flexDirection="row" justifyContent="center" marginTop="15" width="60%">
                 <Image src="~/assets/images/permobil-logo.png" stretch="aspectFit" />
             </FlexboxLayout>
@@ -29,6 +31,5 @@
                 </FlexboxLayout>
             </FlexboxLayout>
         </FlexboxLayout>
-    </ScrollView>
-
+    </wol:WearOsLayout>
 </Page>

@@ -1,19 +1,18 @@
+import * as accelerometer from 'nativescript-accelerometer-advanced';
+import { LottieView } from 'nativescript-lottie';
+import * as permissions from 'nativescript-permissions';
+import * as Toast from 'nativescript-toast';
+import * as application from 'tns-core-modules/application';
+import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
-import { alert, action } from 'tns-core-modules/ui/dialogs';
-import { device, screen } from 'tns-core-modules/platform';
+import { device } from 'tns-core-modules/platform';
+import { action, alert } from 'tns-core-modules/ui/dialogs';
+import { Page } from 'tns-core-modules/ui/frame';
+import { SmartDrive } from '../../core';
 // import { Bluetooth } from 'nativescript-bluetooth';
 import { Prop } from '../../obs-prop';
-import * as application from 'tns-core-modules/application';
-import * as accelerometer from 'nativescript-accelerometer-advanced';
-import * as Toast from 'nativescript-toast';
-import { topmost, Page } from 'tns-core-modules/ui/frame';
-import * as permissions from 'nativescript-permissions';
-import { LottieView } from 'nativescript-lottie';
 import { BluetoothService } from '../../services';
-import * as complications from '../../complications';
-import { Packet, SmartDrive } from '../../core';
 
-import * as appSettings from 'tns-core-modules/application-settings';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -68,7 +67,7 @@ export class HelloWorldModel extends Observable {
   constructor(page: Page) {
     super();
     this._page = page;
-    this._bluetoothService = new BluetoothService();
+    // this._bluetoothService = new BluetoothService();
     console.log(
       { device },
       'Device Info: ',
