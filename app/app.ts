@@ -1,8 +1,10 @@
-﻿import './async-await';
-
-// import 'nativescript-master-technology';
+﻿import { Kinvey } from 'kinvey-nativescript-sdk';
 import * as application from 'tns-core-modules/application';
+import './async-await';
 
-console.log('before application run...');
+Kinvey.init({
+  appKey: 'kid_SyIIDJjdM',
+  appSecret: '3cfe36e6ac8f4d80b04014cc980a4d47'
+});
 
 application.run({ moduleName: 'app-root' });
