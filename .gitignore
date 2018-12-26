@@ -110,3 +110,6 @@ Thumbs.db
 *.keystore
 *.apk
 *.ipa
+
+
+!app/typings
