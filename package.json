@@ -38,6 +38,7 @@
     "husky": "^1.2.1",
     "lint-staged": "^8.1.0",
     "nativescript-dev-typescript": "~0.7.8",
+    "nativescript-dev-webpack": "~0.18.5",
     "prettier": "^1.15.3",
     "prompt": "^1.0.0",
     "tns-platform-declarations": "^5.1.1",

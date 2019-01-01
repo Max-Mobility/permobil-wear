@@ -1,35 +1,24 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" 
     xmlns:Lottie="nativescript-lottie" 
-    xmlns:wol="nativescript-wear-os/packages/wear-os-layout" navigatingTo="navigatingTo" actionBarHidden="true">
+    xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
+    xmlns:lv="nativescript-wear-os/packages/listview" navigatingTo="navigatingTo" actionBarHidden="true">
 
-    <wol:WearOsLayout>
-        <FlexboxLayout flexDirection="column" justifyContent="space-between" paddingTop="10" paddingBottom="10">
+    <wol:WearOsLayout height="100%" width="100%">
 
-            <FlexboxLayout flexDirection="row" justifyContent="center" marginTop="15" width="60%">
-                <Image src="~/assets/images/permobil-logo.png" stretch="aspectFit" />
-            </FlexboxLayout>
-            <FlexboxLayout flexDirection="column" justifyContent="center">
-                <Button text="{{ accelerometerBtnText }}" tap="{{ toggleAccelerometer }}" class="btn"/>
-                <StackLayout visibility="{{ accelerometerData ? 'visible': 'collapsed' }}">
-                    <!-- <Lottie:LottieView horizontalAlignment="center" verticalAlignment="middle" src="done_button.json" height="40" width="40" loop="false" autoPlay="false" loaded="{{ motionDetectedLoaded }}" visibility="{{ motionDetected ? 'visible' : 'collapsed' }}" /> -->
-                    <Lottie:LottieView horizontalAlignment="center" verticalAlignment="middle" src="done_button.json" height="120" width="120" loop="false" autoPlay="false" loaded="{{ motionDetectedLoaded }}" visibility="{{ motionDetected ? 'visible' : 'collapsed' }}" />
-                    <StackLayout horizontalAlignment="center" verticalAlignment="middle" height="120" width="120" visibility="{{ motionDetected ? 'collapsed' : 'visible' }}" />
-                    <Label text="{{ accelerometerData }}" class="label font-small" visibility="{{ accelerometerData ? 'visible' : 'collapsed' }}" horizontalAlignment="center" textAlign="center" textWrap="true" />
-                </StackLayout>
-                <FlexboxLayout flexDirection="column" justifyContent="center">
-                    <Button text="Heart Rate" tap="{{ startHeartRate }}" class="btn" />
-                    <GridLayout height="85" rows="auto" columns="*" visibility="{{ isGettingHeartRate ? 'visible' : 'collapsed' }}">
-                        <Lottie:LottieView row="0" col="0" horizontalAlignment="center" verticalAlignment="middle" src="pulse.json" height="100" width="100" loop="true" autoPlay="false" loaded="{{ heartRateLoaded }}" />
-                        <Label row="0" col="0" text="{{ heartRate }}" class="heart-rate" textWrap="true" />
-                    </GridLayout>
-                </FlexboxLayout>
-                <FlexboxLayout flexDirection="row" justifyContent="center">
-                    <Button text="Scan For SmartDrives" tap="{{ onScanTap }}" class="btn" />
-                </FlexboxLayout>
-                <FlexboxLayout visibility="{{ connected ? 'visible' : 'collapsed' }}" flexDirection="row" justifyContent="center">
-                    <Button text="Disconnect" tap="{{ onDisconnectTap }}" class="btn" />
-                </FlexboxLayout>
-            </FlexboxLayout>
-        </FlexboxLayout>
+        // Permobil Logo
+        <Image src="res://permobillogo" class="logo" stretch="aspectFit" />
+
+        // Scan for Smart Drives
+        <StackLayout orientation="horizontal" tap="{{ onScanForSmartDrivesTap }}">
+            <Image src="res://sdstock" class="icon" stretch="aspectFit" />
+            <Label text="Smart Drives" class="label" textWrap="true" />
+        </StackLayout>
+
+        // Read Heart Rate
+        <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
+            <Image row="1" col="0" id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
+            <Label row="1" col="1" text="Read Heart Rate" class="label" textWrap="true" />
+        </StackLayout>
+
     </wol:WearOsLayout>
 </Page>

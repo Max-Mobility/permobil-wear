@@ -7,12 +7,15 @@ import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable, EventData } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
 import { action, alert } from 'tns-core-modules/ui/dialogs';
+import { ContentView } from 'tns-core-modules/ui/content-view';
 import { Page, topmost } from 'tns-core-modules/ui/frame';
 import { Image } from 'tns-core-modules/ui/image';
+import { ListView, ItemEventData } from 'tns-core-modules/ui/list-view';
 import { SmartDrive } from '../../core';
 // import { Bluetooth } from 'nativescript-bluetooth';
 import { Prop } from '../../obs-prop';
 import { BluetoothService } from '../../services';
+import { ObservableArray } from 'tns-core-modules/data/observable-array/observable-array';
 import { AnimationCurve } from 'tns-core-modules/ui/enums';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
@@ -81,6 +84,14 @@ export class HelloWorldModel extends Observable {
       device.language,
       device.uuid
     );
+  }
+
+  motionDetectedLoaded(args) {
+    this._motionDetectedLottie = args.object;
+  }
+
+  heartRateLoaded(args) {
+    this._heartRateLottie = args.object;
   }
 
   toggleAccelerometer() {
@@ -234,6 +245,10 @@ export class HelloWorldModel extends Observable {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
             appSettings.setNumber('heartrate', this.heartRate);
+            // this._heartRateLottie.playAnimation();
+            // setTimeout(() => {
+            //   // this._heartRateLottie.cancelAnimation();
+            // }, 600);
           }
         });
       }
@@ -241,7 +256,8 @@ export class HelloWorldModel extends Observable {
       // if already getting the HR, then turn off on this tap
       if (this.isGettingHeartRate === true) {
         this.isGettingHeartRate = false;
-        this._stopHeartAnimation();
+        this._heartRateLottie.autoPlay = false;
+        this._heartRateLottie.cancelAnimation();
         mSensorManager.unregisterListener(this._heartrateListener);
         return;
       }
@@ -280,6 +296,15 @@ export class HelloWorldModel extends Observable {
     }
   }
 
+  openHeartRateModal(args) {
+    try {
+      const modalPage = '../heart-rate/heart-rate';
+      args.object.page.showModal(modalPage, null, () => {}, true, true);
+    } catch (error) {
+      console.log({ error });
+    }
+  }
+
   private _animateHeartIcon() {
     const heartIcon = topmost().currentPage.getViewById('heartIcon') as Image;
 
@@ -302,10 +327,6 @@ export class HelloWorldModel extends Observable {
           curve: AnimationCurve.easeOut
         });
       });
-  }
-
-  private _stopHeartAnimation() {
-    console.log('stop heart animation');
   }
 
   private _trimAccelerometerData(value: number) {

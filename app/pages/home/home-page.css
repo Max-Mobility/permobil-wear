@@ -1,3 +1,21 @@
+.logo {
+  horizontal-alignment: center;
+  height: 50;
+  width: 100%;
+}
+
+.label {
+  vertical-align: middle;
+  padding: 2;
+}
+
+.icon {
+  height: 35;
+  margin: 5;
+}
+
+/* old styles */
+
 .font-small {
   font-size: 9;
   vertical-align: middle;
