@@ -5,19 +5,42 @@
 
     <wol:WearOsLayout height="100%" width="100%">
 
-        // Permobil Logo
-        <Image src="res://permobillogo" class="logo" stretch="aspectFit" />
+        <StackLayout>
+       // Permobil Logo
+            <Image src="res://permobillogo" class="logo" stretch="aspectFit" />
 
         // Scan for Smart Drives
-        <StackLayout orientation="horizontal" tap="{{ onScanForSmartDrivesTap }}">
-            <Image src="res://sdstock" class="icon" stretch="aspectFit" />
-            <Label text="Smart Drives" class="label" textWrap="true" />
-        </StackLayout>
+            <StackLayout orientation="horizontal" tap="{{ onScanForSmartDrivesTap }}">
+                <Image src="res://sdstock" class="icon" stretch="aspectFit" />
+                <Label text="Smart Drives" class="label" textWrap="true" />
+            </StackLayout>
 
         // Read Heart Rate
-        <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
-            <Image row="1" col="0" id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
-            <Label row="1" col="1" text="Read Heart Rate" class="label" textWrap="true" />
+            <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
+                <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
+                <Label text="Read Heart Rate" class="label" textWrap="true" />
+            </StackLayout>
+
+            <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
+                <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
+                <Label text="Read Heart Rate" class="label" textWrap="true" />
+            </StackLayout>
+
+            <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
+                <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
+                <Label text="Read Heart Rate" class="label" textWrap="true" />
+            </StackLayout>
+
+            <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
+                <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
+                <Label text="Read Heart Rate" class="label" textWrap="true" />
+            </StackLayout>
+
+            <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
+                <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
+                <Label text="Read Heart Rate" class="label" textWrap="true" />
+            </StackLayout>
+
         </StackLayout>
 
     </wol:WearOsLayout>
