@@ -1,3 +1,5 @@
+export * from './device-base';
 export * from './packet';
-export * from './pushtracker.model';
-export * from './smartdrive.model';
+export * from './pushtracker';
+export * from './smartdrive';
+export * from './utils';

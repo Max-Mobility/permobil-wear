@@ -233,7 +233,7 @@ export class HelloWorldModel extends Observable {
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
-            appSettings.setNumber('heartrate', this.heartRate);
+            appSettings.setNumber('heartrate', parseInt(this.heartRate, 10));
           }
         });
       }

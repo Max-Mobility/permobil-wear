@@ -1,4 +1,3 @@
-// /// <reference path="../../../typings/android27.d.ts" />
 import { Packet, PushTracker, SmartDrive } from '../core';
 import {
   Bluetooth,
@@ -6,8 +5,6 @@ import {
   Central,
   ConnectionState
 } from 'nativescript-bluetooth';
-// import { Feedback } from 'nativescript-feedback';
-// import { SnackBar } from 'nativescript-snackbar';
 import { ObservableArray } from 'tns-core-modules/data/observable-array';
 import { isAndroid, isIOS } from 'tns-core-modules/platform';
 import * as dialogsModule from 'tns-core-modules/ui/dialogs';
