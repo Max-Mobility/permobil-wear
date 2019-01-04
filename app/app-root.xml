@@ -1,2 +1,2 @@
-<Frame defaultPage="./pages/home/home-page">
+<Frame id="root-frame" defaultPage="./pages/home/home-page">
 </Frame>

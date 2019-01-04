@@ -12,6 +12,7 @@
   "scripts": {
     "start.android": "tns run android",
     "start.ios": "tns run ios",
+    "debug-on-wifi": "adb tcpip 5555 && adb connect 192.168.1.65",
     "build-bluetooth": "cd nativescript-bluetooth && npm i && tsc && rm -rf *.tgz && npm pack",
     "build-accelerometer": "cd nativescript-accelerometer && npm i && tsc && rm -rf *.tgz && npm pack",
     "build-complications": "cd nativescript-complications && npm i && tsc && rm -rf *.tgz && npm pack",

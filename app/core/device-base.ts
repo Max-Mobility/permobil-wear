@@ -1,5 +1,5 @@
 import { Observable } from 'tns-core-modules/data/observable';
-import { BluetoothService } from '~/services';
+import { BluetoothService } from './../services';
 import { Packet } from './packet';
 
 export class DeviceBase extends Observable {

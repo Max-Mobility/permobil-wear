@@ -1,9 +1,9 @@
 import * as timer from 'tns-core-modules/timer/timer';
-import { bindingTypeToString, Packet } from '.';
 import { BluetoothService } from '../services/bluetooth.service';
 import { DeviceBase } from './device-base';
 import { SD_OTA_State } from './enums';
 import { ISmartDriveEvents } from './interfaces';
+import { bindingTypeToString, Packet } from './packet';
 
 export class SmartDrive extends DeviceBase {
   // STATIC:

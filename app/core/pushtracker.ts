@@ -1,10 +1,10 @@
 import { isIOS } from 'tns-core-modules/platform/platform';
 import * as timer from 'tns-core-modules/timer/timer';
 import { BluetoothService } from '../services/bluetooth.service';
-import { bindingTypeToString, Packet } from './';
 import { DeviceBase } from './device-base';
 import { PT_OTA_State } from './enums';
 import { IPushTrackerEvents } from './interfaces';
+import { bindingTypeToString, Packet } from './packet';
 
 export class PushTracker extends DeviceBase {
   // STATIC:
