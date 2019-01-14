@@ -11,24 +11,24 @@
 
         // Scan for Smart Drives
             <StackLayout orientation="horizontal" tap="{{ onScanForSmartDrivesTap }}">
-                <Image src="res://sdstock" class="icon" stretch="aspectFit" />
-                <Label text="Smart Drives" class="label" textWrap="true" />
+                <Image src="res://sdstock" class="icon smartdrive" stretch="aspectFit" />
+                <Label text="Smartdrives" class="label" textWrap="true" />
             </StackLayout>
 
         // Read Heart Rate
             <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
                 <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
-                <Label text="Read Heart Rate" class="label" textWrap="true" />
+                <Label text="Check Heart Rate" class="label" textWrap="true" />
             </StackLayout>
 
-            <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
-                <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
-                <Label text="Read Heart Rate" class="label" textWrap="true" />
+            <StackLayout orientation="horizontal">
+                <Image src="res://settings" class="icon" stretch="aspectFit" />
+                <Label text="Settings" class="label" textWrap="true" />
             </StackLayout>
 
-            <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
-                <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
-                <Label text="Read Heart Rate" class="label" textWrap="true" />
+            <StackLayout orientation="horizontal">
+                <Image src="res://updates" class="icon" stretch="aspectFit" />
+                <Label text="Updates" class="label" textWrap="true" />
             </StackLayout>
 
 
