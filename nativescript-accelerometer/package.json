@@ -41,8 +41,10 @@
   },
   "homepage": "https://github.com/sktzoootech/native-script-accelerometer",
   "devDependencies": {
-    "tns-core-modules": "^4.2.0",
-    "tns-platform-declarations": "^4.2.0",
-    "typescript": "~2.8.2"
+    "mkdirp": "../node_modules/mkdirp",
+    "rimraf": "../node_modules/rimraf",
+    "tns-core-modules": "^5.1.1",
+    "tns-platform-declarations": "../node_modules/tns-platform-declarations",
+    "typescript": "../node_modules/typescript"
   }
 }
