@@ -15,10 +15,9 @@
     "debug-on-wifi": "adb tcpip 5555 && adb connect 192.168.1.65",
     "build-bluetooth": "cd nativescript-bluetooth && npm i && tsc && rm -rf *.tgz && npm pack",
     "build-accelerometer": "cd nativescript-accelerometer && npm i && tsc && rm -rf *.tgz && npm pack",
-    "build-complications": "cd nativescript-complications && npm i && tsc && rm -rf *.tgz && npm pack",
     "nuke": "rm -rf platforms hooks node_modules package-lock.json",
     "nuki": "npm run nuke && npm run setup",
-    "setup": "npm i && npm run build-bluetooth && npm run build-accelerometer && npm run build-complications"
+    "setup": "npm i && npm run build-bluetooth && npm run build-accelerometer"
   },
   "dependencies": {
     "buffer": "^5.2.0",
