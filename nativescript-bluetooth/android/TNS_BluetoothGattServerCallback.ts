@@ -1,12 +1,13 @@
 /// <reference path="../node_modules/tns-platform-declarations/android.d.ts" />
-/// <reference path="../typings/android27.d.ts" />
+/// <reference path="../node_modules/tns-platform-declarations/android/android-platform-25.d.ts" />
 
-import { Bluetooth, deviceToCentral, deviceToPeripheral } from './android_main';
 import { CLog, CLogTypes, ConnectionState } from '../common';
+import { Bluetooth, deviceToCentral } from './android_main';
 
 @JavaProxy('com.nativescript.TNS_BluetoothGattServerCallback')
 // tslint:disable-next-line:class-name
-export class TNS_BluetoothGattServerCallback extends android.bluetooth.BluetoothGattServerCallback {
+export class TNS_BluetoothGattServerCallback extends android.bluetooth
+  .BluetoothGattServerCallback {
   private _owner: WeakRef<Bluetooth>;
   constructor() {
     super();
@@ -15,7 +16,12 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
 
   onInit(owner: WeakRef<Bluetooth>) {
     this._owner = owner;
-    CLog(CLogTypes.info, `---- TNS_BluetoothGattServerCallback.onInit ---- this._owner: ${this._owner}`);
+    CLog(
+      CLogTypes.info,
+      `---- TNS_BluetoothGattServerCallback.onInit ---- this._owner: ${
+        this._owner
+      }`
+    );
   }
 
   /**
@@ -46,7 +52,9 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
     if (this._owner.get().gattServer) {
       const respData = Array.create('byte', 1);
       respData[0] = 0x01;
-      this._owner.get().gattServer.sendResponse(device, requestId, 0, offset, respData);
+      this._owner
+        .get()
+        .gattServer.sendResponse(device, requestId, 0, offset, respData);
     }
   }
 
@@ -86,7 +94,9 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
     if (this._owner.get().gattServer) {
       const respData = Array.create('byte', 1);
       respData[0] = 0x01;
-      this._owner.get().gattServer.sendResponse(device, requestId, 0, offset, respData);
+      this._owner
+        .get()
+        .gattServer.sendResponse(device, requestId, 0, offset, respData);
     }
   }
 
@@ -96,7 +106,11 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
    * @param status - Status of the connect or disconnect operation.
    * @param newState - Returns the new connection state. Can be one of STATE_DISCONNECTED or STATE_CONNECTED
    */
-  onConnectionStateChange(device: android.bluetooth.BluetoothDevice, status: number, newState: number) {
+  onConnectionStateChange(
+    device: android.bluetooth.BluetoothDevice,
+    status: number,
+    newState: number
+  ) {
     CLog(
       CLogTypes.info,
       `---- TNS_BluetoothGattServerCallback.onConnectionStateChange ---- device: ${device}, status: ${status}, newState: ${newState}`
@@ -108,10 +122,12 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
         ? ConnectionState.connected
         : ConnectionState.disconnected;
 
-    this._owner.get().sendEvent(Bluetooth.server_connection_state_changed_event, {
-      device: deviceToCentral(device),
-      connection_state
-    });
+    this._owner
+      .get()
+      .sendEvent(Bluetooth.server_connection_state_changed_event, {
+        device: deviceToCentral(device),
+        connection_state
+      });
   }
 
   /**
@@ -122,7 +138,12 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
    * @param offset - Offset into the value of the characteristic
    * @param descriptor - Descriptor to be read
    */
-  onDescriptorReadRequest(device: android.bluetooth.BluetoothDevice, requestId: number, offset: number, descriptor) {
+  onDescriptorReadRequest(
+    device: android.bluetooth.BluetoothDevice,
+    requestId: number,
+    offset: number,
+    descriptor
+  ) {
     CLog(
       CLogTypes.info,
       `---- TNS_BluetoothGattServerCallback.onDescriptorReadRequest ---- device: ${device}, requestId: ${requestId}, offset: ${offset}, descriptor: ${descriptor}`
@@ -139,7 +160,9 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
     if (this._owner.get().gattServer) {
       const respData = Array.create('byte', 1);
       respData[0] = 0x01;
-      this._owner.get().gattServer.sendResponse(device, requestId, 0, offset, respData);
+      this._owner
+        .get()
+        .gattServer.sendResponse(device, requestId, 0, offset, respData);
     }
   }
 
@@ -154,7 +177,15 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
    * @param offset - The offset given for the value
    * @param value - The value the client wants to assign to the descriptor
    */
-  onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded, offset, value) {
+  onDescriptorWriteRequest(
+    device,
+    requestId,
+    descriptor,
+    preparedWrite,
+    responseNeeded,
+    offset,
+    value
+  ) {
     CLog(
       CLogTypes.info,
       `---- TNS_BluetoothGattServerCallback.onDescriptorWriteRequest ---- device: ${device}, requestId: ${requestId}, descriptor: ${descriptor}`
@@ -172,7 +203,9 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
     if (this._owner.get().gattServer) {
       const respData = Array.create('byte', 1);
       respData[0] = 0x01;
-      this._owner.get().gattServer.sendResponse(device, requestId, 0, offset, respData);
+      this._owner
+        .get()
+        .gattServer.sendResponse(device, requestId, 0, offset, respData);
     }
   }
 
@@ -183,7 +216,11 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
    * @param requestId - The Id of the request
    * @param execute - Whether the pending writes should be executed (true) or cancelled (false)
    */
-  onExecuteWrite(device: android.bluetooth.BluetoothDevice, requestId: number, execute: boolean) {
+  onExecuteWrite(
+    device: android.bluetooth.BluetoothDevice,
+    requestId: number,
+    execute: boolean
+  ) {
     CLog(
       CLogTypes.info,
       `---- TNS_BluetoothGattServerCallback.onExecuteWrite ---- device: ${device}, requestId: ${requestId}, execute: ${execute}`
@@ -198,7 +235,9 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
     if (this._owner.get().gattServer) {
       const respData = Array.create('byte', 1);
       respData[0] = 0x01;
-      this._owner.get().gattServer.sendResponse(device, requestId, 0, 0, respData);
+      this._owner
+        .get()
+        .gattServer.sendResponse(device, requestId, 0, 0, respData);
     }
   }
 
@@ -209,7 +248,10 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
    * @param device - The remote device the notification has been sent to
    * @param status [number] - Returns GATT_SUCCESS if the operation was successful.
    */
-  onNotificationSent(device: android.bluetooth.BluetoothDevice, status: number) {
+  onNotificationSent(
+    device: android.bluetooth.BluetoothDevice,
+    status: number
+  ) {
     CLog(
       CLogTypes.info,
       `---- TNS_BluetoothGattServerCallback.onNotificationSent ---- device: ${device}, status: ${status}`
@@ -226,7 +268,10 @@ export class TNS_BluetoothGattServerCallback extends android.bluetooth.Bluetooth
    * @param status [number] - Returns GATT_SUCCESS if the service was added successfully.
    * @param service [android.bluetooth.BluetoothGattService] - The service that has been added.
    */
-  onServiceAdded(status: number, service: android.bluetooth.BluetoothGattService) {
+  onServiceAdded(
+    status: number,
+    service: android.bluetooth.BluetoothGattService
+  ) {
     CLog(
       CLogTypes.info,
       `---- TNS_BluetoothGattServerCallback.onServiceAdded ---- status: ${status}, service: ${service}`
