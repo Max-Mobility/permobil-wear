@@ -1,4 +1,3 @@
-import { Packet, PushTracker, SmartDrive } from '../core';
 import {
   Bluetooth,
   BondState,
@@ -8,6 +7,8 @@ import {
 import { ObservableArray } from 'tns-core-modules/data/observable-array';
 import { isAndroid, isIOS } from 'tns-core-modules/platform';
 import * as dialogsModule from 'tns-core-modules/ui/dialogs';
+import { Packet, PushTracker, SmartDrive } from '../core';
+import { Observable } from 'tns-core-modules/data/observable';
 
 export class BluetoothService {
   // static members
@@ -16,19 +17,21 @@ export class BluetoothService {
   public static SmartDrives = new ObservableArray<SmartDrive>();
 
   // public members
-  public enabled = false;
-  public initialized = false;
+  public enabled: boolean;
+  public initialized: boolean;
 
   // private members
-  private _bluetooth = new Bluetooth();
+  private _bluetooth: Bluetooth;
   private PushTrackerDataCharacteristic: any = null;
   private AppService: any = null;
-  // private snackbar = new SnackBar();
-  // private feedback = new Feedback();
 
   constructor() {
+    this.enabled = false;
+    this.initialized = false;
+    this._bluetooth = new Bluetooth();
     // enabling `debug` will output console.logs from the bluetooth source code
     this._bluetooth.debug = false;
+
     this.advertise().catch(err => {
       const msg = `bluetooth.service::advertise error: ${err}`;
       dialogsModule
@@ -236,20 +239,20 @@ export class BluetoothService {
     //   });
   }
 
-  public scanForAny(timeout: number = 4): Promise<any> {
-    return this.scan([], timeout);
-  }
-
-  public scanForSmartDrive(timeout: number = 4): Promise<any> {
-    this.clearSmartDrives();
-    return this.scan([SmartDrive.ServiceUUID], timeout);
-  }
-
-  // returns a promise that resolves when scanning completes
-  public scan(uuids: string[], timeout: number = 4): Promise<any> {
-    return this._bluetooth.startScanning({
-      serviceUUIDs: uuids,
-      seconds: timeout
+  public scanForSmartDrives(timeout: number = 4) {
+    return new Promise((resolve, reject) => {
+      this.clearSmartDrives();
+      this._bluetooth
+        .startScanning({
+          serviceUUIDs: [SmartDrive.ServiceUUID],
+          seconds: timeout
+        })
+        .then(result => {
+          resolve(result);
+        })
+        .catch(error => {
+          reject(error);
+        });
     });
   }
 
@@ -659,12 +662,16 @@ export class BluetoothService {
     let sd = BluetoothService.SmartDrives.filter(
       (x: SmartDrive) => x.address === device.address
     )[0];
-    // console.log(`Found SD: ${sd}`);
+    console.log(`Found SD: ${sd}`);
     if (sd === null || sd === undefined) {
       sd = new SmartDrive(this, { address: device.address });
+      console.log(
+        'pushing new SmartDrive to the service array of smartdrives',
+        sd
+      );
       BluetoothService.SmartDrives.push(sd);
     }
-    // console.log(`Found or made SD: ${sd}`);
+    console.log(`Found or made SD: ${sd}`);
     if (device.device) {
       sd.device = device.device;
     }

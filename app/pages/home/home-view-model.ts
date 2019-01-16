@@ -1,19 +1,19 @@
 import * as accelerometer from 'nativescript-accelerometer-advanced';
+import { Bluetooth } from 'nativescript-bluetooth';
 import { LottieView } from 'nativescript-lottie';
 import * as permissions from 'nativescript-permissions';
-import * as Toast from 'nativescript-toast';
+import { Toasty, ToastPosition } from 'nativescript-toasty';
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
-import { Observable, EventData } from 'tns-core-modules/data/observable';
+import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
-import { action, alert } from 'tns-core-modules/ui/dialogs';
+import { alert, action } from 'tns-core-modules/ui/dialogs';
+import { AnimationCurve } from 'tns-core-modules/ui/enums';
 import { Page, topmost } from 'tns-core-modules/ui/frame';
 import { Image } from 'tns-core-modules/ui/image';
 import { SmartDrive } from '../../core';
-// import { Bluetooth } from 'nativescript-bluetooth';
 import { Prop } from '../../obs-prop';
 import { BluetoothService } from '../../services';
-import { AnimationCurve } from 'tns-core-modules/ui/enums';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -68,7 +68,13 @@ export class HelloWorldModel extends Observable {
   constructor(page: Page) {
     super();
     this._page = page;
-    // this._bluetoothService = new BluetoothService();
+
+    // create new instance of the bluetooth service if its null/undefined
+    if (!this._bluetoothService) {
+      this._bluetoothService = new BluetoothService();
+      this._bluetoothService.initialize();
+    }
+
     console.log(
       { device },
       'Device Info: ',
@@ -153,21 +159,34 @@ export class HelloWorldModel extends Observable {
     appSettings.setNumber('sd.battery', this._smartDrive.battery);
   }
 
-  async onScanForSmartDrivesTap() {
+  onScanForSmartDrivesTap() {
     console.log('onScanForSmartDrivesTap()');
-    return this._bluetoothService
-      .scanForSmartDrive()
+
+    // scan for smartdrives
+    this._bluetoothService
+      .scanForSmartDrives()
       .then(() => {
+        console.log(BluetoothService.SmartDrives);
+        // these are the smartdrives that are pushed into an array on the bluetooth service
         const sds = BluetoothService.SmartDrives;
-        const addresses = sds.map(sd => sd.address);
+
+        // map the smart drives to get all of the addresses
+        const addresses = sds.map(sd => `SmartDrive: ${sd.address}`);
+
+        // present action dialog to select which smartdrive to connect to
         action({
+          title: '',
           message: `Found ${sds && sds.length} SmartDrives!.`,
           actions: addresses,
           cancelButtonText: 'Dismiss'
         }).then(result => {
           console.log('result', result);
+
+          // if user selected one of the smartdrives in the action dialog, attempt to connect to it
           if (addresses.indexOf(result) > -1) {
             this._smartDrive = sds.filter(sd => sd.address === result)[0];
+
+            // set the event listeners for mcu_version_event and smartdrive_distance_event
             this._smartDrive.on(
               SmartDrive.smartdrive_mcu_version_event,
               this.onSmartDriveVersion,
@@ -178,9 +197,13 @@ export class HelloWorldModel extends Observable {
               this.onDistance,
               this
             );
+
+            // now connect to smart drive
             this._smartDrive.connect();
             this.connected = true;
-            Toast.makeText('Connecting to ' + result).show();
+            new Toasty(`Connecting to ${result}`)
+              .setToastPosition(ToastPosition.CENTER)
+              .show();
           }
         });
       })
@@ -203,7 +226,9 @@ export class HelloWorldModel extends Observable {
       );
       this._smartDrive.disconnect().then(() => {
         this.connected = false;
-        Toast.makeText('Disconnected from ' + this._smartDrive.address).show();
+        new Toasty(`Disconnected from ${this._smartDrive.address}`)
+          .setToastPosition(ToastPosition.CENTER)
+          .show();
       });
     }
   }
