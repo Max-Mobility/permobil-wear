@@ -32,7 +32,7 @@
     "nativescript-theme-core": "~1.0.4",
     "nativescript-toasty": "^1.2.0",
     "nativescript-ui-chart": "^3.11.1",
-    "nativescript-wear-os": "^0.1.0",
+    "nativescript-wear-os": "^0.1.1",
     "tns-core-modules": "^5.1.2"
   },
   "devDependencies": {
