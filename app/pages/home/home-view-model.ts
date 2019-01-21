@@ -21,6 +21,7 @@ import {
 import { Prop } from '../../core/obs-prop';
 import { BluetoothService } from '../../services';
 import { injector } from '../../app';
+import { DataKeys } from '~/core/enums';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -156,16 +157,47 @@ export class HelloWorldModel extends Observable {
   }
 
   async onDistance(args: any) {
+    console.log('onDistance event');
+
     // save the updated distance
-    appSettings.setNumber('sd.distance.case', this._smartDrive.coastDistance);
-    appSettings.setNumber('sd.distance.drive', this._smartDrive.driveDistance);
+    appSettings.setNumber(
+      DataKeys.SD_DISTANCE_CASE,
+      this._smartDrive.coastDistance
+    );
+    appSettings.setNumber(
+      DataKeys.SD_DISTANCE_DRIVE,
+      this._smartDrive.driveDistance
+    );
+
+    logBreadCrumb(
+      `Updated SD: ${this._smartDrive.address} -- SD_DISTANCE_CASE: ${
+        this._smartDrive.coastDistance
+      }, SD_DISTANCE_DRIVE: ${this._smartDrive.driveDistance}`
+    );
   }
 
   async onSmartDriveVersion(args: any) {
-    // save the updated battery
-    appSettings.setNumber('sd.version.mcu', this._smartDrive.mcu_version);
-    appSettings.setNumber('sd.version.ble', this._smartDrive.ble_version);
-    appSettings.setNumber('sd.battery', this._smartDrive.battery);
+    console.log('onSmartDriveVersion event');
+
+    // save the updated SmartDrive data values
+    appSettings.setNumber(
+      DataKeys.SD_VERSION_MCU,
+      this._smartDrive.mcu_version
+    );
+    appSettings.setNumber(
+      DataKeys.SD_VERSION_BLE,
+      this._smartDrive.ble_version
+    );
+    appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
+
+    // log breadcrumb
+    logBreadCrumb(
+      `Updated SD: ${this._smartDrive.address} -- MCU: ${
+        this._smartDrive.mcu_version
+      }, BLE: ${this._smartDrive.ble_version}, Battery: ${
+        this._smartDrive.battery
+      }`
+    );
   }
 
   onScanForSmartDrivesTap() {
@@ -197,7 +229,7 @@ export class HelloWorldModel extends Observable {
         const sds = BluetoothService.SmartDrives;
 
         // map the smart drives to get all of the addresses
-        const addresses = sds.map(sd => `SmartDrive: ${sd.address}`);
+        const addresses = sds.map(sd => `${sd.address}`);
 
         // present action dialog to select which smartdrive to connect to
         action({
@@ -211,6 +243,8 @@ export class HelloWorldModel extends Observable {
           // if user selected one of the smartdrives in the action dialog, attempt to connect to it
           if (addresses.indexOf(result) > -1) {
             this._smartDrive = sds.filter(sd => sd.address === result)[0];
+
+            console.log('smartdrive', this._smartDrive);
 
             // set the event listeners for mcu_version_event and smartdrive_distance_event
             this._smartDrive.on(
@@ -285,11 +319,18 @@ export class HelloWorldModel extends Observable {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
             this.heartRateLabelText = `HR: ${this.heartRate}`;
+
+            // log the recorded heart rate as a breadcrumb
             logBreadCrumb(
               `testing breadcrumb, heartRate: ${this.heartRate}`,
               LoggingCategory.Info
             );
-            appSettings.setNumber('heartrate', parseInt(this.heartRate, 10));
+
+            // save the heart rate
+            appSettings.setNumber(
+              DataKeys.HEART_RATE,
+              parseInt(this.heartRate, 10)
+            );
           }
         });
       }
