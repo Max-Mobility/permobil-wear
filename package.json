@@ -29,10 +29,12 @@
     "nativescript-gif": "^4.0.1",
     "nativescript-lottie": "^2.1.1",
     "nativescript-permissions": "^1.2.3",
+    "nativescript-sentry": "^1.7.0",
     "nativescript-theme-core": "~1.0.4",
     "nativescript-toasty": "^1.2.0",
     "nativescript-ui-chart": "^3.11.1",
     "nativescript-wear-os": "^0.1.1",
+    "smart-eval-kinvey": "git+https://github.com/autochair/SmartEvalKinvey.git#master",
     "tns-core-modules": "^5.1.2"
   },
   "devDependencies": {
@@ -44,7 +46,7 @@
     "prettier": "^1.15.3",
     "prompt": "^1.0.0",
     "rimraf": "^2.6.3",
-    "tns-platform-declarations": "^5.1.1",
+    "tns-platform-declarations": "^5.1.2",
     "tslint": "~5.12.0",
     "typescript": "~2.8.2"
   },
