@@ -20,6 +20,7 @@ import {
 } from '../../core';
 import { Prop } from '../../core/obs-prop';
 import { BluetoothService } from '../../services';
+import { injector } from '../../app';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
 
@@ -74,17 +75,16 @@ export class HelloWorldModel extends Observable {
   private _smartDrive: SmartDrive;
   private _motionDetectedLottie: LottieView;
   private _heartRateLottie: LottieView;
-  private _bluetoothService: BluetoothService;
+  // private _bluetoothService: BluetoothService;
 
-  constructor(page: Page) {
+  constructor(
+    page: Page,
+    private _bluetoothService: BluetoothService = injector.get(BluetoothService)
+  ) {
     super();
     this._page = page;
 
-    // create new instance of the bluetooth service if its null/undefined
-    if (!this._bluetoothService) {
-      this._bluetoothService = new BluetoothService();
-      this._bluetoothService.initialize();
-    }
+    console.log('home-view-model', '_bluetoothService', this._bluetoothService);
 
     console.log(
       { device },
