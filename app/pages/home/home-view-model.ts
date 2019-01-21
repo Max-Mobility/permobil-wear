@@ -84,8 +84,6 @@ export class HelloWorldModel extends Observable {
     super();
     this._page = page;
 
-    console.log('home-view-model', '_bluetoothService', this._bluetoothService);
-
     console.log(
       { device },
       'Device Info: ',
