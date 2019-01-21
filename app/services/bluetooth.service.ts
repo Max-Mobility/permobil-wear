@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+import { Injectable } from 'injection-js';
 import {
   Bluetooth,
   BondState,
@@ -10,6 +12,7 @@ import * as dialogsModule from 'tns-core-modules/ui/dialogs';
 import { Packet, PushTracker, SmartDrive } from '../core';
 import { Observable } from 'tns-core-modules/data/observable';
 
+@Injectable()
 export class BluetoothService {
   // static members
   public static AppServiceUUID = '9358ac8f-6343-4a31-b4e0-4b13a2b45d86';
