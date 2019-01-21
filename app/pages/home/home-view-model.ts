@@ -2,17 +2,23 @@ import * as accelerometer from 'nativescript-accelerometer-advanced';
 import { Bluetooth } from 'nativescript-bluetooth';
 import { LottieView } from 'nativescript-lottie';
 import * as permissions from 'nativescript-permissions';
-import { Toasty, ToastPosition } from 'nativescript-toasty';
+import { Toasty, ToastPosition, ToastDuration } from 'nativescript-toasty';
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
+import * as frameModule from 'tns-core-modules/ui/frame';
 import { alert, action } from 'tns-core-modules/ui/dialogs';
 import { AnimationCurve } from 'tns-core-modules/ui/enums';
 import { Page, topmost } from 'tns-core-modules/ui/frame';
 import { Image } from 'tns-core-modules/ui/image';
-import { SmartDrive } from '../../core';
-import { Prop } from '../../obs-prop';
+import {
+  SmartDrive,
+  logMessage,
+  logBreadCrumb,
+  LoggingCategory
+} from '../../core';
+import { Prop } from '../../core/obs-prop';
 import { BluetoothService } from '../../services';
 
 const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
@@ -47,6 +53,11 @@ export class HelloWorldModel extends Observable {
    */
   @Prop()
   public isGettingHeartRate = false;
+
+  /**
+   * String value for the label text for starting/stopping heart rate sensor.
+   */
+  @Prop() public heartRateLabelText = 'Check Heart Rate';
 
   /**
    * Boolean to handle logic if we have connected to a SD unit.
@@ -162,11 +173,28 @@ export class HelloWorldModel extends Observable {
   onScanForSmartDrivesTap() {
     console.log('onScanForSmartDrivesTap()');
 
+    new Toasty(
+      'Scanning for SmartDrives...',
+      ToastDuration.LONG,
+      ToastPosition.CENTER
+    ).show();
+
     // scan for smartdrives
     this._bluetoothService
-      .scanForSmartDrives()
+      .scanForSmartDrives(3)
       .then(() => {
-        console.log(BluetoothService.SmartDrives);
+        console.log('Discovered SmartDrives: ' + BluetoothService.SmartDrives);
+
+        // make sure we have smartdrives
+        if (BluetoothService.SmartDrives.length <= 0) {
+          new Toasty(
+            'No SmartDrives found nearby.',
+            ToastDuration.SHORT,
+            ToastPosition.CENTER
+          ).show();
+          return;
+        }
+
         // these are the smartdrives that are pushed into an array on the bluetooth service
         const sds = BluetoothService.SmartDrives;
 
@@ -207,8 +235,8 @@ export class HelloWorldModel extends Observable {
           }
         });
       })
-      .catch(err => {
-        console.log('could not scan', err);
+      .catch(error => {
+        console.log('could not scan', error);
       });
   }
 
@@ -258,6 +286,11 @@ export class HelloWorldModel extends Observable {
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
+            this.heartRateLabelText = `HR: ${this.heartRate}`;
+            logBreadCrumb(
+              `testing breadcrumb, heartRate: ${this.heartRate}`,
+              LoggingCategory.Info
+            );
             appSettings.setNumber('heartrate', parseInt(this.heartRate, 10));
           }
         });
@@ -266,6 +299,7 @@ export class HelloWorldModel extends Observable {
       // if already getting the HR, then turn off on this tap
       if (this.isGettingHeartRate === true) {
         this.isGettingHeartRate = false;
+        this.heartRateLabelText = 'Check Heart Rate';
         this._stopHeartAnimation();
         mSensorManager.unregisterListener(this._heartrateListener);
         return;
@@ -292,6 +326,7 @@ export class HelloWorldModel extends Observable {
 
       if (didRegListener) {
         this.isGettingHeartRate = true;
+        this.heartRateLabelText = 'Reading Heart Rate';
         this._heartRateLottie.autoPlay = true;
         this._heartRateLottie.playAnimation();
         this._animateHeartIcon();
@@ -302,6 +337,17 @@ export class HelloWorldModel extends Observable {
       }
     } catch (error) {
       console.log({ error });
+    }
+  }
+
+  onSettingsTap() {
+    try {
+      console.log('onSettingsTap');
+      // create a new Frame instance
+      const frame = new frameModule.Frame();
+      frame.navigate('./heart-rate/heart-rate');
+    } catch (error) {
+      console.log(error);
     }
   }
 
