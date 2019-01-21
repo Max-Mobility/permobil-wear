@@ -3,6 +3,9 @@ import * as application from 'tns-core-modules/application';
 import { Kinvey } from 'kinvey-nativescript-sdk';
 import { Sentry } from 'nativescript-sentry';
 import { APP_KEY, APP_SECRET } from './core/kinvey-keys';
+import { ReflectiveInjector } from 'injection-js';
+import { SERVICES } from './services';
+import { logError } from './core';
 
 // initialize Kinvey
 Kinvey.init({ appKey: `${APP_KEY}`, appSecret: `${APP_SECRET}` });
@@ -13,9 +16,15 @@ Sentry.init(
 );
 
 // setup injection-js for dependency injection of services
-import { ReflectiveInjector } from 'injection-js';
-import { SERVICES } from './services';
 export const injector = ReflectiveInjector.resolveAndCreate([...SERVICES]);
+
+// setup application level events
+application.on(
+  application.uncaughtErrorEvent,
+  (args: application.UnhandledErrorEventData) => {
+    logError(args.error);
+  }
+);
 
 // start the app
 application.run({ moduleName: 'app-root' });
