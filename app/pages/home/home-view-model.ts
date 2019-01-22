@@ -7,7 +7,7 @@ import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
-import * as frameModule from 'tns-core-modules/ui/frame';
+import { SwipeDismissLayout, WearOsLayout } from 'nativescript-wear-os';
 import { alert, action } from 'tns-core-modules/ui/dialogs';
 import { AnimationCurve } from 'tns-core-modules/ui/enums';
 import { Page, topmost } from 'tns-core-modules/ui/frame';
@@ -16,7 +16,9 @@ import {
   SmartDrive,
   logMessage,
   logBreadCrumb,
-  LoggingCategory
+  LoggingCategory,
+  hideOffScreenLayout,
+  showOffScreenLayout
 } from '../../core';
 import { Prop } from '../../core/obs-prop';
 import { BluetoothService } from '../../services';
@@ -76,6 +78,9 @@ export class HelloWorldModel extends Observable {
   private _smartDrive: SmartDrive;
   private _motionDetectedLottie: LottieView;
   private _heartRateLottie: LottieView;
+
+  private _settingsLayout: SwipeDismissLayout;
+  private _mainviewLayout: WearOsLayout;
   // private _bluetoothService: BluetoothService;
 
   constructor(
@@ -379,15 +384,22 @@ export class HelloWorldModel extends Observable {
     }
   }
 
+  onMainLayoutLoaded(args) {
+    this._mainviewLayout = args.object as WearOsLayout;
+  }
+
+  onSettingsLayoutLoaded(args) {
+    this._settingsLayout = args.object as SwipeDismissLayout;
+
+    this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
+      console.log('dimissedEvent', args.object);
+      // hide the offscreen layout when dismissed
+      hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
+    });
+  }
+
   onSettingsTap() {
-    try {
-      console.log('onSettingsTap');
-      // create a new Frame instance
-      const frame = new frameModule.Frame();
-      frame.navigate('./heart-rate/heart-rate');
-    } catch (error) {
-      console.log(error);
-    }
+    showOffScreenLayout(this._settingsLayout);
   }
 
   private _animateHeartIcon() {

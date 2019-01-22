@@ -1,38 +1,58 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" 
     xmlns:Lottie="nativescript-lottie" 
     xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
-    xmlns:lv="nativescript-wear-os/packages/listview" navigatingTo="navigatingTo" actionBarHidden="true">
+    xmlns:lv="nativescript-wear-os/packages/listview" 
+    xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" navigatingTo="navigatingTo" actionBarHidden="true">
 
-    <wol:WearOsLayout height="100%" width="100%">
+    <GridLayout rows="*" columns="*">
 
-        <StackLayout>
-       // Permobil Logo
-            <Image src="res://permobillogo" class="logo" stretch="aspectFit" />
+        // Main Home Page Layout
+        <wol:WearOsLayout loaded="{{ onMainLayoutLoaded }}" height="100%" width="100%" row="0" col="0">
 
-        // Scan for Smart Drives
-            <StackLayout orientation="horizontal" tap="{{ onScanForSmartDrivesTap }}">
-                <Image src="res://sdstock" class="icon smartdrive" stretch="aspectFit" />
-                <Label text="Smartdrives" class="label" textWrap="true" />
+            <StackLayout row="0" col="0">
+                // Permobil Logo
+                <Image src="res://permobillogo" class="logo" stretch="aspectFit" />
+
+                // Scan for Smart Drives
+                <StackLayout orientation="horizontal" tap="{{ onScanForSmartDrivesTap }}">
+                    <Image src="res://sdstock" class="icon smartdrive" stretch="aspectFit" />
+                    <Label text="Smartdrives" class="label" textWrap="true" />
+                </StackLayout>
+
+                // Read Heart Rate
+                <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
+                    <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
+                    <Label text="{{ heartRateLabelText }}" class="label" textWrap="true" />
+                </StackLayout>
+
+                <StackLayout orientation="horizontal" tap="{{ onSettingsTap }}">
+                    <Image src="res://settings" class="icon" stretch="aspectFit" />
+                    <Label text="Settings" class="label" textWrap="true" />
+                </StackLayout>
+
+                <StackLayout orientation="horizontal">
+                    <Image src="res://updates" class="icon" stretch="aspectFit" />
+                    <Label text="Updates" class="label" textWrap="true" />
+                </StackLayout>
+
             </StackLayout>
 
-        // Read Heart Rate
-            <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
-                <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />
-                <Label text="{{ heartRateLabelText }}" class="label" textWrap="true" />
-            </StackLayout>
+        </wol:WearOsLayout>
 
-            <StackLayout orientation="horizontal" tap="{{ onSettingsTap }}">
-                <Image src="res://settings" class="icon" stretch="aspectFit" />
-                <Label text="Settings" class="label" textWrap="true" />
-            </StackLayout>
+        // Settings Layout "Page"
+        <sdl:SwipeDismissLayout row="0" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" row="0" col="0">
+            <wol:WearOsLayout>
+                <Label text="Swipe to close." color="yellow" fontSize="25" textWrap="true" />
+            </wol:WearOsLayout>
+        </sdl:SwipeDismissLayout>
 
-            <StackLayout orientation="horizontal">
-                <Image src="res://updates" class="icon" stretch="aspectFit" />
-                <Label text="Updates" class="label" textWrap="true" />
-            </StackLayout>
+        // Settings Layout "Page"
+        <sdl:SwipeDismissLayout row="0" col="0" loaded="{{ onUpdateLayoutLoaded }}" class="page" translateX="850" row="0" col="0">
+            <wol:WearOsLayout>
+                <Label text="Swipe to close." color="yellow" fontSize="25" textWrap="true" />
+            </wol:WearOsLayout>
+        </sdl:SwipeDismissLayout>
 
+    </GridLayout>
 
-        </StackLayout>
-
-    </wol:WearOsLayout>
 </Page>
