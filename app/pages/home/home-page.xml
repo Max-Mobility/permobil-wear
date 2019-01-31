@@ -19,6 +19,12 @@
                     <Label text="Smartdrives" class="label" textWrap="true" />
                 </StackLayout>
 
+                // Toggle SmartDrive Control
+                <StackLayout orientation="horizontal" tap="{{ toggleAccelerometer }}" visibility="visible">
+                    <Image src="res://sdstock" class="icon smartdrive" stretch="aspectFit" />
+                    <Label text="{{ powerAssistButtonText }}" class="label" textWrap="true" />
+                </StackLayout>
+
                 // Read Heart Rate
                 <StackLayout orientation="horizontal" tap="{{ startHeartRate }}">
                     <Image id="heartIcon" src="res://favorite" class="icon" stretch="aspectFit" />

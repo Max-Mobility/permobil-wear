@@ -25,7 +25,7 @@ import { BluetoothService } from '../../services';
 import { injector } from '../../app';
 import { DataKeys } from '~/core/enums';
 
-const THRESHOLD = 0.5; // change this threshold as you want, higher is more spike movement
+const THRESHOLD = 0.9; // change this threshold as you want, higher is more spike movement
 
 export class HelloWorldModel extends Observable {
   /**
@@ -35,16 +35,16 @@ export class HelloWorldModel extends Observable {
   heartRate: string;
 
   /**
-   * The label text to display accelerometer data.
-   */
-  @Prop()
-  accelerometerData: string;
-
-  /**
    * Button text for starting/stopping accelerometer.
    */
   @Prop()
-  accelerometerBtnText = 'Accelerometer';
+  powerAssistButtonText = 'Power Assist OFF';
+
+  /**
+   * Visibility Control
+   */
+  @Prop()
+  powerAssistVisibility = 'collapsed';
 
   /**
    * Boolean to toggle when motion event detected to show animation in UI.
@@ -67,7 +67,10 @@ export class HelloWorldModel extends Observable {
    * Boolean to handle logic if we have connected to a SD unit.
    */
   @Prop()
-  public connected = false;
+	public connected = false;
+
+	@Prop()
+	public motorOn = false;
 
   /**
    * Boolean to track if accelerometer is already registered listener events.
@@ -105,12 +108,18 @@ export class HelloWorldModel extends Observable {
   }
 
   toggleAccelerometer() {
+	  console.log('toggleAccelerometer');
     // if already listening stop and reset isListening boolean
     if (this._isListeningAccelerometer === true) {
+        if (this._smartDrive && this._smartDrive.ableToSend) {
+            console.log('Sending tap!');
+            this._smartDrive
+                .stopMotor()
+                .catch(err => console.log('could not stop motor', err));
+        }
       accelerometer.stopAccelerometerUpdates();
       this._isListeningAccelerometer = false;
-      this.accelerometerBtnText = 'Accelerometer';
-      this.accelerometerData = '';
+      this.powerAssistButtonText = 'Power Assist OFF';
       return;
     }
 
@@ -122,43 +131,46 @@ export class HelloWorldModel extends Observable {
           android.hardware.Sensor.TYPE_LINEAR_ACCELERATION
         ) {
           // console.log({ accelerometerdata });
-          const x = this._trimAccelerometerData(accelerometerdata.x);
-          const y = this._trimAccelerometerData(accelerometerdata.y);
-          const z = this._trimAccelerometerData(accelerometerdata.z);
+          const z = accelerometerdata.z;
 
-          let diff = Math.sqrt(
-            accelerometerdata.x * accelerometerdata.x +
-              accelerometerdata.y * accelerometerdata.y +
-              accelerometerdata.z * accelerometerdata.z
-          );
-          diff = Math.abs(accelerometerdata.z);
+			let diff = z;
+			if (this.motorOn) {
+				diff = Math.abs(z);
+			}
 
-          if (diff > THRESHOLD) {
+          if (diff > THRESHOLD && !this.motionDetected) {
+            console.log('Motion detected!', { diff });
             if (this._smartDrive && this._smartDrive.ableToSend) {
               console.log('Sending tap!');
               this._smartDrive
                 .sendTap()
                 .catch(err => console.log('could not send tap', err));
             }
+			  /*
             this.accelerometerData = `Motion detected ${diff
               .toString()
               .substring(0, 8)}`;
-            console.log('Motion detected!', { diff });
-            this.motionDetected = true;
             this._motionDetectedLottie.playAnimation();
+			  */
+            this.motionDetected = true;
             setTimeout(() => {
               this.motionDetected = false;
-              this._motionDetectedLottie.cancelAnimation();
-            }, 600);
+				//this._motionDetectedLottie.cancelAnimation();
+            }, 300);
           }
         }
       },
       { sensorDelay: 'game' }
     );
 
-    // set true so next tap doesn't try to register the listeners again
-    this._isListeningAccelerometer = true;
-    this.accelerometerBtnText = 'Stop Accelerometer';
+      // set true so next tap doesn't try to register the listeners again
+	  this._isListeningAccelerometer = true;
+      this.powerAssistButtonText = 'Power Assist ON';
+  }
+
+  async onMotorInfo(args: any) {
+      console.log('onMotorInfo event');
+	  this.motorOn = this._smartDrive.driving;
   }
 
   async onDistance(args: any) {
@@ -262,10 +274,16 @@ export class HelloWorldModel extends Observable {
               this.onDistance,
               this
             );
+            this._smartDrive.on(
+              SmartDrive.smartdrive_motor_info_event,
+              this.onMotorInfo,
+              this
+            );
 
             // now connect to smart drive
             this._smartDrive.connect();
-            this.connected = true;
+              this.connected = true;
+			  this.powerAssistVisibility = 'visible';
             new Toasty(`Connecting to ${result}`)
               .setToastPosition(ToastPosition.CENTER)
               .show();
@@ -289,8 +307,14 @@ export class HelloWorldModel extends Observable {
         this.onDistance,
         this
       );
+      this._smartDrive.off(
+        SmartDrive.smartdrive_motor_info_event,
+        this.onMotorInfo,
+        this
+      );
       this._smartDrive.disconnect().then(() => {
         this.connected = false;
+		  this.powerAssistVisibility = 'collapse';
         new Toasty(`Disconnected from ${this._smartDrive.address}`)
           .setToastPosition(ToastPosition.CENTER)
           .show();

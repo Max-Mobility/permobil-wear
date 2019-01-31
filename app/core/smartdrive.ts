@@ -35,6 +35,7 @@ export class SmartDrive extends DeviceBase {
   public static smartdrive_ble_version_event = 'smartdrive_ble_version_event';
   public static smartdrive_mcu_version_event = 'smartdrive_mcu_version_event';
   public static smartdrive_distance_event = 'smartdrive_distance_event';
+  public static smartdrive_motor_info_event = 'smartdrive_motor_info_event';
   public static smartdrive_ota_ready_event = 'smartdrive_ota_ready_event';
   public static smartdrive_ota_ready_ble_event =
     'smartdrive_ota_ready_ble_event';
@@ -53,7 +54,8 @@ export class SmartDrive extends DeviceBase {
   public otaState: SD_OTA_State = SD_OTA_State.not_started;
   public bleOTAProgress: number = 0;
   public mcuOTAProgress: number = 0;
-  public notifying: boolean = false;
+	public notifying: boolean = false;
+	public driving: boolean = false;
 
   // private members
   private doBLEUpdate: boolean = false;
@@ -886,6 +888,10 @@ export class SmartDrive extends DeviceBase {
     return this.sendPacket('Command', 'Tap');
   }
 
+  public stopMotor() {
+    return this.sendPacket('Command', 'TurnOffMotor');
+  }
+
   // handlers
 
   private stoppingNotify = false;
@@ -1120,13 +1126,16 @@ export class SmartDrive extends DeviceBase {
            }            motorInfo;
         */
     this.mcu_version = motorInfo.version;
-    this.battery = motorInfo.batteryLevel;
+      this.battery = motorInfo.batteryLevel;
+	  this.driving = (motorInfo.state == 1);
     // TODO: send version event (for MCU_VERSION) to subscribers
     this.sendEvent(SmartDrive.smartdrive_mcu_version_event, {
       mcu: this.mcu_version
     });
+	  this.sendEvent(SmartDrive.smartdrive_motor_info_event, {
+		  motorInfo: motorInfo
+	  });
     // so they get updated about this smartDrive's version
-    // TODO: update state (is the motor on or off)
   }
 
   private _handleDistanceInfo(p: Packet) {
