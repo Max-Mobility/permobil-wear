@@ -10,14 +10,22 @@
   "license": "SEE LICENSE IN <your-license-filename>",
   "repository": "https://github.com/Max-Mobility/permobil-wear",
   "scripts": {
-    "tslint": "tslint -p tsconfig.json -c tslint.json",
-    "start.android": "tns run android --bundle --env.uglify",
-    "start.android.hmr": "tns run android --bundle --hmr",
+    "// Brad Section": "*****************************************************************************************************",
+    "brad.debug.wifi": "adb tcpip 5555 && adb connect 192.168.1.65",
+    "// end Brad Section": "************************************************************************************************************",
     "android.release": "",
-    "debug-on-wifi": "adb tcpip 5555 && adb connect 192.168.1.65",
-    "nuke": "rimraf platforms hooks node_modules package-lock.json",
+    "clean.accelerometer": "cd nativescript-accelerometer && rimraf node_modules",
+    "clean.bluetooth": "cd nativescript-bluetooth && rimraf node_modules",
+    "clean": "rimraf platforms hooks node_modules package-lock.json",
+    "nuke": "npm run clean.accelerometer && npm run clean.bluetooth && npm run clean",
     "nuki": "npm run nuke && npm run setup",
-    "setup": "npm i -g rimraf && rimraf *.lock && npm i --only=dev"
+    "setup": "npm i -g rimraf && npm run nuke && npm i && npm run setup.accelerometer && npm run setup.bluetooth && npm i",
+    "setup.accelerometer": "cd nativescript-accelerometer && npm i",
+    "setup.bluetooth": "cd nativescript-bluetooth && npm i",
+    "start.android": "tns run android --bundle",
+    "start.android.hmr": "tns run android --bundle --hmr",
+    "start.android.uglify": "tns run android --bundle --env.uglify",
+    "tslint": "tslint -p tsconfig.json -c tslint.json"
   },
   "dependencies": {
     "buffer": "~5.2.0",
@@ -26,7 +34,7 @@
     "nativescript-accelerometer-advanced": "file:./nativescript-accelerometer",
     "nativescript-bluetooth": "file:./nativescript-bluetooth",
     "nativescript-carousel": "~4.1.0",
-    "nativescript-geolocation": "~4.3.1",
+    "nativescript-geolocation": "~4.5.0",
     "nativescript-gif": "~4.0.2",
     "nativescript-lottie": "~3.0.2",
     "nativescript-permissions": "~1.2.3",
@@ -56,6 +64,7 @@
   },
   "lint-staged": {
     "*.{ts, js, json, css, scss, md}": [
+      "tslint",
       "prettier --write",
       "git add"
     ]

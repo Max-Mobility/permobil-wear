@@ -43,7 +43,7 @@
   "devDependencies": {
     "mkdirp": "../node_modules/mkdirp",
     "rimraf": "../node_modules/rimraf",
-    "tns-core-modules": "^5.1.1",
+    "tns-core-modules": "../node_modules/tns-core-modules",
     "tns-platform-declarations": "../node_modules/tns-platform-declarations",
     "typescript": "../node_modules/typescript"
   }
