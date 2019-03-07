@@ -64,18 +64,6 @@ typings/
 # dotenv environment variables file
 .env
 
-platforms/
-hooks/
-*~
-package-lock.json
-*.js
-**/*.js
-.DS_Store
-**/platforms/
-/**/platforms/
-!nativescript-bluetooth/base64.js
-!app/core/packet/packet_bindings.js
-
 # IDE - VSCode
 .vs/*
 .vscode/*
@@ -111,5 +99,21 @@ Thumbs.db
 *.apk
 *.ipa
 
+# Project excludes
+platforms
+hooks
+node_modules
+*~
+package-lock.json
+*.js
+**/*.js
+.DS_Store
+**/platforms/
+/**/platforms/
 
+# Dont exclude
 !app/typings
+!nativescript-bluetooth/base64.js
+!app/core/packet/packet_bindings.js
+!webpack.config.js
+!sketch_running_on_nrf52_neopixel.js
