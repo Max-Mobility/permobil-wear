@@ -18,22 +18,6 @@ module.exports = env => {
     'tns-core-modules/ui/frame/activity',
     resolve(
       __dirname,
-      'node_modules/nativescript-wear-os/packages/listview/tns-custom-scrolling-layout-callback.js'
-    ),
-    resolve(
-      __dirname,
-      'node_modules/nativescript-wear-os/packages/listview/tns-wear-os-adapter.js'
-    ),
-    resolve(
-      __dirname,
-      'node_modules/nativescript-wear-os/packages/listview/tns-wear-os-listview-holder.js'
-    ),
-    resolve(
-      __dirname,
-      'node_modules/nativescript-wear-os/packages/listview/tns-wearable-recyclerview.js'
-    ),
-    resolve(
-      __dirname,
       'node_modules/nativescript-bluetooth/android/TNS_AdvertiseCallback.js'
     ),
     resolve(
