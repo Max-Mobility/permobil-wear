@@ -7,8 +7,8 @@
   "license": "SEE LICENSE IN <your-license-filename>",
   "repository": "https://github.com/Max-Mobility/permobil-wear",
   "scripts": {
-    "start.android": "tns run android",
-    "start.ios": "tns run ios",
+    "tslint": "tslint -p tsconfig.json -c tslint.json",
+    "start.android": "tns run android --bundle",
     "debug-on-wifi": "adb tcpip 5555 && adb connect 192.168.1.65",
     "build-bluetooth": "cd nativescript-bluetooth && npm i --only=dev && tsc && rimraf *.tgz && npm pack",
     "build-accelerometer": "cd nativescript-accelerometer && npm i --only=dev && tsc && rimraf *.tgz && npm pack",
