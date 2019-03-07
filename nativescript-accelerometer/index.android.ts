@@ -1,7 +1,7 @@
 /// <reference path="./node_modules/tns-platform-declarations/android.d.ts" /> Needed for autocompletion and compilation.
 
 import * as application from 'tns-core-modules/application';
-import { SensorDelay, AccelerometerOptions, AccelerometerData } from '.';
+import { SensorDelay, AccelerometerOptions, AccelerometerData } from './base';
 
 const baseAcceleration = -9.81;
 let sensorListener;
