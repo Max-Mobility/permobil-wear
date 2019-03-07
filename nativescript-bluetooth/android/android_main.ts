@@ -1,4 +1,4 @@
-/// <reference path="../node_modules/tns-platform-declarations/android/android-platform-25.d.ts" />
+/// <reference path="../node_modules/tns-platform-declarations/android-23.d.ts" />
 
 import * as application from 'tns-core-modules/application';
 import * as utils from 'tns-core-modules/utils/utils';
@@ -70,19 +70,19 @@ export { BondState, Central, ConnectionState, Peripheral } from '../common';
 
 export class Bluetooth extends BluetoothCommon {
   // @link - https://developer.android.com/reference/android/content/Context.html#BLUETOOTH_SERVICE
-  public bluetoothManager: android.bluetooth.BluetoothManager = utils.ad
+  bluetoothManager: android.bluetooth.BluetoothManager = utils.ad
     .getApplicationContext()
     .getSystemService(android.content.Context.BLUETOOTH_SERVICE);
-  public adapter: android.bluetooth.BluetoothAdapter = this.bluetoothManager.getAdapter();
-  public gattServer: android.bluetooth.BluetoothGattServer;
-  public bluetoothGattServerCallback = new TNS_BluetoothGattServerCallback();
-  public bluetoothGattCallback = new TNS_BluetoothGattCallback();
-  public advertiseCallback = new TNS_AdvertiseCallback();
+  adapter: android.bluetooth.BluetoothAdapter = this.bluetoothManager.getAdapter();
+  gattServer: android.bluetooth.BluetoothGattServer;
+  bluetoothGattServerCallback = new TNS_BluetoothGattServerCallback();
+  bluetoothGattCallback = new TNS_BluetoothGattCallback();
+  advertiseCallback = new TNS_AdvertiseCallback();
 
   // not initializing here, if the Android API is < 21  use LeScanCallback
-  public scanCallback: TNS_ScanCallback;
-  public LeScanCallback: TNS_LeScanCallback;
-  public broadcastReceiver: TNS_BroadcastReceiver;
+  scanCallback: TNS_ScanCallback;
+  LeScanCallback: TNS_LeScanCallback;
+  broadcastReceiver: TNS_BroadcastReceiver;
 
   /**
    * Connections are stored as key-val pairs of UUID-Connection.
@@ -98,7 +98,7 @@ export class Bluetooth extends BluetoothCommon {
    *   }
    * }, ..]
    */
-  public connections = {};
+  connections = {};
 
   // Getter/Setters
   get enabled() {
@@ -151,7 +151,7 @@ export class Bluetooth extends BluetoothCommon {
     this.bluetoothGattCallback.onInit(new WeakRef(this));
   }
 
-  public coarseLocationPermissionGranted() {
+  coarseLocationPermissionGranted() {
     let hasPermission =
       android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M;
     if (!hasPermission) {
@@ -173,7 +173,7 @@ export class Bluetooth extends BluetoothCommon {
     return hasPermission;
   }
 
-  public requestCoarseLocationPermission(): Promise<boolean> {
+  requestCoarseLocationPermission(): Promise<boolean> {
     return new Promise((resolve, reject) => {
       // grab the permission dialog result
       application.android.on(
@@ -208,7 +208,7 @@ export class Bluetooth extends BluetoothCommon {
    * Turn on the local Bluetooth adapter—do not use without explicit user action to turn on Bluetooth.
    * This powers on the underlying Bluetooth hardware, and starts all Bluetooth system services.
    */
-  public enable(): Promise<boolean> {
+  enable(): Promise<boolean> {
     return new Promise((resolve, reject) => {
       try {
         // activityResult event
@@ -296,14 +296,14 @@ export class Bluetooth extends BluetoothCommon {
    * Turn off the local Bluetooth adapter—do not use without explicit user action to turn off Bluetooth.
    * This gracefully shuts down all Bluetooth connections, stops Bluetooth system services, and powers down the underlying Bluetooth hardware.
    */
-  public disable() {
+  disable() {
     return new Promise((resolve, reject) => {
       this.adapter.disable();
       resolve();
     });
   }
 
-  public isBluetoothEnabled() {
+  isBluetoothEnabled(): Promise<boolean> {
     return new Promise((resolve, reject) => {
       try {
         resolve(this._isEnabled());
@@ -314,7 +314,7 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public startScanning(arg: StartScanningOptions) {
+  startScanning(arg: StartScanningOptions) {
     return new Promise((resolve, reject) => {
       try {
         if (!this._isEnabled()) {
@@ -349,7 +349,7 @@ export class Bluetooth extends BluetoothCommon {
 
             if (!didStart) {
               // TODO error msg, see https://github.com/randdusing/cordova-plugin-bluetoothle/blob/master/src/android/BluetoothLePlugin.java#L758
-              reject(`Scanning didn't start`);
+              reject("Scanning didn't start");
               return;
             }
           } else {
@@ -449,7 +449,7 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public stopScanning() {
+  stopScanning() {
     return new Promise((resolve, reject) => {
       try {
         if (!this._isEnabled()) {
@@ -475,7 +475,7 @@ export class Bluetooth extends BluetoothCommon {
   }
 
   // note that this doesn't make much sense without scanning first
-  public connect(arg: ConnectOptions) {
+  connect(arg: ConnectOptions) {
     return new Promise((resolve, reject) => {
       try {
         // or macaddress..
@@ -528,7 +528,7 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public disconnect(arg: DisconnectOptions) {
+  disconnect(arg: DisconnectOptions) {
     return new Promise((resolve, reject) => {
       try {
         if (!arg.UUID) {
@@ -541,7 +541,7 @@ export class Bluetooth extends BluetoothCommon {
           `Bluetooth.disconnect ---- connection: ${connection}`
         );
         if (!connection) {
-          reject(`Peripheral wasn't connected`);
+          reject("Peripheral wasn't connected");
           return;
         }
 
@@ -554,7 +554,7 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public read(arg: ReadOptions) {
+  read(arg: ReadOptions) {
     return new Promise((resolve, reject) => {
       try {
         const wrapper = this._getWrapper(arg, reject);
@@ -611,12 +611,12 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public write(arg: WriteOptions) {
+  write(arg: WriteOptions) {
     return new Promise((resolve, reject) => {
       try {
         if (!arg.value) {
           reject(
-            `You need to provide some data to write in the 'value' property`
+            "You need to provide some data to write in the 'value' property"
           );
           return;
         }
@@ -669,12 +669,12 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public writeWithoutResponse(arg: WriteOptions) {
+  writeWithoutResponse(arg: WriteOptions) {
     return new Promise((resolve, reject) => {
       try {
         if (!arg.value) {
           reject(
-            `You need to provide some data to write in the 'value' property`
+            "You need to provide some data to write in the 'value' property"
           );
           return;
         }
@@ -734,7 +734,7 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public startNotifying(arg: StartNotifyingOptions) {
+  startNotifying(arg: StartNotifyingOptions) {
     return new Promise((resolve, reject) => {
       try {
         const wrapper = this._getWrapper(arg, reject);
@@ -789,7 +789,7 @@ export class Bluetooth extends BluetoothCommon {
             CLogTypes.info,
             `Bluetooth.startNotifying ---- descriptor: ${bluetoothGattDescriptor}`
           );
-          // Any creation error will trigger the global catch. Ok.
+          //Any creation error will trigger the global catch. Ok.
         }
 
         // prefer notify over indicate
@@ -822,7 +822,7 @@ export class Bluetooth extends BluetoothCommon {
             function(result) {
               CLog(
                 CLogTypes.warning,
-                `No 'onNotify' callback function specified for 'startNotifying'`
+                "No 'onNotify' callback function specified for 'startNotifying'"
               );
             };
           const stateObject = this.connections[arg.peripheralUUID];
@@ -842,7 +842,7 @@ export class Bluetooth extends BluetoothCommon {
   }
 
   // TODO lot of reuse between this and .startNotifying
-  public stopNotifying(arg: StopNotifyingOptions) {
+  stopNotifying(arg: StopNotifyingOptions) {
     return new Promise((resolve, reject) => {
       try {
         const wrapper = this._getWrapper(arg, reject);
@@ -894,11 +894,11 @@ export class Bluetooth extends BluetoothCommon {
   }
 
   /* * * * * *  BLUETOOTH PERIPHERAL CODE * * * * * * */
-  public getAdapter() {
+  getAdapter() {
     return this.adapter;
   }
 
-  public removeBond(device) {
+  removeBond(device) {
     try {
       let m = device.getClass();
       const tmp = Array.create('java.lang.Class', 0);
@@ -914,7 +914,7 @@ export class Bluetooth extends BluetoothCommon {
   /**
    * Perform a service discovery on the remote device to get the UUIDs supported.
    */
-  public fetchUuidsWithSdp(device) {
+  fetchUuidsWithSdp(device) {
     try {
       let m = device.getClass();
       const tmp = Array.create('java.lang.Class', 0);
@@ -929,7 +929,7 @@ export class Bluetooth extends BluetoothCommon {
   /**
    * Close the GATT server instance.
    */
-  public stopGattServer() {
+  stopGattServer() {
     if (this.gattServer) {
       this.gattServer.close();
     }
@@ -940,7 +940,7 @@ export class Bluetooth extends BluetoothCommon {
    * Open a GATT Server The callback is used to deliver results to Caller, such as connection status as well as the results of any other GATT server operations.
    * The method returns a BluetoothGattServer instance. You can use BluetoothGattServer to conduct GATT server operations.
    */
-  public startGattServer() {
+  startGattServer() {
     // if >= Android18 (JellyBean)
     // if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
     if (
@@ -960,7 +960,7 @@ export class Bluetooth extends BluetoothCommon {
    * This function should be invoked for every client that requests notifications/indications by writing to the "Client Configuration" descriptor for the given characteristic.
    * https://developer.android.com/reference/android/bluetooth/BluetoothGattServer.html#notifyCharacteristicChanged(android.bluetooth.BluetoothDevice,%20android.bluetooth.BluetoothGattCharacteristic,%20boolean)
    */
-  public notifyCentrals(
+  notifyCentrals(
     value: any,
     characteristic: android.bluetooth.BluetoothGattCharacteristic,
     devices: any
@@ -969,28 +969,33 @@ export class Bluetooth extends BluetoothCommon {
     if (didSetValue) {
       const notify = dev => {
         return new Promise((resolve, reject) => {
-          const timeoutID = setTimeout(() => {
-            this.off(Bluetooth.notification_sent_event, notificationSent);
-            reject('notify timeout!');
-          }, 10000);
+          let timeoutID;
+
           // handle when the notification is sent
           const notificationSent = args => {
-            clearTimeout(timeoutID);
             const argdata = args.data;
             const device = argdata.device;
             const status = argdata.status;
-            // console.log(`notificationSent: ${device} : ${status}`);
-            this.off(Bluetooth.notification_sent_event, notificationSent);
-            if (status) {
-              // GATT_SUCCESS is 0x00
-              reject(`notify status error: ${status}`);
-            } else {
-              resolve();
+            if (device.address === dev) {
+              clearTimeout(timeoutID);
+              this.off(Bluetooth.notification_sent_event, notificationSent);
+              if (status) {
+                // GATT_SUCCESS is 0x00
+                reject(`notify status error: ${status}`);
+              } else {
+                resolve();
+              }
             }
           };
+
+          timeoutID = setTimeout(() => {
+            this.off(Bluetooth.notification_sent_event, notificationSent);
+            reject('notify timeout!');
+          }, 10000);
+
           // register for when notification is sent
           this.on(Bluetooth.notification_sent_event, notificationSent);
-          // console.log(`notifying ${addr}!`);
+
           // tell it to send the notification
           if (dev && characteristic) {
             this.gattServer.notifyCharacteristicChanged(
@@ -1019,7 +1024,7 @@ export class Bluetooth extends BluetoothCommon {
    * Show a system activity that requests discoverable mode. This activity will also request the user to turn on Bluetooth if it is not currently enabled.
    * TODO: finish implementing, not actually firing right now.
    */
-  public setDiscoverable() {
+  setDiscoverable() {
     return new Promise((resolve, reject) => {
       try {
         const intent = new android.content.Intent(
@@ -1037,7 +1042,7 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public getAdvertiser() {
+  getAdvertiser() {
     if (this.adapter.isMultipleAdvertisementSupported()) {
       if (
         android.os.Build.VERSION.SDK_INT >=
@@ -1048,7 +1053,7 @@ export class Bluetooth extends BluetoothCommon {
     }
   }
 
-  public makeService(opts: MakeServiceOptions) {
+  makeService(opts: MakeServiceOptions) {
     const suuid = this.stringToUuid(opts.UUID);
     const serviceType =
       opts && opts.primary === true
@@ -1057,7 +1062,7 @@ export class Bluetooth extends BluetoothCommon {
     return new android.bluetooth.BluetoothGattService(suuid, serviceType);
   }
 
-  public makeCharacteristic(opts: MakeCharacteristicOptions) {
+  makeCharacteristic(opts: MakeCharacteristicOptions) {
     const cuuid = this.stringToUuid(opts.UUID);
     const props =
       (opts && opts.properties) ||
@@ -1075,7 +1080,7 @@ export class Bluetooth extends BluetoothCommon {
     );
   }
 
-  public makeDescriptor(opts) {
+  makeDescriptor(opts) {
     const uuid = this.stringToUuid(opts.UUID);
     const perms =
       (opts && opts.permissions) ||
@@ -1084,13 +1089,13 @@ export class Bluetooth extends BluetoothCommon {
     return new android.bluetooth.BluetoothGattDescriptor(uuid, perms);
   }
 
-  public addService(service) {
+  addService(service) {
     if (service && this.gattServer) {
       this.gattServer.addService(service);
     }
   }
 
-  public getServerService(uuidString) {
+  getServerService(uuidString) {
     if (this.gattServer) {
       const pUuid = this.stringToUuid(uuidString);
       const services = this.gattServer.getServices();
@@ -1111,17 +1116,17 @@ export class Bluetooth extends BluetoothCommon {
     return null;
   }
 
-  public offersService(uuidString) {
+  offersService(uuidString) {
     return this.getServerService(uuidString) !== null;
   }
 
-  public clearServices() {
+  clearServices() {
     if (this.gattServer) {
       this.gattServer.clearServices();
     }
   }
 
-  public cancelServerConnection(device) {
+  cancelServerConnection(device) {
     if (this.gattServer && device) {
       CLog(
         CLogTypes.info,
@@ -1137,7 +1142,7 @@ export class Bluetooth extends BluetoothCommon {
    * Requires the BLUETOOTH permission.
    * @returns - List of Bluetooth devices. The list will be empty on error.
    */
-  public getConnectedDevices() {
+  getConnectedDevices() {
     return this.bluetoothManager.getConnectedDevices(
       android.bluetooth.BluetoothProfile.GATT
     );
@@ -1147,7 +1152,7 @@ export class Bluetooth extends BluetoothCommon {
    * Get the current connection state of the profile.
    * @param device [android.bluetooth.BluetoothDevice] - Remote bluetooth device.
    */
-  public getConnectedDeviceState(device: android.bluetooth.BluetoothDevice) {
+  getConnectedDeviceState(device: android.bluetooth.BluetoothDevice) {
     if (device) {
       return this.bluetoothManager.getConnectionState(
         device,
@@ -1165,7 +1170,7 @@ export class Bluetooth extends BluetoothCommon {
    * android.bluetooth.BluetoothProfile.STATE_DISCONNECTING,
    * @link - https://developer.android.com/reference/android/bluetooth/BluetoothManager.html#getDevicesMatchingConnectionStates(int,%20int[])
    */
-  public getConnectedDevicesMatchingState(states) {
+  getConnectedDevicesMatchingState(states) {
     if (states) {
       return this.bluetoothManager.getDevicesMatchingConnectionStates(
         android.bluetooth.BluetoothProfile.GATT,
@@ -1180,7 +1185,7 @@ export class Bluetooth extends BluetoothCommon {
    * Requires the BLUETOOTH permission.
    * @returns - List of Bluetooth devices. The list will be empty on error.
    */
-  public getServerConnectedDevices() {
+  getServerConnectedDevices() {
     return this.bluetoothManager.getConnectedDevices(
       android.bluetooth.BluetoothProfile.GATT_SERVER
     );
@@ -1190,9 +1195,7 @@ export class Bluetooth extends BluetoothCommon {
    * Get the current connection state of the profile.
    * @param device [android.bluetooth.BluetoothDevice] - Remote bluetooth device.
    */
-  public getServerConnectedDeviceState(
-    device: android.bluetooth.BluetoothDevice
-  ) {
+  getServerConnectedDeviceState(device: android.bluetooth.BluetoothDevice) {
     if (device) {
       return this.bluetoothManager.getConnectionState(
         device,
@@ -1210,7 +1213,7 @@ export class Bluetooth extends BluetoothCommon {
    * android.bluetooth.BluetoothProfile.STATE_DISCONNECTING,
    * @link - https://developer.android.com/reference/android/bluetooth/BluetoothManager.html#getDevicesMatchingConnectionStates(int,%20int[])
    */
-  public getServerConnectedDevicesMatchingState(states) {
+  getServerConnectedDevicesMatchingState(states) {
     if (states) {
       return this.bluetoothManager.getDevicesMatchingConnectionStates(
         android.bluetooth.BluetoothProfile.GATT_SERVER,
@@ -1219,7 +1222,7 @@ export class Bluetooth extends BluetoothCommon {
     }
   }
 
-  public startAdvertising(opts: StartAdvertisingOptions) {
+  startAdvertising(opts: StartAdvertisingOptions) {
     return new Promise((resolve, reject) => {
       try {
         if (!this.adapter) {
@@ -1286,7 +1289,7 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public stopAdvertising() {
+  stopAdvertising() {
     return new Promise((resolve, reject) => {
       if (!this.adapter) {
         reject('Bluetooth not properly initialized!');
@@ -1312,7 +1315,7 @@ export class Bluetooth extends BluetoothCommon {
     });
   }
 
-  public isPeripheralModeSupported() {
+  isPeripheralModeSupported() {
     return new Promise((resolve, reject) => {
       resolve(
         this.adapter.isMultipleAdvertisementSupported() &&
@@ -1323,7 +1326,7 @@ export class Bluetooth extends BluetoothCommon {
   }
   /* * * * * * END BLUETOOTHcd PERIPHERAL CODE  * * * * */
 
-  public gattDisconnect(gatt: android.bluetooth.BluetoothGatt) {
+  gattDisconnect(gatt: android.bluetooth.BluetoothGatt) {
     if (gatt !== null) {
       const device = gatt.getDevice() as android.bluetooth.BluetoothDevice;
       CLog(CLogTypes.info, `Bluetooth.gattDisconnect ---- device: ${device}`);
@@ -1352,7 +1355,7 @@ export class Bluetooth extends BluetoothCommon {
   }
 
   // Java UUID -> JS
-  public uuidToString(uuid) {
+  uuidToString(uuid) {
     const uuidStr = uuid.toString();
     const pattern = java.util.regex.Pattern.compile(
       '0000(.{4})-0000-1000-8000-00805f9b34fb',
@@ -1363,7 +1366,7 @@ export class Bluetooth extends BluetoothCommon {
   }
 
   // val must be a Uint8Array or Uint16Array or a string like '0x01' or '0x007F' or '0x01,0x02', or '0x007F,'0x006F''
-  public encodeValue(val) {
+  encodeValue(val) {
     let parts = val;
     // if it's not a string assume it's a byte array already
     if (typeof val === 'string') {
@@ -1382,7 +1385,7 @@ export class Bluetooth extends BluetoothCommon {
     return result;
   }
 
-  public decodeValue(value) {
+  decodeValue(value) {
     if (value === null) {
       return null;
     }
@@ -1396,14 +1399,14 @@ export class Bluetooth extends BluetoothCommon {
   }
 
   // JS UUID -> Java
-  public stringToUuid(uuidStr) {
+  stringToUuid(uuidStr) {
     if (uuidStr.length === 4) {
       uuidStr = '0000' + uuidStr + '-0000-1000-8000-00805f9b34fb';
     }
     return java.util.UUID.fromString(uuidStr);
   }
 
-  public extractManufacturerRawData(scanRecord) {
+  extractManufacturerRawData(scanRecord) {
     let offset = 0;
     while (offset < scanRecord.length - 2) {
       const len = scanRecord[offset++] & 0xff;
