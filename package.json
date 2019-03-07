@@ -25,6 +25,7 @@
     "start.android": "tns run android --bundle",
     "start.android.hmr": "tns run android --bundle --hmr",
     "start.android.uglify": "tns run android --bundle --env.uglify",
+    "start.android.snapshot": "tns run android --bundle --env.uglify --env.snapshot",
     "tslint": "tslint -p tsconfig.json -c tslint.json"
   },
   "dependencies": {
@@ -33,7 +34,6 @@
     "kinvey-nativescript-sdk": "~3.12.4",
     "nativescript-accelerometer-advanced": "file:./nativescript-accelerometer",
     "nativescript-bluetooth": "file:./nativescript-bluetooth",
-    "nativescript-carousel": "~4.1.0",
     "nativescript-geolocation": "~4.5.0",
     "nativescript-gif": "~4.0.2",
     "nativescript-lottie": "~3.0.2",
