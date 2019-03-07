@@ -3,7 +3,8 @@ export interface AccelerometerData {
   y: number;
   z: number;
 }
-export declare type SensorDelay = 'normal' | 'game' | 'ui' | 'fastest';
+
+export type SensorDelay = 'normal' | 'game' | 'ui' | 'fastest';
 export interface AccelerometerOptions {
   sensorDelay?: SensorDelay;
 }

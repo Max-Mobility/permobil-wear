@@ -3,22 +3,22 @@
     "module": "commonjs",
     "skipLibCheck": true,
     "target": "es5",
-    "pretty": true,
+    "removeComments": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "noEmitHelpers": true,
     "noEmitOnError": false,
     "declaration": false,
     "lib": ["es6", "es2016", "dom"],
-    "baseUrl": ".",
-    "typeRoots": ["./node_modules/@types"]
+    "baseUrl": "."
   },
   "compileOnSave": false,
   "files": [
-    "./common.ts",
-    "./bluetooth.ios.ts",
-    "./bluetooth.android.ts",
-    "./ios/ios_main.ts",
+    "references.d.ts",
+    "common.ts",
+    "index.ts",
+    "index.ios.ts",
+    "index.android.ts",
     "./ios/CBCentralManagerDelegateImpl.ts",
     "./ios/CBPeripheralDelegateImpl.ts",
     "./ios/CBPeripheralManagerDelegateImpl.ts",
@@ -30,5 +30,5 @@
     "./android/TNS_LeScanCallback.ts",
     "./android/TNS_ScanCallback.ts"
   ],
-  "exclude": ["node_modules", "platforms", "**/*.aot.ts"]
+  "exclude": ["node_modules", "platforms"]
 }

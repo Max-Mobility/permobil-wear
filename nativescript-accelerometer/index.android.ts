@@ -1,15 +1,15 @@
 /// <reference path="./node_modules/tns-platform-declarations/android.d.ts" /> Needed for autocompletion and compilation.
 
-import application = require("tns-core-modules/application");
-import { SensorDelay, AccelerometerOptions, AccelerometerData } from ".";
+import * as application from 'tns-core-modules/application';
+import { SensorDelay, AccelerometerOptions, AccelerometerData } from './base';
 
 const baseAcceleration = -9.81;
-var sensorListener;
-var sensorManager;
-var accelerometerSensor;
-var compassSensor;
-var gravitySensor;
-var rotationSensor;
+let sensorListener;
+let sensorManager;
+let accelerometerSensor;
+let compassSensor;
+let gravitySensor;
+let rotationSensor;
 
 function getNativeDelay(options?: AccelerometerOptions): number {
   if (!options || !options.sensorDelay) {
@@ -17,16 +17,16 @@ function getNativeDelay(options?: AccelerometerOptions): number {
   }
 
   switch (options.sensorDelay) {
-    case "normal":
+    case 'normal':
       return android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
-    case "game":
+    case 'game':
       return android.hardware.SensorManager.SENSOR_DELAY_GAME;
 
-    case "ui":
+    case 'ui':
       return android.hardware.SensorManager.SENSOR_DELAY_UI;
 
-    case "fastest":
+    case 'fastest':
       return android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
   }
 }
@@ -36,14 +36,14 @@ export function startAccelerometerUpdates(
   options?: AccelerometerOptions
 ) {
   if (sensorListener) {
-    throw new Error("Already listening for accelerometer updates.");
+    throw new Error('Already listening for accelerometer updates.');
   }
 
   const wrappedCallback = zonedCallback(callback);
-  var activity =
+  const activity =
     application.android.foregroundActivity || application.android.startActivity;
   if (!activity) {
-    throw Error("Could not get foregroundActivity.");
+    throw Error('Could not get foregroundActivity.');
   }
 
   if (!sensorManager) {
@@ -52,35 +52,35 @@ export function startAccelerometerUpdates(
     );
 
     if (!sensorManager) {
-      throw Error("Could not initialize SensorManager.");
+      throw Error('Could not initialize SensorManager.');
     }
   }
 
   if (!accelerometerSensor) {
     accelerometerSensor = getAccelerometer(sensorManager);
     if (!accelerometerSensor) {
-      throw Error("Could not get accelerometer sensor.");
+      throw Error('Could not get accelerometer sensor.');
     }
   }
   if (!compassSensor) {
     compassSensor = getCompass(sensorManager);
 
     if (!compassSensor) {
-      throw Error("Could not get compass sensor.");
+      throw Error('Could not get compass sensor.');
     }
   }
   if (!gravitySensor) {
     gravitySensor = getGravity(sensorManager);
 
     if (!gravitySensor) {
-      throw Error("Could not get gravity sensor.");
+      throw Error('Could not get gravity sensor.');
     }
   }
   if (!rotationSensor) {
     rotationSensor = getRotationVector(sensorManager);
 
     if (!rotationSensor) {
-      throw Error("Could not get rotation sensor.");
+      throw Error('Could not get rotation sensor.');
     }
   }
 
@@ -157,7 +157,7 @@ function getRotationVector(sensorManager) {
 
 export function stopAccelerometerUpdates() {
   if (!sensorListener) {
-    throw new Error("Currently not listening for acceleration events.");
+    throw new Error('Currently not listening for acceleration events.');
   }
 
   sensorManager.unregisterListener(sensorListener);

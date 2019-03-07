@@ -1,6 +1,75 @@
-import * as COMMON from './common';
+import { Observable } from 'tns-core-modules/data/observable';
+import {
+  BluetoothCommon,
+  ConnectionState,
+  ConnectOptions,
+  DisconnectOptions,
+  WriteOptions,
+  ReadOptions,
+  ReadResult,
+  StopNotifyingOptions,
+  StartNotifyingOptions
+} from './common';
 
-export class Bluetooth extends COMMON.BluetoothCommon {
+export declare class BluetoothCommon extends Observable {
+  constructor();
+  debug: boolean;
+  static error_event: string;
+  static peripheral_connected_event: string;
+  static peripheral_disconnected_event: string;
+  static peripheral_failed_to_connect_event: string;
+  static centralmanager_updated_state_event: string;
+  static centralmanager_restore_state_event: string;
+  static peripheralmanager_restore_state_event: string;
+  static peripheralmanager_update_state_event: string;
+  static peripheralmanager_did_add_event: string;
+  static peripheralmanager_subscribe_characteristic_event: string;
+  static peripheralmanager_unsubscribe_characteristic_event: string;
+  static peripheralmanager_ready_update_subscribers_event: string;
+  static peripheralmanager_read_request_event: string;
+  static peripheralmanager_write_request_event: string;
+  static bluetooth_enabled_event: string;
+  static bluetooth_discoverable_event: string;
+  static bluetooth_advertise_success_event: string;
+  static bluetooth_advertise_failure_event: string;
+  static server_connection_state_changed_event: string;
+  static bond_status_change_event: string;
+  static device_discovered_event: string;
+  static device_name_change_event: string;
+  static device_uuid_change_event: string;
+  static device_acl_disconnected_event: string;
+  static characteristic_write_request_event: string;
+  static characteristic_read_request_event: string;
+  static descriptor_write_request_event: string;
+  static descriptor_read_request_event: string;
+  /**
+   * String value for hooking into the execute_write_event. This event fires when the Gatt Server executes a write command.
+   */
+  static execute_write_event: string;
+  /**
+   * String value for hooking into the notification_sent_event. This event fires when the Gatt Server has sent a notification to a remote device.
+   */
+  static notification_sent_event: string;
+  events: IBluetoothEvents;
+  /**
+   * Property to determine if bluetooth is enabled.
+   */
+  readonly enabled: boolean;
+  /**
+   * Takes a Base64 encoded string and decodes it and returns an ArrayBuffer.
+   * @param b64 - Base64 Encoded string to be decoded.
+   * @returns buffer [ArrayBuffer]
+   */
+  base64ToArrayBuffer(b64: any): ArrayBuffer;
+  requestCoarseLocationPermission(): Promise<{}>;
+  hasCoarseLocationPermission(): Promise<{}>;
+  /**
+   * Notify events by name and optionally pass data
+   */
+  sendEvent(eventName: string, data?: any, msg?: string): void;
+}
+
+export class Bluetooth extends BluetoothCommon {
   /**
    * If true console logs will be output to help debug NativeScript-Bluetooth.
    */
@@ -29,23 +98,23 @@ export class Bluetooth extends COMMON.BluetoothCommon {
    */
   requestCoarseLocationPermission(): Promise<any>;
 
-  startScanning(options: COMMON.StartScanningOptions): Promise<any>;
+  startScanning(options: StartScanningOptions): Promise<any>;
 
   stopScanning(): Promise<any>;
 
-  connect(options: COMMON.ConnectOptions): Promise<any>;
+  connect(options: ConnectOptions): Promise<any>;
 
-  disconnect(options: COMMON.DisconnectOptions): Promise<any>;
+  disconnect(options: DisconnectOptions): Promise<any>;
 
-  read(options: COMMON.ReadOptions): Promise<COMMON.ReadResult>;
+  read(options: ReadOptions): Promise<ReadResult>;
 
-  write(options: COMMON.WriteOptions): Promise<any>;
+  write(options: WriteOptions): Promise<any>;
 
-  writeWithoutResponse(options: COMMON.WriteOptions): Promise<any>;
+  writeWithoutResponse(options: WriteOptions): Promise<any>;
 
-  startNotifying(options: COMMON.StartNotifyingOptions): Promise<any>;
+  startNotifying(options: StartNotifyingOptions): Promise<any>;
 
-  stopNotifying(options: COMMON.StopNotifyingOptions): Promise<any>;
+  stopNotifying(options: StopNotifyingOptions): Promise<any>;
 
   // PERIPHERAL MODE FUNCTIONS
   disable(): Promise<any>;
@@ -253,21 +322,34 @@ export interface MakeServiceOptions {
 /**
  * All of the events for Bluetooth that can be emitted and listened to.
  */
-export interface IBluetoothEvents {
-  error_event: string = 'error_event';
-  bluetooth_enabled_event: string = 'bluetooth_enabled_event';
-  peripheral_connected_event: string = 'peripheral_connected_event';
-  bluetooth_advertise_success_event: string = 'bluetooth_advertise_success_event';
-  bluetooth_advertise_failure_event: string = 'bluetooth_advertise_failure_event';
-  server_connection_state_changed_event: string = 'server_connection_state_changed_event';
-  bond_status_change_event: string = 'bond_status_change_event';
-  device_discovered_event: string = 'device_discovered_event';
-  device_name_change_event: string = 'device_name_change_event';
-  device_uuid_change_event: string = 'device_uuid_change_event';
-  device_acl_disconnected_event: string = 'device_acl_disconnected_event';
-  characteristic_write_request_event: string = 'characteristic_write_request_event';
-  characteristic_read_request_event: string = 'characteristic_read_request_event';
-  descriptor_write_request_event: string = 'descriptor_write_request_event';
-  descriptor_read_request_event: string = 'descriptor_read_request_event';
-  execute_write_event: string = 'execute_write_event';
+export declare enum IBluetoothEvents {
+  error_event = 'error_event',
+  bluetooth_enabled_event = 'bluetooth_enabled_event',
+  peripheral_connected_event = 'peripheral_connected_event',
+  peripheral_disconnected_event = 'peripheral_disconnected_event',
+  peripheral_failed_to_connect_event = 'peripheral_failed_to_connect_event',
+  centralmanager_updated_state_event = 'centralmanager_updated_state_event',
+  centralmanager_restore_state_event = 'centralmanager_restore_state_event',
+  peripheralmanager_restore_state_event = 'peripheralmanager_restore_state_event',
+  peripheralmanager_update_state_event = 'peripheralmanager_update_state_event',
+  peripheralmanager_did_add_event = 'peripheralmanager_did_add_event',
+  peripheralmanager_subscribe_characteristic_event = 'peripheralmanager_subscribe_characteristic_event',
+  peripheralmanager_unsubscribe_characteristic_event = 'peripheralmanager_unsubscribe_characteristic_event',
+  peripheralmanager_ready_update_subscribers_event = 'peripheralmanager_ready_update_subscribers_event',
+  peripheralmanager_read_request_event = 'peripheralmanager_read_request_event',
+  peripheralmanager_write_request_event = 'peripheralmanager_write_request_event',
+  bluetooth_advertise_success_event = 'bluetooth_advertise_success_event',
+  bluetooth_advertise_failure_event = 'bluetooth_advertise_failure_event',
+  server_connection_state_changed_event = 'server_connection_state_changed_event',
+  bond_status_change_event = 'bond_status_change_event',
+  device_discovered_event = 'device_discovered_event',
+  device_name_change_event = 'device_name_change_event',
+  device_uuid_change_event = 'device_uuid_change_event',
+  device_acl_disconnected_event = 'device_acl_disconnected_event',
+  characteristic_write_request_event = 'characteristic_write_request_event',
+  characteristic_read_request_event = 'characteristic_read_request_event',
+  descriptor_write_request_event = 'descriptor_write_request_event',
+  descriptor_read_request_event = 'descriptor_read_request_event',
+  execute_write_event = 'execute_write_event',
+  notification_sent_event = 'notification_sent_event'
 }

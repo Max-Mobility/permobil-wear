@@ -1,5 +1,3 @@
-/// <reference path="../node_modules/tns-platform-declarations/ios.d.ts" />
-
 import { CLog, CLogTypes } from '../common';
 import { CBPeripheralDelegateImpl } from './CBPeripheralDelegateImpl';
 import { Bluetooth } from './ios_main';
@@ -13,7 +11,8 @@ declare var DataView; // not recognized by platform-declarations
  * The optional methods of the protocol allow the delegate to monitor the discovery, connectivity, and retrieval of peripheral devices.
  * The only required method of the protocol indicates the availability of the central manager, and is called when the central manager’s state is updated.
  */
-export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralManagerDelegate {
+export class CBCentralManagerDelegateImpl extends NSObject
+  implements CBCentralManagerDelegate {
   static ObjCProtocols = [CBCentralManagerDelegate];
 
   private _owner: WeakRef<Bluetooth>;
@@ -31,9 +30,14 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
   //   return this;
   // }
 
-  public initWithOwner(owner: WeakRef<Bluetooth>): CBCentralManagerDelegateImpl {
+  initWithOwner(owner: WeakRef<Bluetooth>): CBCentralManagerDelegateImpl {
     this._owner = owner;
-    CLog(CLogTypes.info, `CBCentralManagerDelegateImpl.initWithOwner ---- this._owner: ${this._owner}`);
+    CLog(
+      CLogTypes.info,
+      `CBCentralManagerDelegateImpl.initWithOwner ---- this._owner: ${
+        this._owner
+      }`
+    );
     // this._callback = callback;
     return this;
   }
@@ -45,11 +49,19 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
    * @param central [CBCentralManager] - The central manager providing this information.
    * @param peripheral [CBPeripheral] - The peripheral that has been connected to the system.
    */
-  public centralManagerDidConnectPeripheral(central: CBCentralManager, peripheral: CBPeripheral) {
-    CLog(CLogTypes.info, `----- CBCentralManagerDelegateImpl centralManager:didConnectPeripheral: ${peripheral}`);
+  centralManagerDidConnectPeripheral(
+    central: CBCentralManager,
+    peripheral: CBPeripheral
+  ) {
+    CLog(
+      CLogTypes.info,
+      `----- CBCentralManagerDelegateImpl centralManager:didConnectPeripheral: ${peripheral}`
+    );
 
     // find the peri in the array and attach the delegate to that
-    const peri = this._owner.get().findPeripheral(peripheral.identifier.UUIDString);
+    const peri = this._owner
+      .get()
+      .findPeripheral(peripheral.identifier.UUIDString);
     CLog(
       CLogTypes.info,
       `----- CBCentralManagerDelegateImpl centralManager:didConnectPeripheral: cached perio: ${peri}`
@@ -60,7 +72,10 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
       return;
     }
     const cb = owner._connectCallbacks[peripheral.identifier.UUIDString];
-    const delegate = CBPeripheralDelegateImpl.new().initWithCallback(this._owner, cb);
+    const delegate = CBPeripheralDelegateImpl.new().initWithCallback(
+      this._owner,
+      cb
+    );
     CFRetain(delegate);
     peri.delegate = delegate;
 
@@ -91,7 +106,7 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
    * @param peripheral [CBPeripheral] - The peripheral that has been disconnected.
    * @param error? [NSError] - If an error occurred, the cause of the failure.
    */
-  public centralManagerDidDisconnectPeripheralError(
+  centralManagerDidDisconnectPeripheralError(
     central: CBCentralManager,
     peripheral: CBPeripheral,
     error?: NSError
@@ -108,7 +123,10 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
         name: peripheral.name
       });
     } else {
-      CLog(CLogTypes.info, `***** centralManagerDidDisconnectPeripheralError() no disconnect callback found *****`);
+      CLog(
+        CLogTypes.info,
+        `***** centralManagerDidDisconnectPeripheralError() no disconnect callback found *****`
+      );
     }
     owner.removePeripheral(peripheral);
     const eventData = {
@@ -132,7 +150,7 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
    * @param peripheral [CBPeripheral] - The peripheral that failed to connect.
    * @param error? [NSError] - The cause of the failure.
    */
-  public centralManagerDidFailToConnectPeripheralError(
+  centralManagerDidFailToConnectPeripheralError(
     central: CBCentralManager,
     peripheral: CBPeripheral,
     error?: NSError
@@ -172,7 +190,7 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
    * @param advData [NSDictionary<string, any>] - A dictionary containing any advertisement data.
    * @param RSSI [NSNumber] - The current received signal strength indicator (RSSI) of the peripheral, in decibels.
    */
-  public centralManagerDidDiscoverPeripheralAdvertisementDataRSSI(
+  centralManagerDidDiscoverPeripheralAdvertisementDataRSSI(
     central: CBCentralManager,
     peripheral: CBPeripheral,
     advData: NSDictionary<string, any>,
@@ -199,15 +217,26 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
         const manufacturerIdBuffer = this._owner
           .get()
           .toArrayBuffer(
-            advData.objectForKey(CBAdvertisementDataManufacturerDataKey).subdataWithRange(NSMakeRange(0, 2))
+            advData
+              .objectForKey(CBAdvertisementDataManufacturerDataKey)
+              .subdataWithRange(NSMakeRange(0, 2))
           );
-        manufacturerId = new DataView(manufacturerIdBuffer, 0).getUint16(0, true);
+        manufacturerId = new DataView(manufacturerIdBuffer, 0).getUint16(
+          0,
+          true
+        );
         manufacturerData = this._owner
           .get()
           .toArrayBuffer(
             advData
               .objectForKey(CBAdvertisementDataManufacturerDataKey)
-              .subdataWithRange(NSMakeRange(2, advData.objectForKey(CBAdvertisementDataManufacturerDataKey).length - 2))
+              .subdataWithRange(
+                NSMakeRange(
+                  2,
+                  advData.objectForKey(CBAdvertisementDataManufacturerDataKey)
+                    .length - 2
+                )
+              )
           );
       }
 
@@ -242,7 +271,7 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
    * For a complete list and discussion of the possible values representing the state of the central manager, see the CBCentralManagerState enumeration in CBCentralManager.
    * @param central [CBCentralManager] - The central manager providing this information.
    */
-  public centralManagerDidUpdateState(central: CBCentralManager) {
+  centralManagerDidUpdateState(central: CBCentralManager) {
     if (central.state === CBManagerState.Unsupported) {
       CLog(
         CLogTypes.warning,
@@ -264,7 +293,10 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
    * For the available keys to this dictionary, see Central Manager State Restoration Options.
    * @link - https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/central_manager_state_restoration_options
    */
-  public centralManagerWillRestoreState(central: CBCentralManager, dict: NSDictionary<string, any>) {
+  centralManagerWillRestoreState(
+    central: CBCentralManager,
+    dict: NSDictionary<string, any>
+  ) {
     CLog(
       CLogTypes.info,
       `CBCentralManagerDelegateImpl.centralManagerWillRestoreState ---- central: ${central}, dict: ${dict}`
@@ -276,7 +308,9 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
     }
 
     // Get all restored Peripherals
-    const peripheralArray = dict.objectForKey(CBCentralManagerRestoredStatePeripheralsKey);
+    const peripheralArray = dict.objectForKey(
+      CBCentralManagerRestoredStatePeripheralsKey
+    );
     CLog(CLogTypes.info, 'Restoring ', peripheralArray.count);
     for (let i = 0; i < peripheralArray.count; i++) {
       const peripheral = peripheralArray.objectAtIndex(i);
@@ -298,6 +332,9 @@ export class CBCentralManagerDelegateImpl extends NSObject implements CBCentralM
       }
     }
 
-    owner.sendEvent('centralmanager_restore_state_event', { manager: central, dict });
+    owner.sendEvent('centralmanager_restore_state_event', {
+      manager: central,
+      dict
+    });
   }
 }

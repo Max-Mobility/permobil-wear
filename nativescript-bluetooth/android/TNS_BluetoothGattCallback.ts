@@ -1,6 +1,3 @@
-/// <reference path="../node_modules/tns-platform-declarations/android.d.ts" />
-/// <reference path="../node_modules/tns-platform-declarations/android/android-platform-25.d.ts" />
-
 import { CLog, CLogTypes } from '../common';
 import { Bluetooth } from './android_main';
 

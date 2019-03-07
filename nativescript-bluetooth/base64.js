@@ -1,5 +1,6 @@
 (function() {
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  var chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
   function InvalidCharacterError(message) {
     this.message = message;
@@ -37,7 +38,9 @@
   global.atob = function(input) {
     var str = String(input).replace(/=+$/, '');
     if (str.length % 4 == 1) {
-      throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
+      throw new InvalidCharacterError(
+        "'atob' failed: The string to be decoded is not correctly encoded."
+      );
     }
     for (
       // initialize result and counters
