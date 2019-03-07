@@ -113,7 +113,6 @@ package-lock.json
 
 # Dont exclude
 !app/typings
-!app/plugins/**/*.js
 !nativescript-bluetooth/base64.js
 !app/core/packet/packet_bindings.js
 !webpack.config.js
