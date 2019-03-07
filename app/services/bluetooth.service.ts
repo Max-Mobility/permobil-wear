@@ -601,7 +601,7 @@ export class BluetoothService {
               UUID: duuid
             });
 
-            d.setValue(new Array([0x00, 0x00]));
+            d.setValue(new Array<any>([0x00, 0x00]));
             // console.log('Making descriptor: ' + duuid);
             return d;
           });

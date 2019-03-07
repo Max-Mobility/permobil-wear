@@ -1,28 +1,42 @@
-import { Sentry, SentryBreadcrumb, SentryOptions } from 'nativescript-sentry';
+import {
+  Sentry,
+  BreadCrumb,
+  MessageOptions,
+  Level,
+  ExceptionOptions
+} from 'nativescript-sentry';
+
+export enum LoggingCategory {
+  Info = 'Info',
+  Warning = 'Warning'
+}
 
 export function logError(error) {
   console.log(error);
   Sentry.captureException(error, {});
 }
 
-export function logMessage(message: string, options: SentryOptions = {}) {
+export function logMessage(message: string, options: MessageOptions = {}) {
   Sentry.captureMessage(message, options);
 }
 
 export function logBreadCrumb(
   message,
   category: LoggingCategory = LoggingCategory.Info,
-  data = {}
+  level: Level = Level.Info
 ) {
-  const breadcrumb: SentryBreadcrumb = {
+  console.log(
+    '\n\n ***************************   BREADCRUMB   *********************************' +
+      '\n\n' +
+      message +
+      '\n\n' +
+      '***************************************************************************** \n\n'
+  );
+
+  const breadcrumb: BreadCrumb = {
     message,
     category,
-    data
+    level
   };
   Sentry.captureBreadcrumb(breadcrumb);
-}
-
-export enum LoggingCategory {
-  Info = 'Info',
-  Warning = 'Warning'
 }
