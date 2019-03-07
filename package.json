@@ -1,6 +1,9 @@
 {
   "nativescript": {
-    "id": "com.permobil.watch"
+    "id": "com.permobil.watch",
+    "tns-android": {
+      "version": "5.2.1"
+    }
   },
   "main": "app.js",
   "description": "NativeScript Application",
@@ -20,8 +23,8 @@
     "buffer": "~5.2.0",
     "injection-js": "~2.2.1",
     "kinvey-nativescript-sdk": "~3.12.4",
-    "nativescript-accelerometer-advanced": "file:./nativescript-accelerometer/nativescript-accelerometer-advanced-3.0.0.tgz",
-    "nativescript-bluetooth": "file:./nativescript-bluetooth/nativescript-bluetooth-1.3.0.tgz",
+    "nativescript-accelerometer-advanced": "file:./plugins/accelerometer",
+    "nativescript-bluetooth": "file:./plugins/bluetooth",
     "nativescript-carousel": "~4.1.0",
     "nativescript-geolocation": "~4.3.1",
     "nativescript-gif": "~4.0.2",
