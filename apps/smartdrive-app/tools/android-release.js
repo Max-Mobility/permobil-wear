@@ -35,12 +35,12 @@ function askKeystorePassword() {
 
 askKeystorePassword().then(result => {
   console.log(
-    'Executing the android release build process. This will take a few minutes as the entire project is built from scratch. Go get a cup ☕️ or 🍺.'
+    'Executing the android release build process. This could take a minute as the entire project is built from scratch. Go get a cup ☕️  or  🍺.'
   );
   // execute the android release build cmd with the result as password
   exec(
-    // `npm run nuki && cd apps/eval-mobile && tns build android --release --bundle --env.uglify --key-store-path ./tools/smarteval-keystore.jks --key-store-password ${result} --key-store-alias upload --key-store-alias-password ${result} --copy-to ./tools/smartdrive-app-wearos.apk`,
-    `tns build android --release --bundle --env.uglify --key-store-path ./tools/smartdrive-app-wearos-keystore.jks --key-store-password ${result} --key-store-alias upload --key-store-alias-password ${result} --copy-to ./tools/smartdrive-app-wearos.apk`,
+    `cd apps/smartdrive-app && tns build android --release --bundle --env.uglify --key-store-path ./tools/smartdrive-wearos.jks --key-store-password ${result} --key-store-alias upload --key-store-alias-password ${result} --aab --copy-to ./tools/smartdrive-app.aab`,
+    // `tns build android --release --bundle --env.uglify --key-store-path ./tools/smartdrive-wearos.jks --key-store-password ${result} --key-store-alias upload --key-store-alias-password ${result} --aab --copy-to ./tools/smartdrive-app.aab`,
     (err, stdout, stderr) => {
       if (err) {
         console.error('Error executing the android-release command.', err);
@@ -48,7 +48,7 @@ askKeystorePassword().then(result => {
       }
 
       console.log(
-        'Android release build finished. A new release APK should be located in the apps/smartdrive-app/tools/ directory.'
+        'Android release build finished. A new release .aab (Android App Bundle) should be located in the apps/smartdrive-app/tools/ directory.'
       );
     }
   );
