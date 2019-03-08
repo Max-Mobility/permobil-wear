@@ -9,7 +9,9 @@ import {
 import { ObservableArray } from 'tns-core-modules/data/observable-array';
 import { isAndroid, isIOS } from 'tns-core-modules/platform';
 import * as dialogsModule from 'tns-core-modules/ui/dialogs';
-import { Packet, PushTracker, SmartDrive } from '../core';
+import { SmartDrive } from '../models/smartdrive';
+import { PushTracker } from '../models/pushtracker';
+import { Packet } from '../packet';
 import { Observable } from 'tns-core-modules/data/observable';
 
 @Injectable()

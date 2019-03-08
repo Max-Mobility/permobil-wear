@@ -1,0 +1,14 @@
+{
+  "name": "@permobil/core",
+  "version": "0.1.0",
+  "main": "index",
+  "typings": "index.d.ts",
+  "dependencies": {
+    "tns-core-modules": "../../node_modules/tns-core-modules",
+    "smart-eval-kinvey": "../../node_modules/smart-eval-kinvey",
+    "nativescript-sentry": "../../node_modules/nativescript-sentry"
+  },
+  "devDependencies": {
+    "tns-platform-declarations": "../../node_modules/tns-platform-declarations"
+  }
+}

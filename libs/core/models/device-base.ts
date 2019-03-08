@@ -1,6 +1,6 @@
 import { Observable } from 'tns-core-modules/data/observable';
 import { BluetoothService } from './../services';
-import { Packet } from './packet';
+import { Packet } from '../packet';
 
 export class DeviceBase extends Observable {
   public static ota_start_event = 'ota_start_event';

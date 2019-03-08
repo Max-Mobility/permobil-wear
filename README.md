@@ -1,10 +1,28 @@
-# Get Started
+# Permobil Wear
 
-After cloning execute `npm run setup && npm run start.android` in your terminal.
+This repo will serve as a monorepo for all Permobil WearOS projects.
+New apps will be created in the `apps` directory. Anything not specific to one app
+should be abstracted into `libs/core` so the other WearOS apps can reuse the same code
+under the `@permobil/core` package.
+
+# Getting Started
+
+**Prerequisite:** Have node and NativeScript setup on the development machine.
+Setup [docs HERE](https://docs.nativescript.org/start/quick-setup).
+
+Once the development machine is configured for android/nativescript development.
+You can clone and setup the repo and run the SmartDrive WearOS app with the following commands (copy and paste into terminal and 🏎):
+
+```bash
+git clone https://github.com/Max-Mobility/permobil-wear.git &&
+cd permobil-wear &&
+npm run setup &&
+npm run smartdrive.start.android
+```
 
 **Make sure you have a WearOS device connected or a WearOS AVD (emulator) running.**
 
-## Layout Usage
+## Layouts for WearOS Notes
 
 #### Lists
 

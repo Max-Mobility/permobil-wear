@@ -1,4 +1,8 @@
-import { ComplicationTapBroadcastReceiver, getPreferenceKey, KEYS } from './complication_tap_broadcast_receiver';
+import {
+  ComplicationTapBroadcastReceiver,
+  getPreferenceKey,
+  KEYS
+} from './complication_tap_broadcast_receiver';
 
 @JavaProxy('com.permobil.CustomComplicationProviderService')
 export class CustomComplicationProviderService extends android.support.wearable

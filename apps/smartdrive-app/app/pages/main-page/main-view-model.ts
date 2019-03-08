@@ -13,21 +13,20 @@ import { AnimationCurve } from 'tns-core-modules/ui/enums';
 import { Page, topmost } from 'tns-core-modules/ui/frame';
 import { Image } from 'tns-core-modules/ui/image';
 import {
+  DataKeys,
   SmartDrive,
-  logMessage,
-  logBreadCrumb,
+  BluetoothService,
+  SentryService,
   LoggingCategory,
-  hideOffScreenLayout,
-  showOffScreenLayout
-} from '../../core';
-import { Prop } from '../../core/obs-prop';
-import { BluetoothService } from '../../services';
+  Prop,
+  throttle
+} from '@permobil/core';
+import { hideOffScreenLayout, showOffScreenLayout } from '../../utils';
 import { injector } from '../../app';
-import { DataKeys } from '~/core/enums';
 
 const THRESHOLD = 0.9; // change this threshold as you want, higher is more spike movement
 
-export class HelloWorldModel extends Observable {
+export class MainViewModel extends Observable {
   /**
    * The heart rate data to render.
    */
@@ -67,10 +66,10 @@ export class HelloWorldModel extends Observable {
    * Boolean to handle logic if we have connected to a SD unit.
    */
   @Prop()
-	public connected = false;
+  public connected = false;
 
-	@Prop()
-	public motorOn = false;
+  @Prop()
+  public motorOn = false;
 
   /**
    * Boolean to track if accelerometer is already registered listener events.
@@ -88,7 +87,10 @@ export class HelloWorldModel extends Observable {
 
   constructor(
     page: Page,
-    private _bluetoothService: BluetoothService = injector.get(BluetoothService)
+    private _bluetoothService: BluetoothService = injector.get(
+      BluetoothService
+    ),
+    private _sentryService: SentryService = injector.get(SentryService)
   ) {
     super();
     this._page = page;
@@ -108,15 +110,15 @@ export class HelloWorldModel extends Observable {
   }
 
   toggleAccelerometer() {
-	  console.log('toggleAccelerometer');
+    console.log('toggleAccelerometer');
     // if already listening stop and reset isListening boolean
     if (this._isListeningAccelerometer === true) {
-        if (this._smartDrive && this._smartDrive.ableToSend) {
-            console.log('Sending tap!');
-            this._smartDrive
-                .stopMotor()
-                .catch(err => console.log('could not stop motor', err));
-        }
+      if (this._smartDrive && this._smartDrive.ableToSend) {
+        console.log('Sending tap!');
+        this._smartDrive
+          .stopMotor()
+          .catch(err => console.log('could not stop motor', err));
+      }
       accelerometer.stopAccelerometerUpdates();
       this._isListeningAccelerometer = false;
       this.powerAssistButtonText = 'Power Assist OFF';
@@ -133,10 +135,10 @@ export class HelloWorldModel extends Observable {
           // console.log({ accelerometerdata });
           const z = accelerometerdata.z;
 
-			let diff = z;
-			if (this.motorOn) {
-				diff = Math.abs(z);
-			}
+          let diff = z;
+          if (this.motorOn) {
+            diff = Math.abs(z);
+          }
 
           if (diff > THRESHOLD && !this.motionDetected) {
             console.log('Motion detected!', { diff });
@@ -146,7 +148,7 @@ export class HelloWorldModel extends Observable {
                 .sendTap()
                 .catch(err => console.log('could not send tap', err));
             }
-			  /*
+            /*
             this.accelerometerData = `Motion detected ${diff
               .toString()
               .substring(0, 8)}`;
@@ -155,7 +157,7 @@ export class HelloWorldModel extends Observable {
             this.motionDetected = true;
             setTimeout(() => {
               this.motionDetected = false;
-				//this._motionDetectedLottie.cancelAnimation();
+              // this._motionDetectedLottie.cancelAnimation();
             }, 300);
           }
         }
@@ -163,14 +165,14 @@ export class HelloWorldModel extends Observable {
       { sensorDelay: 'game' }
     );
 
-      // set true so next tap doesn't try to register the listeners again
-	  this._isListeningAccelerometer = true;
-      this.powerAssistButtonText = 'Power Assist ON';
+    // set true so next tap doesn't try to register the listeners again
+    this._isListeningAccelerometer = true;
+    this.powerAssistButtonText = 'Power Assist ON';
   }
 
   async onMotorInfo(args: any) {
-      console.log('onMotorInfo event');
-	  this.motorOn = this._smartDrive.driving;
+    console.log('onMotorInfo event');
+    this.motorOn = this._smartDrive.driving;
   }
 
   async onDistance(args: any) {
@@ -186,7 +188,7 @@ export class HelloWorldModel extends Observable {
       this._smartDrive.driveDistance
     );
 
-    logBreadCrumb(
+    this._sentryService.logBreadCrumb(
       `Updated SD: ${this._smartDrive.address} -- SD_DISTANCE_CASE: ${
         this._smartDrive.coastDistance
       }, SD_DISTANCE_DRIVE: ${this._smartDrive.driveDistance}`
@@ -208,12 +210,15 @@ export class HelloWorldModel extends Observable {
     appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
 
     // log breadcrumb
-    logBreadCrumb(
-      `Updated SD: ${this._smartDrive.address} -- MCU: ${
-        this._smartDrive.mcu_version
-      }, BLE: ${this._smartDrive.ble_version}, Battery: ${
-        this._smartDrive.battery
-      }`
+    throttle(
+      10000,
+      this._sentryService.logBreadCrumb(
+        `Updated SD: ${this._smartDrive.address} -- MCU: ${
+          this._smartDrive.mcu_version
+        }, BLE: ${this._smartDrive.ble_version}, Battery: ${
+          this._smartDrive.battery
+        }`
+      )
     );
   }
 
@@ -282,8 +287,8 @@ export class HelloWorldModel extends Observable {
 
             // now connect to smart drive
             this._smartDrive.connect();
-              this.connected = true;
-			  this.powerAssistVisibility = 'visible';
+            this.connected = true;
+            this.powerAssistVisibility = 'visible';
             new Toasty(`Connecting to ${result}`)
               .setToastPosition(ToastPosition.CENTER)
               .show();
@@ -314,7 +319,7 @@ export class HelloWorldModel extends Observable {
       );
       this._smartDrive.disconnect().then(() => {
         this.connected = false;
-		  this.powerAssistVisibility = 'collapse';
+        this.powerAssistVisibility = 'collapse';
         new Toasty(`Disconnected from ${this._smartDrive.address}`)
           .setToastPosition(ToastPosition.CENTER)
           .show();
@@ -350,7 +355,7 @@ export class HelloWorldModel extends Observable {
             this.heartRateLabelText = `HR: ${this.heartRate}`;
 
             // log the recorded heart rate as a breadcrumb
-            logBreadCrumb(
+            this._sentryService.logBreadCrumb(
               `testing breadcrumb, heartRate: ${this.heartRate}`,
               LoggingCategory.Info
             );

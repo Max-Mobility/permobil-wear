@@ -112,8 +112,8 @@ package-lock.json
 /**/platforms/
 
 # Dont exclude
-!app/typings
+!apps/smartdrive-app/app/typings
 !nativescript-bluetooth/base64.js
-!app/core/packet/packet_bindings.js
-!webpack.config.js
+!libs/core/packet/packet_bindings.js
+!**/webpack.config.js
 !sketch_running_on_nrf52_neopixel.js

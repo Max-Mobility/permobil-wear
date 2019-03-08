@@ -1,9 +1,9 @@
 import * as timer from 'tns-core-modules/timer/timer';
 import { BluetoothService } from '../services/bluetooth.service';
 import { DeviceBase } from './device-base';
-import { SD_OTA_State } from './enums';
-import { ISmartDriveEvents } from './interfaces';
-import { bindingTypeToString, Packet } from './packet';
+import { SD_OTA_State } from '../enums';
+import { ISmartDriveEvents } from '../interfaces';
+import { bindingTypeToString, Packet } from '../packet';
 
 export class SmartDrive extends DeviceBase {
   // STATIC:
@@ -54,8 +54,8 @@ export class SmartDrive extends DeviceBase {
   public otaState: SD_OTA_State = SD_OTA_State.not_started;
   public bleOTAProgress: number = 0;
   public mcuOTAProgress: number = 0;
-	public notifying: boolean = false;
-	public driving: boolean = false;
+  public notifying: boolean = false;
+  public driving: boolean = false;
 
   // private members
   private doBLEUpdate: boolean = false;
@@ -1126,15 +1126,15 @@ export class SmartDrive extends DeviceBase {
            }            motorInfo;
         */
     this.mcu_version = motorInfo.version;
-      this.battery = motorInfo.batteryLevel;
-	  this.driving = (motorInfo.state == 1);
+    this.battery = motorInfo.batteryLevel;
+    this.driving = motorInfo.state === 1;
     // TODO: send version event (for MCU_VERSION) to subscribers
     this.sendEvent(SmartDrive.smartdrive_mcu_version_event, {
       mcu: this.mcu_version
     });
-	  this.sendEvent(SmartDrive.smartdrive_motor_info_event, {
-		  motorInfo: motorInfo
-	  });
+    this.sendEvent(SmartDrive.smartdrive_motor_info_event, {
+      motorInfo: motorInfo
+    });
     // so they get updated about this smartDrive's version
   }
 

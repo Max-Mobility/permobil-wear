@@ -1,11 +1,9 @@
-﻿import './core/async-await';
+﻿import './utils/async-await';
 import * as application from 'tns-core-modules/application';
 import { Kinvey } from 'kinvey-nativescript-sdk';
 import { Sentry } from 'nativescript-sentry';
-import { APP_KEY, APP_SECRET } from './core/kinvey-keys';
+import { APP_KEY, APP_SECRET, SERVICES, SentryService } from '@permobil/core';
 import { ReflectiveInjector } from 'injection-js';
-import { SERVICES } from './services';
-import { logError } from './core';
 
 // initialize Kinvey
 Kinvey.init({ appKey: `${APP_KEY}`, appSecret: `${APP_SECRET}` });
@@ -17,12 +15,20 @@ Sentry.init(
 
 // setup injection-js for dependency injection of services
 export const injector = ReflectiveInjector.resolveAndCreate([...SERVICES]);
+const sentryService: SentryService = injector.get(SentryService);
 
 // setup application level events
 application.on(
   application.uncaughtErrorEvent,
   (args: application.UnhandledErrorEventData) => {
-    logError(args.error);
+    sentryService.logError(args.error);
+  }
+);
+
+application.on(
+  application.discardedErrorEvent,
+  (args: application.DiscardedErrorEventData) => {
+    sentryService.logError(args.error);
   }
 );
 

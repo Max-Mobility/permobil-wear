@@ -9,7 +9,7 @@ dependencies {
 android {  
   defaultConfig {  
     generatedDensities = []
-    applicationId = "com.permobil.watch"  
+    applicationId = "com.permobil.smartdrive.wearos"  
   }  
   aaptOptions {  
     additionalParameters "--no-version-vectors"  
