@@ -113,6 +113,7 @@ package-lock.json
 
 # Dont exclude
 !apps/smartdrive-app/app/typings
+!apps/smartdrive-app/tools/android-release.js
 !nativescript-bluetooth/base64.js
 !libs/core/packet/packet_bindings.js
 !**/webpack.config.js
