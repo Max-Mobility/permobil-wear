@@ -99,6 +99,7 @@ Thumbs.db
 *.jks
 *.apk
 *.ipa
+*.aab
 
 # Project excludes
 platforms
