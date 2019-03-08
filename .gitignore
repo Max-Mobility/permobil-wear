@@ -96,6 +96,7 @@ Thumbs.db
 
 # keystore, certs, executables
 *.keystore
+*.jks
 *.apk
 *.ipa
 
