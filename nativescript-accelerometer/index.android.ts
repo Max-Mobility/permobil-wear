@@ -103,6 +103,10 @@ export function startAccelerometerUpdates(
     }
   }
 
+  if (!accelerometerSensor && !gravitySensor && !rotationSensor) {
+    throw Error('Could not get reasonable sensor for accelerometer updates.');
+  }
+
   sensorListener = new android.hardware.SensorEventListener({
     onAccuracyChanged: (sensor, accuracy) => {},
     onSensorChanged: event => {
