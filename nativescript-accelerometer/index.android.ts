@@ -56,27 +56,46 @@ export function startAccelerometerUpdates(
     }
   }
 
-  if (!accelerometerSensor) {
+  // which sensors do we have
+  const sensorList = sensorManager.getSensorList(
+    android.hardware.Sensor.TYPE_ALL
+  );
+  let hasAccel = false;
+  let hasGravity = false;
+  let hasCompass = false;
+  let hasRotation = false;
+  for (let i = 0; i < sensorList.size(); i++) {
+    let s = sensorList.get(i);
+    if (s.getType() == android.hardware.Sensor.TYPE_LINEAR_ACCELERATION)
+      hasAccel = true;
+    if (s.getType() == android.hardware.Sensor.TYPE_GRAVITY) hasGravity = true;
+    if (s.getType() == android.hardware.Sensor.TYPE_MAGNETIC_FIELD)
+      hasCompass = true;
+    if (s.getType() == android.hardware.Sensor.TYPE_ROTATION_VECTOR)
+      hasRotation = true;
+  }
+
+  if (!accelerometerSensor && hasAccel) {
     accelerometerSensor = getAccelerometer(sensorManager);
     if (!accelerometerSensor) {
       throw Error('Could not get accelerometer sensor.');
     }
   }
-  if (!compassSensor) {
+  if (!compassSensor && hasCompass) {
     compassSensor = getCompass(sensorManager);
 
     if (!compassSensor) {
       throw Error('Could not get compass sensor.');
     }
   }
-  if (!gravitySensor) {
+  if (!gravitySensor && hasGravity) {
     gravitySensor = getGravity(sensorManager);
 
     if (!gravitySensor) {
       throw Error('Could not get gravity sensor.');
     }
   }
-  if (!rotationSensor) {
+  if (!rotationSensor && hasRotation) {
     rotationSensor = getRotationVector(sensorManager);
 
     if (!rotationSensor) {
@@ -123,14 +142,18 @@ export function startAccelerometerUpdates(
   });
 
   const nativeDelay = getNativeDelay(options);
-  sensorManager.registerListener(
-    sensorListener,
-    accelerometerSensor,
-    nativeDelay
-  );
-  sensorManager.registerListener(sensorListener, compassSensor, nativeDelay);
-  sensorManager.registerListener(sensorListener, gravitySensor, nativeDelay);
-  sensorManager.registerListener(sensorListener, rotationSensor, nativeDelay);
+  if (accelerometerSensor)
+    sensorManager.registerListener(
+      sensorListener,
+      accelerometerSensor,
+      nativeDelay
+    );
+  if (compassSensor)
+    sensorManager.registerListener(sensorListener, compassSensor, nativeDelay);
+  if (gravitySensor)
+    sensorManager.registerListener(sensorListener, gravitySensor, nativeDelay);
+  if (rotationSensor)
+    sensorManager.registerListener(sensorListener, rotationSensor, nativeDelay);
 }
 
 function getAccelerometer(sensorManager) {
@@ -154,6 +177,24 @@ function getRotationVector(sensorManager) {
     android.hardware.Sensor.TYPE_ROTATION_VECTOR
   );
 }
+
+function getGyroscope(sensorManager) {
+  return sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_GYROSCOPE);
+}
+
+/*
+function getStationarySensor(sensorManager) {
+	return sensorManager.getDefaultSensor(
+		android.hardware.Sensor.TYPE_STATIONARY_DETECT
+	);
+}
+
+function getSignificantMotionSensor(sensorManager) {
+	return sensorManager.getDefaultSensor(
+		android.hardware.Sensor.TYPE_SIGNIFICANT_MOTION
+	);
+}
+*/
 
 export function stopAccelerometerUpdates() {
   if (!sensorListener) {
