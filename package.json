@@ -8,7 +8,7 @@
     "ns.setup": "npm uninstall -g nativescript && npm install -g nativescript",
     "nuke": "npm run clean.all",
     "nuki": "npm run nuke && npm run setup",
-    "setup": "npm i -g rimraf && npm run nuke && npm i && npm run setup.ns.accelerometer && npm run setup.ns.bluetooth && npm run setup.libs && npm run setup.smartdrive.app",
+    "setup": "npm run nuke && npm i && npm run setup.ns.accelerometer && npm run setup.ns.bluetooth && npm run setup.libs && npm run setup.smartdrive.app",
     "setup.ns.accelerometer": "cd nativescript-accelerometer && npm i",
     "setup.ns.bluetooth": "cd nativescript-bluetooth && npm i",
     "setup.smartdrive.app": "cd apps/smartdrive-app && npm i",
