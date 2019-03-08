@@ -9,7 +9,11 @@ dependencies {
 android {  
   defaultConfig {  
     generatedDensities = []
-    applicationId = "com.permobil.smartdrive.wearos"  
+    applicationId = "com.permobil.smartdrive.wearos"
+    minSdkVersion 23
+    targetSdkVersion 28
+    versionCode 2
+    versionName "0.1.0"
   }  
   aaptOptions {  
     additionalParameters "--no-version-vectors"  
