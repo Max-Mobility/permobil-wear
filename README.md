@@ -10,6 +10,12 @@ under the `@permobil/core` package.
 **Prerequisite:** Have node and NativeScript setup on the development machine.
 Setup [docs HERE](https://docs.nativescript.org/start/quick-setup).
 
+After you have installed node, you will need to install [rimraf](https://www.npmjs.com/package/rimraf):
+
+```bash
+sudo npm i -g rimraf
+```
+
 Once the development machine is configured for android/nativescript development.
 You can clone and setup the repo and run the SmartDrive WearOS app with the following commands (copy and paste into terminal and 🏎):
 
