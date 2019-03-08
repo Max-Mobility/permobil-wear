@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Permobil</string>
-    <string name="title_activity_kimera">Permobil</string>
+    <string name="app_name">SmartDrive</string>
+    <string name="title_activity_kimera">SmartDrive</string>
     <string name="complications_provider_service_label">Complication Provider Service</string>
 </resources>
