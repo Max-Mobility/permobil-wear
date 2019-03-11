@@ -10,9 +10,9 @@ android {
   defaultConfig {  
     generatedDensities = []
     applicationId = "com.permobil.smartdrive.wearos"
-    minSdkVersion 23
+    minSdkVersion 25 // WearOS 2.0 minimum SDK is 25 - https://developer.android.com/training/wearables/apps/packaging.html
     targetSdkVersion 28
-    versionCode 2
+    versionCode 3
     versionName "0.1.0"
   }  
   aaptOptions {  
