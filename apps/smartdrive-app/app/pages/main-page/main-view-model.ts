@@ -21,7 +21,11 @@ import { AnimationCurve } from 'tns-core-modules/ui/enums';
 import { Page, topmost } from 'tns-core-modules/ui/frame';
 import { Image } from 'tns-core-modules/ui/image';
 import { injector } from '../../app';
-import { hideOffScreenLayout, showOffScreenLayout } from '../../utils';
+import {
+  hideOffScreenLayout,
+  promptUserForSpeech,
+  showOffScreenLayout
+} from '../../utils';
 
 const THRESHOLD = 0.9; // change this threshold as you want, higher is more spike movement
 
@@ -473,6 +477,16 @@ export class MainViewModel extends Observable {
   onSettingsTap() {
     showOffScreenLayout(this._settingsLayout);
     this.isSettingsLayoutEnabled = true;
+  }
+
+  onVoiceInputTap() {
+    promptUserForSpeech()
+      .then(result => {
+        console.log('result from speech', result);
+      })
+      .catch(error => {
+        console.log('speech error', error);
+      });
   }
 
   private _animateHeartIcon() {
