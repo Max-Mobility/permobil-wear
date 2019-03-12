@@ -4,10 +4,10 @@
     xmlns:lv="nativescript-wear-os/packages/listview" 
     xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" navigatingTo="navigatingTo" actionBarHidden="true">
 
-    <GridLayout rows="*" columns="*">
+    <GridLayout rows="*, *" columns="*">
 
         // Main Home Page Layout
-        <wol:WearOsLayout loaded="{{ onMainLayoutLoaded }}" height="100%" width="100%" row="0" col="0">
+        <wol:WearOsLayout loaded="{{ onMainLayoutLoaded }}" height="100%" width="100%" row="0" rowSpan="2" col="0">
 
             <StackLayout row="0" col="0">
                 // Permobil Logo
@@ -46,18 +46,20 @@
         </wol:WearOsLayout>
 
         // Settings Layout "Page"
-        <sdl:SwipeDismissLayout row="0" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" row="0" col="0">
+        <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
             <wol:WearOsLayout>
                 <Label text="Swipe to close." color="yellow" fontSize="25" textWrap="true" />
             </wol:WearOsLayout>
         </sdl:SwipeDismissLayout>
 
+
+        <!-->
         // Settings Layout "Page"
         <sdl:SwipeDismissLayout row="0" col="0" loaded="{{ onUpdateLayoutLoaded }}" class="page" translateX="850" row="0" col="0">
             <wol:WearOsLayout>
                 <Label text="Swipe to close." color="yellow" fontSize="25" textWrap="true" />
             </wol:WearOsLayout>
-        </sdl:SwipeDismissLayout>
+        </sdl:SwipeDismissLayout> -->
 
     </GridLayout>
 
