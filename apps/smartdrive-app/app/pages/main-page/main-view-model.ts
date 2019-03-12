@@ -34,6 +34,12 @@ export class MainViewModel extends Observable {
   heartRate: string;
 
   /**
+   * The heart rate accuracy for monitoring.
+   */
+  @Prop()
+  heartRateAccuracy = 0;
+
+  /**
    * Button text for starting/stopping accelerometer.
    */
   @Prop()
@@ -79,7 +85,6 @@ export class MainViewModel extends Observable {
   private _page: Page;
   private _smartDrive: SmartDrive;
   private _motionDetectedLottie: LottieView;
-  private _heartRateLottie: LottieView;
 
   private _settingsLayout: SwipeDismissLayout;
   private _mainviewLayout: WearOsLayout;
@@ -348,11 +353,38 @@ export class MainViewModel extends Observable {
 
       if (!this._heartrateListener) {
         this._heartrateListener = new android.hardware.SensorEventListener({
-          onAccuracyChanged: (sensor, accuracy) => {},
+          onAccuracyChanged: (sensor, accuracy) => {
+            this.heartRateAccuracy = accuracy;
+            this._sentryService.logBreadCrumb(
+              `testing breadcrumb, heart rate accuracy: ${
+                this.heartRateAccuracy
+              }`,
+              LoggingCategory.Info
+            );
+          },
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
-            this.heartRateLabelText = `HR: ${this.heartRate}`;
+            let accStr = 'Unknown';
+            switch (this.heartRateAccuracy) {
+              case 0:
+                accStr = 'Unreliable';
+                break;
+              case 1:
+                accStr = 'Low';
+                break;
+              case 2:
+                accStr = 'Medium';
+                break;
+              case 3:
+                accStr = 'High';
+                break;
+              case 0xffffffff:
+              case -1:
+                accStr = 'No Contact';
+                break;
+            }
+            this.heartRateLabelText = `HR: ${this.heartRate}, ACC: ${accStr}`;
 
             // log the recorded heart rate as a breadcrumb
             this._sentryService.logBreadCrumb(
@@ -400,9 +432,14 @@ export class MainViewModel extends Observable {
       if (didRegListener) {
         this.isGettingHeartRate = true;
         this.heartRateLabelText = 'Reading Heart Rate';
-        this._heartRateLottie.autoPlay = true;
-        this._heartRateLottie.playAnimation();
         this._animateHeartIcon();
+        // don't read heart rate for more than one minute at a time
+        setTimeout(() => {
+          if (this.isGettingHeartRate) {
+            console.log('timer cancelling heart rate');
+            this.startHeartRate();
+          }
+        }, 60000);
 
         console.log('Registered heart rate sensor listener');
       } else {
