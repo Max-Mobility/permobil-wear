@@ -1,28 +1,27 @@
+import {
+  BluetoothService,
+  DataKeys,
+  LoggingCategory,
+  Prop,
+  SentryService,
+  SmartDrive,
+  throttle
+} from '@permobil/core';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
-import { Bluetooth } from 'nativescript-bluetooth';
 import { LottieView } from 'nativescript-lottie';
 import * as permissions from 'nativescript-permissions';
-import { Toasty, ToastPosition, ToastDuration } from 'nativescript-toasty';
+import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
+import { SwipeDismissLayout, WearOsLayout } from 'nativescript-wear-os';
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
-import { SwipeDismissLayout, WearOsLayout } from 'nativescript-wear-os';
-import { alert, action } from 'tns-core-modules/ui/dialogs';
+import { action, alert } from 'tns-core-modules/ui/dialogs';
 import { AnimationCurve } from 'tns-core-modules/ui/enums';
 import { Page, topmost } from 'tns-core-modules/ui/frame';
 import { Image } from 'tns-core-modules/ui/image';
-import {
-  DataKeys,
-  SmartDrive,
-  BluetoothService,
-  SentryService,
-  LoggingCategory,
-  Prop,
-  throttle
-} from '@permobil/core';
-import { hideOffScreenLayout, showOffScreenLayout } from '../../utils';
 import { injector } from '../../app';
+import { hideOffScreenLayout, showOffScreenLayout } from '../../utils';
 
 const THRESHOLD = 0.9; // change this threshold as you want, higher is more spike movement
 
@@ -70,6 +69,12 @@ export class MainViewModel extends Observable {
 
   @Prop()
   public motorOn = false;
+
+  /**
+   * Boolean to track the settings swipe layout visibility.
+   */
+  @Prop()
+  public isSettingsLayoutEnabled = false;
 
   /**
    * Boolean to track if accelerometer is already registered listener events.
@@ -348,7 +353,9 @@ export class MainViewModel extends Observable {
 
       if (!this._heartrateListener) {
         this._heartrateListener = new android.hardware.SensorEventListener({
-          onAccuracyChanged: (sensor, accuracy) => {},
+          onAccuracyChanged: (sensor, accuracy) => {
+            console.log(sensor, accuracy);
+          },
           onSensorChanged: event => {
             console.log(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
@@ -424,11 +431,13 @@ export class MainViewModel extends Observable {
       console.log('dimissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
+      this.isSettingsLayoutEnabled = false;
     });
   }
 
   onSettingsTap() {
     showOffScreenLayout(this._settingsLayout);
+    this.isSettingsLayoutEnabled = true;
   }
 
   private _animateHeartIcon() {
