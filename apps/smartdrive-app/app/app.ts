@@ -1,9 +1,9 @@
-﻿import './utils/async-await';
-import * as application from 'tns-core-modules/application';
+﻿import { APP_KEY, APP_SECRET, SentryService, SERVICES } from '@permobil/core';
+import { ReflectiveInjector } from 'injection-js';
 import { Kinvey } from 'kinvey-nativescript-sdk';
 import { Sentry } from 'nativescript-sentry';
-import { APP_KEY, APP_SECRET, SERVICES, SentryService } from '@permobil/core';
-import { ReflectiveInjector } from 'injection-js';
+import * as application from 'tns-core-modules/application';
+import './utils/async-await';
 
 // initialize Kinvey
 Kinvey.init({ appKey: `${APP_KEY}`, appSecret: `${APP_SECRET}` });
@@ -31,6 +31,31 @@ application.on(
     sentryService.logError(args.error);
   }
 );
+
+application.on(application.launchEvent, args => {
+  console.log('app launch event');
+});
+
+application.on(application.displayedEvent, args => {
+  // console.log('app displayed event');
+  // this fires often, especially during swiping to close, just FYI to avoid cluttering logs
+});
+
+application.on(application.suspendEvent, args => {
+  console.log('app suspend event');
+});
+
+application.on(application.exitEvent, args => {
+  console.log('app exit event');
+});
+application.on(application.lowMemoryEvent, args => {
+  console.log('app low memory event');
+});
+
+application.on(application.resumeEvent, args => {
+  const processId = android.os.Process.myPid();
+  console.log(`-- app resume event -- process ID: ${processId}`);
+});
 
 // start the app
 application.run({ moduleName: 'app-root' });
