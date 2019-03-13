@@ -49,6 +49,7 @@
         <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
             <wol:WearOsLayout>
                 <Label text="Swipe to close." color="yellow" fontSize="25" textWrap="true" />
+                <Button text="Speech Test" tap="{{ onVoiceInputTap }}" class="btn btn-primary" />
             </wol:WearOsLayout>
         </sdl:SwipeDismissLayout>
 
