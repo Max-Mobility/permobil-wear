@@ -2,5 +2,5 @@
 <resources>
     <string name="app_name">SmartDrive</string>
     <string name="title_activity_kimera">SmartDrive</string>
-    <string name="complications_provider_service_label">Complication Provider Service</string>
+    <string name="complications_provider_service_label">SmartDrive Data</string>
 </resources>

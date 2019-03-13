@@ -4,10 +4,10 @@ import {
   KEYS
 } from './complication_tap_broadcast_receiver';
 
-@JavaProxy('com.permobil.CustomComplicationProviderService')
-export class CustomComplicationProviderService extends android.support.wearable
+@JavaProxy('com.permobil.ComplicationProviderService')
+export class ComplicationProviderService extends android.support.wearable
   .complications.ComplicationProviderService {
-  private _broadcastReceiver: ComplicationTapBroadcastReceiver;
+  // private _broadcastReceiver: ComplicationTapBroadcastReceiver;
   constructor() {
     super();
     return global.__native(this);
@@ -26,7 +26,7 @@ export class CustomComplicationProviderService extends android.support.wearable
     complicationManager: android.support.wearable.complications.ComplicationManager
   ): void {
     console.log(
-      'CustomComplicationProviderService',
+      'ComplicationProviderService',
       `onComplicationActivated(): complicationId ${complicationId}`
     );
   }
@@ -48,7 +48,7 @@ export class CustomComplicationProviderService extends android.support.wearable
     complicationManager: android.support.wearable.complications.ComplicationManager
   ): void {
     console.log(
-      'CustomComplicationProviderService',
+      'ComplicationProviderService',
       `onComplicationUpdate() complicationId: ${complicationId}`
     );
 
@@ -57,10 +57,9 @@ export class CustomComplicationProviderService extends android.support.wearable
     // }
 
     // Used to create a unique key to use with SharedPreferences for this complication.
-    console.log('CONTEXT', this);
     const thisProvider = new android.content.ComponentName(
       this as any,
-      java.lang.Class.forName('com.permobil.CustomComplicationProviderService')
+      java.lang.Class.forName('com.permobil.ComplicationProviderService')
     );
 
     // We pass the complication id, so we can only update the specific complication tapped.
@@ -131,7 +130,7 @@ export class CustomComplicationProviderService extends android.support.wearable
         break;
       default:
         console.log(
-          'CustomComplicationProviderService',
+          'ComplicationProviderService',
           'Unexpected complication type ' + dataType
         );
     }
@@ -154,7 +153,7 @@ export class CustomComplicationProviderService extends android.support.wearable
    */
   onComplicationDeactivated(complicationId: number): void {
     console.log(
-      'CustomComplicationProviderService',
+      'ComplicationProviderService',
       'onComplicationDeactivated(): ' + complicationId
     );
   }
@@ -170,7 +169,7 @@ export class CustomComplicationProviderService extends android.support.wearable
   ): android.app.PendingIntent {
     const intent = new android.content.Intent(
       context,
-      ComplicationTapBroadcastReceiver.class
+      ComplicationProviderService.class
     );
     intent.putExtra(KEYS.EXTRA_PROVIDER_COMPONENT, provider);
     intent.putExtra(KEYS.EXTRA_COMPLICATION_ID, complicationId);
