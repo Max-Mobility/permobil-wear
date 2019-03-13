@@ -39,6 +39,11 @@ module.exports = env => {
     resolve(
       __dirname,
       'node_modules/nativescript-bluetooth/android/TNS_ScanCallback.js'
+    ),
+    resolve(__dirname, 'app/complications/complication_provider_service.js'),
+    resolve(
+      __dirname,
+      'app/complications/complication_tap_broadcast_receiver.js'
     )
   ];
 
