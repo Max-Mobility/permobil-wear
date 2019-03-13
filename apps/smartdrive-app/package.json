@@ -32,7 +32,6 @@
     "nativescript-wear-os": "../../node_modules/nativescript-wear-os",
     "@permobil/core": "file:../../libs/core",
     "reflect-metadata": "../../node_modules/reflect-metadata",
-    "smart-eval-kinvey": "file:../../node_modules/smart-eval-kinvey",
     "tns-core-modules": "../../node_modules/tns-core-modules"
   },
   "devDependencies": {

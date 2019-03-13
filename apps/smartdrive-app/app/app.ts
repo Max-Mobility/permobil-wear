@@ -1,4 +1,4 @@
-﻿import { APP_KEY, APP_SECRET, SentryService, SERVICES } from '@permobil/core';
+﻿import { SentryService, SERVICES } from '@permobil/core';
 import { ReflectiveInjector } from 'injection-js';
 import { Kinvey } from 'kinvey-nativescript-sdk';
 import { Sentry } from 'nativescript-sentry';
@@ -6,7 +6,7 @@ import * as application from 'tns-core-modules/application';
 import './utils/async-await';
 
 // initialize Kinvey
-Kinvey.init({ appKey: `${APP_KEY}`, appSecret: `${APP_SECRET}` });
+// Kinvey.init({ appKey: `${APP_KEY}`, appSecret: `${APP_SECRET}` });
 
 // init sentry - DNS key for permobil-wear Sentry project
 Sentry.init(

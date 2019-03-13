@@ -49,7 +49,6 @@
     "nativescript-ui-chart": "~3.11.1",
     "nativescript-wear-os": "~0.1.42",
     "reflect-metadata": "~0.1.13",
-    "smart-eval-kinvey": "git+https://github.com/autochair/SmartEvalKinvey.git#master",
     "tns-core-modules": "~5.2.2"
   },
   "devDependencies": {
