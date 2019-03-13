@@ -8,7 +8,7 @@ export function navigatingTo(args: EventData) {
   const page = args.object as Page;
   page.bindingContext = new MainViewModel(page);
 
-  Kinvey.ping().then(() => {
-    console.log('kinvey active');
-  });
+  // Kinvey.ping().then(() => {
+  //   console.log('kinvey active');
+  // });
 }
