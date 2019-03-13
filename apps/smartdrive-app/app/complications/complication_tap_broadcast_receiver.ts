@@ -1,5 +1,8 @@
+/// <reference path="../../node_modules/tns-platform-declarations/android-25.d.ts" />
+
 import * as appSettings from 'tns-core-modules/application-settings';
-import { ComplicationProviderService } from './complication_provider_service';
+import { KEYS, getPreferenceKey } from './index';
+// import { ComplicationProviderService } from './complication_provider_service';
 
 /**
  * Simple {@link BroadcastReceiver} subclass for asynchronously incrementing an integer for any
@@ -9,7 +12,7 @@ import { ComplicationProviderService } from './complication_provider_service';
 @JavaProxy('com.permobil.ComplicationTapBroadcastReceiver')
 export class ComplicationTapBroadcastReceiver extends android.content
   .BroadcastReceiver {
-  private owner: WeakRef<ComplicationProviderService>;
+  private owner: WeakRef<any>;
 
   // public static EXTRA_PROVIDER_COMPONENT =
   //   'com.example.android.wearable.watchface.provider.action.PROVIDER_COMPONENT';
@@ -25,7 +28,8 @@ export class ComplicationTapBroadcastReceiver extends android.content
     return global.__native(this);
   }
 
-  onInit(owner: WeakRef<ComplicationProviderService>) {
+  // onInit(owner: WeakRef<ComplicationProviderService>) {
+  onInit(owner: WeakRef<any>) {
     this.owner = owner;
     console.log(
       `ComplicationTapBroadcastReceiver onInit ---- this.owner: ${this.owner}`
@@ -96,22 +100,4 @@ export class ComplicationTapBroadcastReceiver extends android.content
   //     android.app.PendingIntent.FLAG_UPDATE_CURRENT
   //   );
   // }
-}
-
-/**
- * Returns the key for the shared preference used to hold the current state of a given
- * complication.
- */
-export function getPreferenceKey(
-  provider: android.content.ComponentName,
-  complicationId: number
-): string {
-  return provider.getClassName() + complicationId;
-}
-
-export enum KEYS {
-  COMPLICATION_PROVIDER_PREFERENCES_FILE_KEY = 'com.example.android.wearable.watchface.COMPLICATION_PROVIDER_PREFERENCES_FILE_KEY',
-  EXTRA_COMPLICATION_ID = 'com.example.android.wearable.watchface.provider.action.COMPLICATION_ID',
-  EXTRA_PROVIDER_COMPONENT = 'com.example.android.wearable.watchface.provider.action.PROVIDER_COMPONENT',
-  MAX_NUMBER = 20
 }
