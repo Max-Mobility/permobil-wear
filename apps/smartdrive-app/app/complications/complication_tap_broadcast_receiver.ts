@@ -1,5 +1,5 @@
 import * as appSettings from 'tns-core-modules/application-settings';
-import { CustomComplicationProviderService } from './complication_provider_service';
+import { ComplicationProviderService } from './complication_provider_service';
 
 /**
  * Simple {@link BroadcastReceiver} subclass for asynchronously incrementing an integer for any
@@ -9,7 +9,7 @@ import { CustomComplicationProviderService } from './complication_provider_servi
 @JavaProxy('com.permobil.ComplicationTapBroadcastReceiver')
 export class ComplicationTapBroadcastReceiver extends android.content
   .BroadcastReceiver {
-  private owner: WeakRef<CustomComplicationProviderService>;
+  private owner: WeakRef<ComplicationProviderService>;
 
   // public static EXTRA_PROVIDER_COMPONENT =
   //   'com.example.android.wearable.watchface.provider.action.PROVIDER_COMPONENT';
@@ -25,7 +25,7 @@ export class ComplicationTapBroadcastReceiver extends android.content
     return global.__native(this);
   }
 
-  onInit(owner: WeakRef<CustomComplicationProviderService>) {
+  onInit(owner: WeakRef<ComplicationProviderService>) {
     this.owner = owner;
     console.log(
       `ComplicationTapBroadcastReceiver onInit ---- this.owner: ${this.owner}`
