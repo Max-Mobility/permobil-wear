@@ -180,11 +180,7 @@ export class MainViewModel extends Observable {
       this.connectToSavedSmartDrive().then(didConnect => {
         if (didConnect) {
           this._powerAssistActive = true;
-          try {
-            this.enableAccelerometer();
-          } catch (err) {
-            console.log('could not enable acc', err);
-          }
+          this.enableAccelerometer();
           this.powerAssistButtonText = 'Power Assist ON';
         }
       });
@@ -199,7 +195,11 @@ export class MainViewModel extends Observable {
         .stopMotor()
         .catch(err => console.log('could not stop motor', err));
     }
-    accelerometer.stopAccelerometerUpdates();
+    try {
+      accelerometer.stopAccelerometerUpdates();
+    } catch (err) {
+      console.log('could not disable accelerometer', err);
+    }
     this._isListeningAccelerometer = false;
     return;
   }
@@ -232,13 +232,17 @@ export class MainViewModel extends Observable {
 
   enableAccelerometer() {
     // console.log('enableAccelerometer');
-    accelerometer.startAccelerometerUpdates(
-      this.onAccelerometerData.bind(this),
-      { sensorDelay: 'game' }
-    );
+    try {
+      accelerometer.startAccelerometerUpdates(
+        this.onAccelerometerData.bind(this),
+        { sensorDelay: 'game' }
+      );
 
-    // set true so next tap doesn't try to register the listeners again
-    this._isListeningAccelerometer = true;
+      // set true so next tap doesn't try to register the listeners again
+      this._isListeningAccelerometer = true;
+    } catch (err) {
+      console.log('could not enable accelerometer', err);
+    }
   }
 
   async onMotorInfo(args: any) {
