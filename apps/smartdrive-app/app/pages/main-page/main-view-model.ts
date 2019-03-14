@@ -27,14 +27,18 @@ import {
   showOffScreenLayout
 } from '../../utils';
 
-const THRESHOLD = 0.9; // change this threshold as you want, higher is more spike movement
-
 export class MainViewModel extends Observable {
   /**
    * The heart rate data to render.
    */
   @Prop()
   heartRate: string;
+
+  /**
+   * The tap sensitivity threshold
+   */
+  @Prop()
+  tapSensitivity: number = 0.9;
 
   /**
    * The heart rate accuracy for monitoring.
@@ -113,6 +117,14 @@ export class MainViewModel extends Observable {
       this._savedSmartDriveAddress = savedSDAddr;
     }
 
+    // load tapSensitivity from settings / memory
+    let savedTapSensitivity = appSettings.getNumber(
+      DataKeys.SD_TAP_SENSITIVITY
+    );
+    if (savedTapSensitivity) {
+      this.tapSensitivity = savedTapSensitivity;
+    }
+
     console.log(
       { device },
       'Device Info: ',
@@ -125,6 +137,22 @@ export class MainViewModel extends Observable {
       device.language,
       device.uuid
     );
+  }
+
+  onIncreaseTapSensitivityTap() {
+    this.tapSensitivity =
+      this.tapSensitivity < 2.0 ? this.tapSensitivity + 0.1 : 2.0;
+    this.saveTapSensitivity();
+  }
+
+  onDecreaseTapSensitivityTap() {
+    this.tapSensitivity =
+      this.tapSensitivity > 0.5 ? this.tapSensitivity - 0.1 : 0.5;
+    this.saveTapSensitivity();
+  }
+
+  saveTapSensitivity() {
+    appSettings.setNumber(DataKeys.SD_TAP_SENSITIVITY, this.tapSensitivity);
   }
 
   togglePowerAssist() {
@@ -163,13 +191,13 @@ export class MainViewModel extends Observable {
           android.hardware.Sensor.TYPE_LINEAR_ACCELERATION
         ) {
           const z = accelerometerdata.z;
-
           let diff = z;
           if (this.motorOn) {
             diff = Math.abs(z);
           }
+          console.log('got acceleration', diff);
 
-          if (diff > THRESHOLD && !this.motionDetected) {
+          if (diff > this.tapSensitivity && !this.motionDetected) {
             console.log('Motion detected!', { diff });
             if (this._smartDrive && this._smartDrive.ableToSend) {
               console.log('Sending tap!');
