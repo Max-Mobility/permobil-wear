@@ -177,15 +177,22 @@ export class MainViewModel extends Observable {
       this.onDisconnectTap();
       this.powerAssistButtonText = 'Power Assist OFF';
     } else {
-      this.connectToSavedSmartDrive().then(() => {
-        this._powerAssistActive = true;
-        this.enableAccelerometer();
-        this.powerAssistButtonText = 'Power Assist ON';
+      this.connectToSavedSmartDrive().then(didConnect => {
+        if (didConnect) {
+          this._powerAssistActive = true;
+          try {
+            this.enableAccelerometer();
+          } catch (err) {
+            console.log('could not enable acc', err);
+          }
+          this.powerAssistButtonText = 'Power Assist ON';
+        }
       });
     }
   }
 
   disableAccelerometer() {
+    console.log('disableAccelerometer');
     if (this._smartDrive && this._smartDrive.ableToSend) {
       console.log('Turning off Motor!');
       this._smartDrive
@@ -198,6 +205,7 @@ export class MainViewModel extends Observable {
   }
 
   enableAccelerometer() {
+    console.log('enableAccelerometer');
     accelerometer.startAccelerometerUpdates(
       accelerometerdata => {
         // only showing linear acceleration data for now
@@ -232,7 +240,6 @@ export class MainViewModel extends Observable {
 
     // set true so next tap doesn't try to register the listeners again
     this._isListeningAccelerometer = true;
-    this.powerAssistButtonText = 'Power Assist ON';
   }
 
   async onMotorInfo(args: any) {
