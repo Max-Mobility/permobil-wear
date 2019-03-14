@@ -118,13 +118,13 @@ export class MainViewModel extends Observable {
     this._page = page;
 
     // load savedSmartDriveAddress from settings / memory
-    let savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
+    const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
     if (savedSDAddr && savedSDAddr.length) {
       this._savedSmartDriveAddress = savedSDAddr;
     }
 
     // load tapSensitivity from settings / memory
-    let savedTapSensitivity = appSettings.getNumber(
+    const savedTapSensitivity = appSettings.getNumber(
       DataKeys.SD_TAP_SENSITIVITY
     );
     if (savedTapSensitivity) {
@@ -192,7 +192,7 @@ export class MainViewModel extends Observable {
   }
 
   disableAccelerometer() {
-    //console.log('disableAccelerometer');
+    // console.log('disableAccelerometer');
     if (this._smartDrive && this._smartDrive.ableToSend) {
       console.log('Turning off Motor!');
       this._smartDrive
@@ -205,7 +205,7 @@ export class MainViewModel extends Observable {
   }
 
   onAccelerometerData(data) {
-    //console.log('onAccelerometerData');
+    // console.log('onAccelerometerData');
     // only showing linear acceleration data for now
     if (data.sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
       const z = data.z;
@@ -215,7 +215,7 @@ export class MainViewModel extends Observable {
       }
 
       if (diff > this.tapSensitivity && !this.motionDetected) {
-        //console.log('Motion detected!', { diff });
+        // console.log('Motion detected!', { diff });
         if (this._smartDrive && this._smartDrive.ableToSend) {
           console.log('Sending tap!');
           this._smartDrive
@@ -231,7 +231,7 @@ export class MainViewModel extends Observable {
   }
 
   enableAccelerometer() {
-    //console.log('enableAccelerometer');
+    // console.log('enableAccelerometer');
     accelerometer.startAccelerometerUpdates(
       this.onAccelerometerData.bind(this),
       { sensorDelay: 'game' }
@@ -242,12 +242,12 @@ export class MainViewModel extends Observable {
   }
 
   async onMotorInfo(args: any) {
-    //console.log('onMotorInfo event');
+    // console.log('onMotorInfo event');
     this.motorOn = this._smartDrive.driving;
   }
 
   async onDistance(args: any) {
-    //console.log('onDistance event');
+    // console.log('onDistance event');
 
     // save the updated distance
     appSettings.setNumber(
@@ -269,7 +269,7 @@ export class MainViewModel extends Observable {
   }
 
   async onSmartDriveVersion(args: any) {
-    //console.log('onSmartDriveVersion event');
+    // console.log('onSmartDriveVersion event');
 
     // save the updated SmartDrive data values
     appSettings.setNumber(
@@ -405,7 +405,7 @@ export class MainViewModel extends Observable {
 
     // try to connect to the SmartDrive
     let sd = BluetoothService.SmartDrives.filter(
-      sd => sd.address == this._savedSmartDriveAddress
+      sd => sd.address === this._savedSmartDriveAddress
     )[0];
     if (sd) {
       this.connectToSmartDrive(sd);
@@ -415,7 +415,7 @@ export class MainViewModel extends Observable {
         .scanForSmartDrives(3)
         .then(() => {
           sd = BluetoothService.SmartDrives.filter(
-            sd => sd.address == this._savedSmartDriveAddress
+            sd => sd.address === this._savedSmartDriveAddress
           )[0];
           if (sd) {
             new Toasty(`Could not find ${this._savedSmartDriveAddress}`)
