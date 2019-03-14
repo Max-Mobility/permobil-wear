@@ -192,7 +192,7 @@ export class MainViewModel extends Observable {
   }
 
   disableAccelerometer() {
-    console.log('disableAccelerometer');
+    //console.log('disableAccelerometer');
     if (this._smartDrive && this._smartDrive.ableToSend) {
       console.log('Turning off Motor!');
       this._smartDrive
@@ -204,37 +204,36 @@ export class MainViewModel extends Observable {
     return;
   }
 
-  enableAccelerometer() {
-    console.log('enableAccelerometer');
-    accelerometer.startAccelerometerUpdates(
-      accelerometerdata => {
-        // only showing linear acceleration data for now
-        if (
-          accelerometerdata.sensortype ===
-          android.hardware.Sensor.TYPE_LINEAR_ACCELERATION
-        ) {
-          const z = accelerometerdata.z;
-          let diff = z;
-          if (this.motorOn) {
-            diff = Math.abs(z);
-          }
-          console.log('got acceleration', diff);
+  onAccelerometerData(data) {
+    //console.log('onAccelerometerData');
+    // only showing linear acceleration data for now
+    if (data.sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
+      const z = data.z;
+      let diff = z;
+      if (this.motorOn) {
+        diff = Math.abs(z);
+      }
 
-          if (diff > this.tapSensitivity && !this.motionDetected) {
-            console.log('Motion detected!', { diff });
-            if (this._smartDrive && this._smartDrive.ableToSend) {
-              console.log('Sending tap!');
-              this._smartDrive
-                .sendTap()
-                .catch(err => console.log('could not send tap', err));
-            }
-            this.motionDetected = true;
-            setTimeout(() => {
-              this.motionDetected = false;
-            }, 300);
-          }
+      if (diff > this.tapSensitivity && !this.motionDetected) {
+        //console.log('Motion detected!', { diff });
+        if (this._smartDrive && this._smartDrive.ableToSend) {
+          console.log('Sending tap!');
+          this._smartDrive
+            .sendTap()
+            .catch(err => console.log('could not send tap', err));
         }
-      },
+        this.motionDetected = true;
+        setTimeout(() => {
+          this.motionDetected = false;
+        }, 300);
+      }
+    }
+  }
+
+  enableAccelerometer() {
+    //console.log('enableAccelerometer');
+    accelerometer.startAccelerometerUpdates(
+      this.onAccelerometerData.bind(this),
       { sensorDelay: 'game' }
     );
 
@@ -243,12 +242,12 @@ export class MainViewModel extends Observable {
   }
 
   async onMotorInfo(args: any) {
-    console.log('onMotorInfo event');
+    //console.log('onMotorInfo event');
     this.motorOn = this._smartDrive.driving;
   }
 
   async onDistance(args: any) {
-    console.log('onDistance event');
+    //console.log('onDistance event');
 
     // save the updated distance
     appSettings.setNumber(
@@ -270,7 +269,7 @@ export class MainViewModel extends Observable {
   }
 
   async onSmartDriveVersion(args: any) {
-    console.log('onSmartDriveVersion event');
+    //console.log('onSmartDriveVersion event');
 
     // save the updated SmartDrive data values
     appSettings.setNumber(
