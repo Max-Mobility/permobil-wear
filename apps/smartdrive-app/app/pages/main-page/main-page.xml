@@ -13,16 +13,16 @@
                 // Permobil Logo
                 <Image src="res://permobillogo" class="logo" stretch="aspectFit" />
 
-                // Scan for Smart Drives
-                <StackLayout orientation="horizontal" tap="{{ onScanForSmartDrivesTap }}">
-                    <Image src="res://sdstock" class="icon smartdrive" stretch="aspectFit" />
-                    <Label text="Smartdrives" class="label" textWrap="true" />
-                </StackLayout>
-
                 // Toggle SmartDrive Control
-                <StackLayout orientation="horizontal" tap="{{ toggleAccelerometer }}" visibility="visible">
+                <StackLayout orientation="horizontal" tap="{{ togglePowerAssist }}">
                     <Image src="res://sdstock" class="icon smartdrive" stretch="aspectFit" />
                     <Label text="{{ powerAssistButtonText }}" class="label" textWrap="true" />
+                </StackLayout>
+
+                // Scan for Smart Drives
+                <StackLayout orientation="horizontal" tap="{{ saveNewSmartDrive }}">
+                    <Image src="res://sdstock" class="icon smartdrive" stretch="aspectFit" />
+                    <Label text="Pairing" class="label" textWrap="true" />
                 </StackLayout>
 
                 // Read Heart Rate
@@ -48,7 +48,7 @@
         // Settings Layout "Page"
         <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
             <wol:WearOsLayout>
-                <Label text="Swipe to close." color="yellow" fontSize="25" textWrap="true" />
+                <Label text="SmartDrive Settings" color="white" fontSize="25" textWrap="true" />
                 <Button text="Speech Test" tap="{{ onVoiceInputTap }}" class="btn btn-primary" />
             </wol:WearOsLayout>
         </sdl:SwipeDismissLayout>
