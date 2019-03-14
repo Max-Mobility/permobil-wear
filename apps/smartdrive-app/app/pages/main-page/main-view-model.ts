@@ -41,6 +41,12 @@ export class MainViewModel extends Observable {
   tapSensitivity: number = 0.9;
 
   /**
+   * The tap sensitivity display
+   */
+  @Prop()
+  tapSensitivityText: string = 'Tap Sensitivity: 0.9 g';
+
+  /**
    * The heart rate accuracy for monitoring.
    */
   @Prop()
@@ -123,6 +129,9 @@ export class MainViewModel extends Observable {
     );
     if (savedTapSensitivity) {
       this.tapSensitivity = savedTapSensitivity;
+      this.tapSensitivityText = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
+        1
+      )} g`;
     }
 
     console.log(
@@ -142,12 +151,18 @@ export class MainViewModel extends Observable {
   onIncreaseTapSensitivityTap() {
     this.tapSensitivity =
       this.tapSensitivity < 2.0 ? this.tapSensitivity + 0.1 : 2.0;
+    this.tapSensitivityText = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
+      1
+    )} g`;
     this.saveTapSensitivity();
   }
 
   onDecreaseTapSensitivityTap() {
     this.tapSensitivity =
       this.tapSensitivity > 0.5 ? this.tapSensitivity - 0.1 : 0.5;
+    this.tapSensitivityText = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
+      1
+    )} g`;
     this.saveTapSensitivity();
   }
 
@@ -555,7 +570,6 @@ export class MainViewModel extends Observable {
       console.log({ error });
     }
   }
-
   onMainLayoutLoaded(args) {
     this._mainviewLayout = args.object as WearOsLayout;
   }
@@ -584,6 +598,14 @@ export class MainViewModel extends Observable {
       .catch(error => {
         console.log('speech error', error);
       });
+  }
+
+  onUpdatesTap() {
+    new Toasty(
+      'No updates available.',
+      ToastDuration.LONG,
+      ToastPosition.CENTER
+    ).show();
   }
 
   private _animateHeartIcon() {

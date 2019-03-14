@@ -36,7 +36,7 @@
                     <Label text="Settings" class="label" textWrap="true" />
                 </StackLayout>
 
-                <StackLayout orientation="horizontal">
+                <StackLayout orientation="horizontal" tap="{{ onUpdatesTap }}">
                     <Image src="res://updates" class="icon" stretch="aspectFit" />
                     <Label text="Updates" class="label" textWrap="true" />
                 </StackLayout>
@@ -49,13 +49,10 @@
         <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
             <wol:WearOsLayout>
                 <Label text="SmartDrive Settings" color="white" fontSize="25" textWrap="true" />
+                <Label text="{{ tapSensitivityText }}" color="white" fontSize="15" textWrap="true" />
 				<StackLayout orientation="horizontal">
-                  <Label text="Tap Sensitivity:" color="white" fontSize="15" textWrap="true" />
-                  <Label text="{{ tapSensitivity + ' g' }}" color="white" fontSize="15" textWrap="true" />
-				</StackLayout>
-				<StackLayout orientation="horizontal">
-                  <Button text="Increase" tap="{{ onIncreaseTapSensitivityTap }}" class="" />
-                  <Button text="Decrease" tap="{{ onDecreaseTapSensitivityTap }}" class="" />
+                  <Button width="50%" text="Increase" tap="{{ onIncreaseTapSensitivityTap }}" fontSize="10"/>
+                  <Button width="50%" text="Decrease" tap="{{ onDecreaseTapSensitivityTap }}" fontSize="10"/>
 				</StackLayout>
                 <Button text="Speech Test" tap="{{ onVoiceInputTap }}" class="btn btn-primary" />
             </wol:WearOsLayout>
