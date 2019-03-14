@@ -5,6 +5,7 @@
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
+	  "skipLibCheck": true,
     "sourceMap": false,
     "declaration": false,
     "noLib": false,
