@@ -1,9 +1,6 @@
-import { KEYS, getPreferenceKey } from './index';
-
 @JavaProxy('com.permobil.ComplicationProviderService')
 export class ComplicationProviderService extends android.support.wearable
   .complications.ComplicationProviderService {
-  // private _broadcastReceiver: ComplicationTapBroadcastReceiver;
   constructor() {
     super();
     return global.__native(this);
@@ -179,4 +176,22 @@ export class ComplicationProviderService extends android.support.wearable
       android.app.PendingIntent.FLAG_UPDATE_CURRENT
     );
   }
+}
+
+/**
+ * Returns the key for the shared preference used to hold the current state of a given
+ * complication.
+ */
+function getPreferenceKey(
+  provider: android.content.ComponentName,
+  complicationId: number
+): string {
+  return provider.getClassName() + complicationId;
+}
+
+enum KEYS {
+  COMPLICATION_PROVIDER_PREFERENCES_FILE_KEY = 'com.example.android.wearable.watchface.COMPLICATION_PROVIDER_PREFERENCES_FILE_KEY',
+  EXTRA_COMPLICATION_ID = 'com.example.android.wearable.watchface.provider.action.COMPLICATION_ID',
+  EXTRA_PROVIDER_COMPONENT = 'com.example.android.wearable.watchface.provider.action.PROVIDER_COMPONENT',
+  MAX_NUMBER = 20
 }
