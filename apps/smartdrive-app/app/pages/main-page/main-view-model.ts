@@ -11,7 +11,11 @@ import * as accelerometer from 'nativescript-accelerometer-advanced';
 import { LottieView } from 'nativescript-lottie';
 import * as permissions from 'nativescript-permissions';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
-import { SwipeDismissLayout, WearOsLayout } from 'nativescript-wear-os';
+import {
+  SwipeDismissLayout,
+  WearOsLayout,
+  WearOsListView
+} from 'nativescript-wear-os';
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
@@ -90,6 +94,50 @@ export class MainViewModel extends Observable {
   @Prop()
   public isSettingsLayoutEnabled = false;
 
+  @Prop()
+  public items = [
+    {
+      type: 'banner',
+      image: 'res://permobillogo',
+      class: 'logo'
+    },
+    {
+      type: 'button',
+      image: 'res://sdstock',
+      class: 'icon smartdrive',
+      text: this.powerAssistButtonText,
+      func: this.togglePowerAssist.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://sdstock',
+      class: 'icon smartdrive',
+      text: 'Pairing',
+      func: this.saveNewSmartDrive.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://favorite',
+      class: 'icon',
+      text: this.heartRateLabelText,
+      func: this.startHeartRate.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://settings',
+      class: 'icon',
+      text: 'Settings',
+      func: this.onSettingsTap.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://updates',
+      class: 'icon',
+      text: 'Updates',
+      func: this.onUpdatesTap.bind(this)
+    }
+  ];
+
   /**
    * Boolean to track if accelerometer is already registered listener events.
    */
@@ -100,7 +148,7 @@ export class MainViewModel extends Observable {
   private _motionDetectedLottie: LottieView;
 
   private _settingsLayout: SwipeDismissLayout;
-  private _mainviewLayout: WearOsLayout;
+  private _mainviewLayout: WearOsListView;
 
   private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
@@ -579,7 +627,7 @@ export class MainViewModel extends Observable {
     }
   }
   onMainLayoutLoaded(args) {
-    this._mainviewLayout = args.object as WearOsLayout;
+    this._mainviewLayout = args.object as WearOsListView;
   }
 
   onSettingsLayoutLoaded(args) {
