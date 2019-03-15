@@ -11,7 +11,11 @@ import * as accelerometer from 'nativescript-accelerometer-advanced';
 import { LottieView } from 'nativescript-lottie';
 import * as permissions from 'nativescript-permissions';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
-import { SwipeDismissLayout, WearOsLayout } from 'nativescript-wear-os';
+import {
+  SwipeDismissLayout,
+  WearOsLayout,
+  WearOsListView
+} from 'nativescript-wear-os';
 import {
   showConfirmationActivity,
   ConfirmationActivityType
@@ -19,6 +23,10 @@ import {
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
+import {
+  ObservableArray,
+  ChangedData
+} from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
 import { action, alert } from 'tns-core-modules/ui/dialogs';
 import { AnimationCurve } from 'tns-core-modules/ui/enums';
@@ -57,12 +65,6 @@ export class MainViewModel extends Observable {
   heartRateAccuracy = 0;
 
   /**
-   * Button text for starting/stopping accelerometer.
-   */
-  @Prop()
-  powerAssistButtonText = 'Power Assist OFF';
-
-  /**
    * Boolean to toggle when motion event detected to show animation in UI.
    */
   @Prop()
@@ -73,11 +75,6 @@ export class MainViewModel extends Observable {
    */
   @Prop()
   public isGettingHeartRate = false;
-
-  /**
-   * String value for the label text for starting/stopping heart rate sensor.
-   */
-  @Prop() public heartRateLabelText = 'Check Heart Rate';
 
   /**
    * Boolean to handle logic if we have connected to a SD unit.
@@ -94,6 +91,53 @@ export class MainViewModel extends Observable {
   @Prop()
   public isSettingsLayoutEnabled = false;
 
+  @Prop()
+  public items = new ObservableArray(
+    {
+      type: 'banner',
+      image: '~/assets/images/permobil-logo-transparent.png',
+      class: 'logo'
+    },
+    {
+      type: 'button',
+      image: 'res://sdstock',
+      class: 'icon smartdrive',
+      text: 'Power Assist OFF',
+      func: this.togglePowerAssist.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://sdstock',
+      class: 'icon smartdrive',
+      text: 'Pair a SmartDrive',
+      func: this.saveNewSmartDrive.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://favorite',
+      class: 'icon',
+      text: 'Read Heart Rate',
+      func: this.startHeartRate.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://settings',
+      class: 'icon',
+      text: 'Settings',
+      func: this.onSettingsTap.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://updates',
+      class: 'icon',
+      text: 'Updates',
+      func: this.onUpdatesTap.bind(this)
+    }
+  );
+
+  private _powerAssistButtonIndex = 1;
+  private _heartRateButtonIndex = 3;
+
   /**
    * Boolean to track if accelerometer is already registered listener events.
    */
@@ -104,7 +148,7 @@ export class MainViewModel extends Observable {
   private _motionDetectedLottie: LottieView;
 
   private _settingsLayout: SwipeDismissLayout;
-  private _mainviewLayout: WearOsLayout;
+  private _mainviewLayout: WearOsListView;
 
   private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
@@ -174,18 +218,30 @@ export class MainViewModel extends Observable {
     appSettings.setNumber(DataKeys.SD_TAP_SENSITIVITY, this.tapSensitivity);
   }
 
+  updatePowerAssistButtonText(newText: string) {
+    const item = this.items.getItem(this._powerAssistButtonIndex);
+    item.text = newText;
+    this.items.setItem(this._powerAssistButtonIndex, item);
+  }
+
+  updateHeartRateButtonText(newText: string) {
+    const item = this.items.getItem(this._heartRateButtonIndex);
+    item.text = newText;
+    this.items.setItem(this._heartRateButtonIndex, item);
+  }
+
   togglePowerAssist() {
     if (this._powerAssistActive) {
       this._powerAssistActive = false;
       this.disableAccelerometer();
       this.onDisconnectTap();
-      this.powerAssistButtonText = 'Power Assist OFF';
+      this.updatePowerAssistButtonText('Power Assist OFF');
     } else {
       this.connectToSavedSmartDrive().then(didConnect => {
         if (didConnect) {
           this._powerAssistActive = true;
           this.enableAccelerometer();
-          this.powerAssistButtonText = 'Power Assist ON';
+          this.updatePowerAssistButtonText('Power Assist ON');
         }
       });
     }
@@ -241,8 +297,6 @@ export class MainViewModel extends Observable {
         this.onAccelerometerData.bind(this),
         { sensorDelay: 'game' }
       );
-
-      // set true so next tap doesn't try to register the listeners again
       this._isListeningAccelerometer = true;
     } catch (err) {
       console.log('could not enable accelerometer', err);
@@ -534,7 +588,9 @@ export class MainViewModel extends Observable {
                 accStr = 'No Contact';
                 break;
             }
-            this.heartRateLabelText = `HR: ${this.heartRate}, ACC: ${accStr}`;
+            this.updateHeartRateButtonText(
+              `HR: ${this.heartRate}, ACC: ${accStr}`
+            );
 
             // log the recorded heart rate as a breadcrumb
             this._sentryService.logBreadCrumb(
@@ -554,7 +610,7 @@ export class MainViewModel extends Observable {
       // if already getting the HR, then turn off on this tap
       if (this.isGettingHeartRate === true) {
         this.isGettingHeartRate = false;
-        this.heartRateLabelText = 'Check Heart Rate';
+        this.updateHeartRateButtonText('Read Heart Rate');
         this._stopHeartAnimation();
         mSensorManager.unregisterListener(this._heartrateListener);
         return;
@@ -581,7 +637,7 @@ export class MainViewModel extends Observable {
 
       if (didRegListener) {
         this.isGettingHeartRate = true;
-        this.heartRateLabelText = 'Reading Heart Rate';
+        this.updateHeartRateButtonText('Reading Heart Rate');
         this._animateHeartIcon();
         // don't read heart rate for more than one minute at a time
         setTimeout(() => {
@@ -600,7 +656,7 @@ export class MainViewModel extends Observable {
     }
   }
   onMainLayoutLoaded(args) {
-    this._mainviewLayout = args.object as WearOsLayout;
+    this._mainviewLayout = args.object as WearOsListView;
   }
 
   onSettingsLayoutLoaded(args) {
