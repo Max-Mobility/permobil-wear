@@ -50,13 +50,15 @@ export class MainViewModel extends Observable {
    * The tap sensitivity threshold
    */
   @Prop()
-  tapSensitivity: number = 0.9;
+  tapSensitivity: number = 0.5;
 
   /**
    * The tap sensitivity display
    */
   @Prop()
-  tapSensitivityText: string = 'Tap Sensitivity: 0.9 g';
+  tapSensitivityText: string = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
+    2
+  )} g`;
 
   /**
    * The heart rate accuracy for monitoring.
@@ -107,8 +109,8 @@ export class MainViewModel extends Observable {
     },
     {
       type: 'button',
-      image: 'res://sdstock',
-      class: 'icon smartdrive',
+      image: 'res://bluetooth',
+      class: 'icon',
       text: 'Pair a SmartDrive',
       func: this.saveNewSmartDrive.bind(this)
     },
@@ -178,7 +180,7 @@ export class MainViewModel extends Observable {
     if (savedTapSensitivity) {
       this.tapSensitivity = savedTapSensitivity;
       this.tapSensitivityText = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
-        1
+        2
       )} g`;
     }
 
@@ -198,18 +200,18 @@ export class MainViewModel extends Observable {
 
   onIncreaseTapSensitivityTap() {
     this.tapSensitivity =
-      this.tapSensitivity < 2.0 ? this.tapSensitivity + 0.1 : 2.0;
+      this.tapSensitivity < 2.0 ? this.tapSensitivity + 0.05 : 2.0;
     this.tapSensitivityText = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
-      1
+      2
     )} g`;
     this.saveTapSensitivity();
   }
 
   onDecreaseTapSensitivityTap() {
     this.tapSensitivity =
-      this.tapSensitivity > 0.5 ? this.tapSensitivity - 0.1 : 0.5;
+      this.tapSensitivity > 0.1 ? this.tapSensitivity - 0.05 : 0.1;
     this.tapSensitivityText = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
-      1
+      2
     )} g`;
     this.saveTapSensitivity();
   }
@@ -233,9 +235,9 @@ export class MainViewModel extends Observable {
   togglePowerAssist() {
     if (this._powerAssistActive) {
       this._powerAssistActive = false;
+      this.updatePowerAssistButtonText('Power Assist OFF');
       this.disableAccelerometer();
       this.onDisconnectTap();
-      this.updatePowerAssistButtonText('Power Assist OFF');
     } else {
       this.connectToSavedSmartDrive().then(didConnect => {
         if (didConnect) {
@@ -274,18 +276,22 @@ export class MainViewModel extends Observable {
         diff = Math.abs(z);
       }
 
+      // console.log('checking', this.tapSensitivity, 'against', diff);
+
       if (diff > this.tapSensitivity && !this.motionDetected) {
         // console.log('Motion detected!', { diff });
+        // register motion detected and block out futher motion detection
+        this.motionDetected = true;
+        setTimeout(() => {
+          this.motionDetected = false;
+        }, 300);
+        // now send
         if (this._smartDrive && this._smartDrive.ableToSend) {
           console.log('Sending tap!');
           this._smartDrive
             .sendTap()
             .catch(err => console.log('could not send tap', err));
         }
-        this.motionDetected = true;
-        setTimeout(() => {
-          this.motionDetected = false;
-        }, 300);
       }
     }
   }
@@ -488,7 +494,7 @@ export class MainViewModel extends Observable {
           sd = BluetoothService.SmartDrives.filter(
             sd => sd.address === this._savedSmartDriveAddress
           )[0];
-          if (sd) {
+          if (!sd) {
             // new Toasty(`Could not find ${this._savedSmartDriveAddress}`)
             //   .setToastPosition(ToastPosition.CENTER)
             //   .show();
@@ -511,7 +517,7 @@ export class MainViewModel extends Observable {
   }
 
   async onDisconnectTap() {
-    if (this._smartDrive.connected) {
+    if (this._smartDrive && this._smartDrive.connected) {
       this._smartDrive.off(
         SmartDrive.smartdrive_mcu_version_event,
         this.onSmartDriveVersion,
