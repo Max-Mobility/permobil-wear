@@ -10,14 +10,16 @@
 }
 
 .icon {
-  height: 24;
+  height: 30;
+  width: 30;
+  padding: 2;
   margin: 5;
 }
 
 .smartdrive {
   color: #fff;
   background-color: #fff;
-  border-radius: 10;
+  border-radius: 15;
 }
 
 /* old styles */

@@ -11,3 +11,9 @@ Page {
 label {
   color: #fff;
 }
+
+
+WearOsListView {
+  height: 100%;
+  width: 100%;
+}
