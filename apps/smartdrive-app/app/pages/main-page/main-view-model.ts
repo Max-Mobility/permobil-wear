@@ -91,7 +91,7 @@ export class MainViewModel extends Observable {
   public items = new ObservableArray(
     {
       type: 'banner',
-      image: 'res://permobillogo',
+      image: '~/assets/images/permobil-logo-transparent.png',
       class: 'logo'
     },
     {
