@@ -14,10 +14,10 @@
 		  </StackLayout>
 		</template>
 		<template key="button">
-          <StackLayout orientation="horizontal" tap="{{ func }}">
-			<Image src="{{ image }}" class="{{ class }}" stretch="aspectFit" />
-			<Label text="{{ text }}" class="label" textWrap="true" />
-          </StackLayout>
+          <GridLayout rows="*" columns="auto, *" tap="{{ func }}">
+			<Image src="{{ image }}" class="{{ class }}" stretch="aspectFit" row="0" col="0" />
+			<Label text="{{ text }}" class="label" textWrap="true" row="0" col="1" />
+          </GridLayout>
 		</template>
       </lv:WearOsListView.itemTemplates>
 	</lv:WearOsListView>

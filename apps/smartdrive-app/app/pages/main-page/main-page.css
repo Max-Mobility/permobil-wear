@@ -7,10 +7,11 @@
 .label {
   vertical-align: middle;
   padding: 2;
+  font-size: 20;
 }
 
 .icon {
-  height: 24;
+  height: 35;
   margin: 5;
 }
 
