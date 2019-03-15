@@ -215,13 +215,13 @@ export class MainViewModel extends Observable {
   }
 
   updatePowerAssistButtonText(newText: string) {
-    let item = this.items.getItem(this._powerAssistButtonIndex);
+    const item = this.items.getItem(this._powerAssistButtonIndex);
     item.text = newText;
     this.items.setItem(this._powerAssistButtonIndex, item);
   }
 
   updateHeartRateButtonText(newText: string) {
-    let item = this.items.getItem(this._heartRateButtonIndex);
+    const item = this.items.getItem(this._heartRateButtonIndex);
     item.text = newText;
     this.items.setItem(this._heartRateButtonIndex, item);
   }
