@@ -1,36 +1,36 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" 
-      xmlns:Lottie="nativescript-lottie" 
-      xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
-      xmlns:lv="nativescript-wear-os/packages/listview" 
-      xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" navigatingTo="navigatingTo" actionBarHidden="true">
+  xmlns:Lottie="nativescript-lottie" 
+  xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
+  xmlns:lv="nativescript-wear-os/packages/listview" 
+  xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" navigatingTo="navigatingTo" actionBarHidden="true">
   <GridLayout rows="*, *" columns="*">
 
     // Main Home Page Layout
-	<lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
+    <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
       <lv:WearOsListView.itemTemplates>
-		<template key="banner">
+        <template key="banner">
           <StackLayout>
-			<Image src="{{ image }}" class="{{ class }}" stretch="aspectFit" />
-		  </StackLayout>
-		</template>
-		<template key="button">
+            <Image src="{{ image }}" class="{{ class }}" stretch="aspectFit" />
+          </StackLayout>
+        </template>
+        <template key="button">
           <GridLayout rows="*" columns="auto, *" tap="{{ func }}">
-			<Image src="{{ image }}" class="{{ class }}" stretch="aspectFit" row="0" col="0" />
-			<Label text="{{ text }}" class="label" textWrap="true" row="0" col="1" />
+            <Image src="{{ image }}" class="{{ class }}" stretch="aspectFit" row="0" col="0" />
+            <Label text="{{ text }}" class="label" textWrap="true" row="0" col="1" />
           </GridLayout>
-		</template>
+        </template>
       </lv:WearOsListView.itemTemplates>
-	</lv:WearOsListView>
+    </lv:WearOsListView>
 
     // Settings Layout "Page"
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
       <wol:WearOsLayout>
         <Label text="SmartDrive Settings" color="white" fontSize="25" textWrap="true" />
         <Label text="{{ tapSensitivityText }}" color="white" fontSize="15" textWrap="true" />
-		<StackLayout orientation="horizontal">
+        <StackLayout orientation="horizontal">
           <Button width="50%" text="Increase" tap="{{ onIncreaseTapSensitivityTap }}" fontSize="10"/>
           <Button width="50%" text="Decrease" tap="{{ onDecreaseTapSensitivityTap }}" fontSize="10"/>
-		</StackLayout>
+        </StackLayout>
         <Button text="Speech Test" tap="{{ onVoiceInputTap }}" class="btn btn-primary" />
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
@@ -38,11 +38,11 @@
 
     <!-->
         // Settings Layout "Page"
-        <sdl:SwipeDismissLayout row="0" col="0" loaded="{{ onUpdateLayoutLoaded }}" class="page" translateX="850" row="0" col="0">
-        <wol:WearOsLayout>
+    <sdl:SwipeDismissLayout row="0" col="0" loaded="{{ onUpdateLayoutLoaded }}" class="page" translateX="850" row="0" col="0">
+      <wol:WearOsLayout>
         <Label text="Swipe to close." color="yellow" fontSize="25" textWrap="true" />
-        </wol:WearOsLayout>
-        </sdl:SwipeDismissLayout> -->
+      </wol:WearOsLayout>
+    </sdl:SwipeDismissLayout> -->
 
   </GridLayout>
 
