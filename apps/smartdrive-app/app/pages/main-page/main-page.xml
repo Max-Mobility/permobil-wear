@@ -6,7 +6,7 @@
   <GridLayout rows="*, *" columns="*">
 
     // Main Home Page Layout
-	<lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
+	<lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" class="permobil-primary" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
       <lv:WearOsListView.itemTemplates>
 		<template key="banner">
           <StackLayout>
