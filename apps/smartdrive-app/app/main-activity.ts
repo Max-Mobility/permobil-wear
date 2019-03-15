@@ -1,17 +1,30 @@
+/// <reference path="./typings/wearable-support.2.4.0.d.ts" />
+/// <reference path="./typings/wear.d.ts" />
+
+/// <reference path="../node_modules/tns-platform-declarations/android-25.d.ts" />
+
 import {
   setActivityCallbacks,
   AndroidActivityCallbacks
 } from 'tns-core-modules/ui/frame';
 
 @JavaProxy('com.permobil.smartdrive.MainActivity')
-class MainActivity extends android.support.wearable.activity.WearableActivity {
-  constructor() {
-    super();
-  }
+class MainActivity extends android.support.v7.app.AppCompatActivity
+  implements
+    android.support.wear.ambient.AmbientModeSupport.AmbientCallbackProvider {
+  /**
+   * Ambient mode controller attached to this display. Used by Activity to see if it is in ambient
+   * mode.
+   */
+  public ambientController: android.support.wear.ambient.AmbientModeSupport.AmbientController;
 
   public isNativeScriptActivity;
 
   private _callbacks: AndroidActivityCallbacks;
+
+  public getAmbientCallback() {
+    return new MyAmbientCallback();
+  }
 
   public onCreate(savedInstanceState: android.os.Bundle): void {
     // Set the isNativeScriptActivity in onCreate (as done in the original NativeScript activity code)
@@ -21,9 +34,12 @@ class MainActivity extends android.support.wearable.activity.WearableActivity {
       setActivityCallbacks(this);
     }
 
-    console.log('wearable activity setting ambient enabled');
-    this.setAmbientEnabled();
-    console.log('ambient mode enabled');
+    console.log('attaching ambientController');
+
+    this.ambientController = android.support.wear.ambient.AmbientModeSupport.attach(
+      this
+    );
+    console.log('ambientController', this.ambientController);
 
     this._callbacks.onCreate(this, savedInstanceState, super.onCreate);
   }
@@ -78,5 +94,23 @@ class MainActivity extends android.support.wearable.activity.WearableActivity {
       data,
       super.onActivityResult
     );
+  }
+}
+
+class MyAmbientCallback extends android.support.wear.ambient.AmbientModeSupport
+  .AmbientCallback {
+  public onEnterAmbient(ambientDetails: android.os.Bundle): void {
+    // Handle entering ambient mode
+    console.log('onEnterAmbient from callback...');
+  }
+
+  public onExitAmbient(): void {
+    // Handle exiting ambient mode
+    console.log('onExitAmbient from callback...');
+  }
+
+  public onUpdateAmbient(): void {
+    // Update the content
+    console.log('onUpdateAmbient from callback...');
   }
 }
