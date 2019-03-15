@@ -44,7 +44,8 @@ module.exports = env => {
     resolve(
       __dirname,
       'app/complications/complication_tap_broadcast_receiver.js'
-    )
+    ),
+    resolve(__dirname, 'app/main-activity.js')
   ];
 
   const platform = env && ((env.android && 'android') || (env.ios && 'ios'));
