@@ -16,6 +16,10 @@ import {
   WearOsLayout,
   WearOsListView
 } from 'nativescript-wear-os';
+import {
+  showConfirmationActivity,
+  ConfirmationActivityType
+} from 'nativescript-wear-os/utils';
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
@@ -372,11 +376,15 @@ export class MainViewModel extends Observable {
 
         // make sure we have smartdrives
         if (BluetoothService.SmartDrives.length <= 0) {
-          new Toasty(
+          // new Toasty(
+          //   'No SmartDrives found nearby.',
+          //   ToastDuration.SHORT,
+          //   ToastPosition.CENTER
+          // ).show();
+          showConfirmationActivity(
             'No SmartDrives found nearby.',
-            ToastDuration.SHORT,
-            ToastPosition.CENTER
-          ).show();
+            ConfirmationActivityType.FAILURE
+          );
           return;
         }
 
@@ -400,11 +408,16 @@ export class MainViewModel extends Observable {
             // save the smartdrive here
             this._savedSmartDriveAddress = result;
             appSettings.setString(DataKeys.SD_SAVED_ADDRESS, result);
-            new Toasty(
-              'Paired to SmartDrive ' + result,
-              ToastDuration.SHORT,
-              ToastPosition.CENTER
-            ).show();
+            // new Toasty(
+            //   'Paired to SmartDrive ' + result,
+            //   ToastDuration.SHORT,
+            //   ToastPosition.CENTER
+            // ).show();
+
+            showConfirmationActivity(
+              `Paired to SmartDrive ${result}`,
+              ConfirmationActivityType.SUCCESS
+            );
           }
         });
       })
@@ -476,9 +489,15 @@ export class MainViewModel extends Observable {
             sd => sd.address === this._savedSmartDriveAddress
           )[0];
           if (sd) {
-            new Toasty(`Could not find ${this._savedSmartDriveAddress}`)
-              .setToastPosition(ToastPosition.CENTER)
-              .show();
+            // new Toasty(`Could not find ${this._savedSmartDriveAddress}`)
+            //   .setToastPosition(ToastPosition.CENTER)
+            //   .show();
+
+            showConfirmationActivity(
+              `Could not find ${this._savedSmartDriveAddress}`,
+              ConfirmationActivityType.FAILURE
+            );
+
             return false;
           } else {
             this.connectToSmartDrive(sd);
