@@ -14,11 +14,15 @@ import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import {
   SwipeDismissLayout,
   WearOsLayout,
-  WearOsListView
+  WearOsListView,
+  ItemEventData
 } from 'nativescript-wear-os';
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
-import { Observable } from 'tns-core-modules/data/observable';
+import {
+  Observable,
+  PropertyChangeData
+} from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
 import { action, alert } from 'tns-core-modules/ui/dialogs';
 import { AnimationCurve } from 'tns-core-modules/ui/enums';
@@ -30,6 +34,7 @@ import {
   promptUserForSpeech,
   showOffScreenLayout
 } from '../../utils';
+import { ObservableArray } from 'tns-core-modules/data/observable-array';
 
 export class MainViewModel extends Observable {
   /**
@@ -95,48 +100,43 @@ export class MainViewModel extends Observable {
   public isSettingsLayoutEnabled = false;
 
   @Prop()
-  public items = [
+  public items = new ObservableArray<any>([
     {
-      type: 'banner',
       image: 'res://permobillogo',
-      class: 'logo'
+      class: 'logo',
+      text: ''
     },
     {
-      type: 'button',
       image: 'res://sdstock',
       class: 'icon smartdrive',
       text: this.powerAssistButtonText,
       func: this.togglePowerAssist.bind(this)
     },
     {
-      type: 'button',
       image: 'res://sdstock',
       class: 'icon smartdrive',
       text: 'Pairing',
       func: this.saveNewSmartDrive.bind(this)
     },
     {
-      type: 'button',
       image: 'res://favorite',
       class: 'icon',
       text: this.heartRateLabelText,
       func: this.startHeartRate.bind(this)
     },
     {
-      type: 'button',
       image: 'res://settings',
       class: 'icon',
       text: 'Settings',
       func: this.onSettingsTap.bind(this)
     },
     {
-      type: 'button',
       image: 'res://updates',
       class: 'icon',
       text: 'Updates',
       func: this.onUpdatesTap.bind(this)
     }
-  ];
+  ]);
 
   /**
    * Boolean to track if accelerometer is already registered listener events.
@@ -145,15 +145,9 @@ export class MainViewModel extends Observable {
   private _heartrateListener;
   private _page: Page;
   private _smartDrive: SmartDrive;
-  private _motionDetectedLottie: LottieView;
-
   private _settingsLayout: SwipeDismissLayout;
-  private _mainviewLayout: WearOsListView;
-
   private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
-
-  // private _bluetoothService: BluetoothService;
 
   constructor(
     page: Page,
@@ -194,6 +188,14 @@ export class MainViewModel extends Observable {
       device.language,
       device.uuid
     );
+  }
+
+  onListItemTap(args: ItemEventData) {
+    const item = this.items.getItem(args.index);
+    console.log(item);
+    if (item && item.func) {
+      item.func();
+    }
   }
 
   onIncreaseTapSensitivityTap() {
@@ -561,7 +563,15 @@ export class MainViewModel extends Observable {
                 accStr = 'No Contact';
                 break;
             }
+            console.log(
+              'trying to set the heart rate label text',
+              this.heartRateLabelText
+            );
             this.heartRateLabelText = `HR: ${this.heartRate}, ACC: ${accStr}`;
+            console.log(
+              'heart rate label text has been set',
+              this.heartRateLabelText
+            );
 
             // log the recorded heart rate as a breadcrumb
             this._sentryService.logBreadCrumb(
@@ -625,9 +635,6 @@ export class MainViewModel extends Observable {
     } catch (error) {
       console.log({ error });
     }
-  }
-  onMainLayoutLoaded(args) {
-    this._mainviewLayout = args.object as WearOsListView;
   }
 
   onSettingsLayoutLoaded(args) {
