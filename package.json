@@ -46,7 +46,7 @@
     "nativescript-sentry": "~1.8.0",
     "nativescript-theme-core": "~1.0.4",
     "nativescript-toasty": "~1.3.0",
-    "nativescript-ui-chart": "~3.11.1",
+    "nativescript-ui-chart": "~4.0.0",
     "nativescript-wear-os": "~0.2.33",
     "reflect-metadata": "~0.1.13",
     "smart-eval-kinvey": "git+https://github.com/autochair/SmartEvalKinvey.git#master",
