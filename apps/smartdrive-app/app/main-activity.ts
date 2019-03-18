@@ -12,6 +12,10 @@ import {
 class MainActivity extends android.support.v7.app.AppCompatActivity
   implements
     android.support.wear.ambient.AmbientModeSupport.AmbientCallbackProvider {
+  constructor() {
+    super();
+  }
+
   /**
    * Ambient mode controller attached to this display. Used by Activity to see if it is in ambient
    * mode.
@@ -23,7 +27,7 @@ class MainActivity extends android.support.v7.app.AppCompatActivity
   private _callbacks: AndroidActivityCallbacks;
 
   public getAmbientCallback() {
-    return new MyAmbientCallback();
+    return new this.MyAmbientCallback();
   }
 
   public onCreate(savedInstanceState: android.os.Bundle): void {
@@ -34,14 +38,14 @@ class MainActivity extends android.support.v7.app.AppCompatActivity
       setActivityCallbacks(this);
     }
 
+    this._callbacks.onCreate(this, savedInstanceState, super.onCreate);
+
     console.log('attaching ambientController');
 
     this.ambientController = android.support.wear.ambient.AmbientModeSupport.attach(
       this
     );
     console.log('ambientController', this.ambientController);
-
-    this._callbacks.onCreate(this, savedInstanceState, super.onCreate);
   }
 
   public onSaveInstanceState(outState: android.os.Bundle): void {
@@ -95,22 +99,38 @@ class MainActivity extends android.support.v7.app.AppCompatActivity
       super.onActivityResult
     );
   }
+
+  private MyAmbientCallback = (android.support.wear.ambient.AmbientModeSupport
+    .AmbientCallback as any).extend({
+    onEnterAmbient(ambientDetails: android.os.Bundle): void {
+      // Handle entering ambient mode
+      console.log('onEnterAmbient from callback...');
+    },
+    onExitAmbient(): void {
+      // Handle exiting ambient mode
+      console.log('onExitAmbient from callback...');
+    },
+    onUpdateAmbient(): void {
+      // Update the content
+      console.log('onUpdateAmbient from callback...');
+    }
+  });
 }
 
-class MyAmbientCallback extends android.support.wear.ambient.AmbientModeSupport
-  .AmbientCallback {
-  public onEnterAmbient(ambientDetails: android.os.Bundle): void {
-    // Handle entering ambient mode
-    console.log('onEnterAmbient from callback...');
-  }
+// class MyAmbientCallback extends android.support.wear.ambient.AmbientModeSupport
+//   .AmbientCallback {
+//   public onEnterAmbient(ambientDetails: android.os.Bundle): void {
+//     // Handle entering ambient mode
+//     console.log('onEnterAmbient from callback...');
+//   }
 
-  public onExitAmbient(): void {
-    // Handle exiting ambient mode
-    console.log('onExitAmbient from callback...');
-  }
+//   public onExitAmbient(): void {
+//     // Handle exiting ambient mode
+//     console.log('onExitAmbient from callback...');
+//   }
 
-  public onUpdateAmbient(): void {
-    // Update the content
-    console.log('onUpdateAmbient from callback...');
-  }
-}
+//   public onUpdateAmbient(): void {
+//     // Update the content
+//     console.log('onUpdateAmbient from callback...');
+//   }
+// }
