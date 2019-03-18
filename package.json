@@ -39,7 +39,7 @@
     "kinvey-nativescript-sdk": "~3.12.4",
     "nativescript-accelerometer-advanced": "file:./nativescript-accelerometer",
     "nativescript-bluetooth": "file:./nativescript-bluetooth",
-    "nativescript-geolocation": "~4.5.0",
+    "nativescript-geolocation": "~5.0.0",
     "nativescript-gif": "~4.0.2",
     "nativescript-lottie": "~3.0.2",
     "nativescript-permissions": "~1.2.3",
