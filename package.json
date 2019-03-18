@@ -24,6 +24,7 @@
     "// SmartDrive.App.Section": "--------------------   SmartDrive.App   -----------------------------",
     "smartdrive.clean": "npm run clean.smartdrive",
     "smartdrive.setup": "npm run setup.smartdrive.app",
+    "sd.brad": "cd apps/smartdrive-app && tsc && tns run android --bundle --device 8606X91120272",
     "smartdrive.start.android": "cd apps/smartdrive-app && tsc && tns run android --bundle",
     "smartdrive.start.android.hmr": "cd apps/smartdrive-app && tsc && tns run android --bundle  --hmr",
     "smartdrive.start.android.report": "cd apps/smartdrive-app && tsc && tns run android --bundle  --env.report",
@@ -47,7 +48,7 @@
     "nativescript-theme-core": "~1.0.4",
     "nativescript-toasty": "~1.3.0",
     "nativescript-ui-chart": "~4.0.0",
-    "nativescript-wear-os": "~0.2.33",
+    "nativescript-wear-os": "~0.3.0",
     "reflect-metadata": "~0.1.13",
     "smart-eval-kinvey": "git+https://github.com/autochair/SmartEvalKinvey.git#master",
     "tns-core-modules": "~5.2.2"
