@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.wear.widget.BoxInsetLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:background="@color/dark_grey"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ConfirmationActivity"
+        tools:deviceIds="wear"
+        android:padding="@dimen/box_inset_layout_padding">
+
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="@dimen/inner_frame_layout_padding"
+            app:boxedEdges="all">
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="15dp"/>
+            <ImageView
+                    android:src="@drawable/round_check_white_48"
+                    android:layout_height="89dp" android:id="@+id/confirmationImage"
+                    android:layout_width="match_parent" android:scaleType="fitCenter"/>
+            <TextView
+                    android:id="@+id/confirmation_message"
+                    android:layout_height="37dp"
+                    android:text="@string/hello_world" android:layout_width="match_parent"
+                    android:textAlignment="center"/>
+        </LinearLayout>
+
+    </FrameLayout>
+</androidx.wear.widget.BoxInsetLayout>
