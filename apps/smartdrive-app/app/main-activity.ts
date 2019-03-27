@@ -9,6 +9,7 @@ import {
 } from 'tns-core-modules/ui/frame';
 
 @JavaProxy('com.permobil.smartdrive.MainActivity')
+@Interfaces([android.support.wear.ambient.AmbientModeSupport.AmbientCallbackProvider])
 class MainActivity extends android.support.v7.app.AppCompatActivity
   implements
     android.support.wear.ambient.AmbientModeSupport.AmbientCallbackProvider {
@@ -26,8 +27,8 @@ class MainActivity extends android.support.v7.app.AppCompatActivity
 
   private _callbacks: AndroidActivityCallbacks;
 
-  public getAmbientCallback() {
-    return new this.MyAmbientCallback();
+  public getAmbientCallback(): android.support.wear.ambient.AmbientModeSupport.AmbientCallback {
+    return new MyAmbientCallback();
   }
 
   public onCreate(savedInstanceState: android.os.Bundle): void {
@@ -99,38 +100,22 @@ class MainActivity extends android.support.v7.app.AppCompatActivity
       super.onActivityResult
     );
   }
-
-  private MyAmbientCallback = (android.support.wear.ambient.AmbientModeSupport
-    .AmbientCallback as any).extend({
-    onEnterAmbient(ambientDetails: android.os.Bundle): void {
-      // Handle entering ambient mode
-      console.log('onEnterAmbient from callback...');
-    },
-    onExitAmbient(): void {
-      // Handle exiting ambient mode
-      console.log('onExitAmbient from callback...');
-    },
-    onUpdateAmbient(): void {
-      // Update the content
-      console.log('onUpdateAmbient from callback...');
-    }
-  });
 }
 
-// class MyAmbientCallback extends android.support.wear.ambient.AmbientModeSupport
-//   .AmbientCallback {
-//   public onEnterAmbient(ambientDetails: android.os.Bundle): void {
-//     // Handle entering ambient mode
-//     console.log('onEnterAmbient from callback...');
-//   }
+class MyAmbientCallback extends android.support.wear.ambient.AmbientModeSupport
+.AmbientCallback {
+  public onEnterAmbient(ambientDetails: android.os.Bundle): void {
+    // Handle entering ambient mode
+    console.log('onEnterAmbient from callback...');
+  }
 
-//   public onExitAmbient(): void {
-//     // Handle exiting ambient mode
-//     console.log('onExitAmbient from callback...');
-//   }
+  public onExitAmbient(): void {
+    // Handle exiting ambient mode
+    console.log('onExitAmbient from callback...');
+  }
 
-//   public onUpdateAmbient(): void {
-//     // Update the content
-//     console.log('onUpdateAmbient from callback...');
-//   }
-// }
+  public onUpdateAmbient(): void {
+    // Update the content
+    console.log('onUpdateAmbient from callback...');
+  }
+}
