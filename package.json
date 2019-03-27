@@ -39,6 +39,7 @@
     "injection-js": "~2.2.1",
     "kinvey-nativescript-sdk": "~3.12.4",
     "nativescript-accelerometer-advanced": "file:./nativescript-accelerometer",
+    "nativescript-animated-circle": "~1.2.0",
     "nativescript-bluetooth": "file:./nativescript-bluetooth",
     "nativescript-geolocation": "~5.0.0",
     "nativescript-gif": "~4.0.2",

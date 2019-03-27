@@ -20,6 +20,7 @@
     "injection-js": "../../node_modules/injection-js",
     "kinvey-nativescript-sdk": "../../node_modules/kinvey-nativescript-sdk",
     "nativescript-accelerometer-advanced": "file:../../nativescript-accelerometer",
+    "nativescript-animated-circle": "file:../../node_modules/nativescript-animated-circle",
     "nativescript-bluetooth": "file:../../nativescript-bluetooth",
     "nativescript-geolocation": "../../node_modules/nativescript-geolocation",
     "nativescript-gif": "../../node_modules/nativescript-gif",
