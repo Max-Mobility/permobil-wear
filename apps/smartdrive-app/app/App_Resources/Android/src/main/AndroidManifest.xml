@@ -24,6 +24,12 @@
 
 		<uses-library android:name="com.google.android.wearable" android:required="true" />
 
+		<!--
+               Set to true if your app is Standalone, that is, it does not require the handheld
+               app to run.
+        -->
+		<meta-data android:name="com.google.android.wearable.standalone" android:value="true"/>
+
 		<!-- <activity android:name="com.tns.NativeScriptActivity" android:label="@string/title_activity_kimera" android:configChanges="keyboardHidden|orientation|screenSize"> -->
 		<activity android:name="com.permobil.smartdrive.MainActivity" android:label="@string/title_activity_kimera" android:launchMode="singleInstance" android:configChanges="keyboardHidden|orientation|screenSize">
 
