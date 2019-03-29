@@ -2,7 +2,7 @@
   "nativescript": {
     "id": "com.permobil.smartdrive.wearos",
     "tns-android": {
-      "version": "5.2.1"
+      "version": "5.3.0"
     }
   },
   "main": "app.js",
@@ -41,8 +41,8 @@
     "lint-staged": "../../node_modules/lint-staged",
     "mkdirp": "../../node_modules/mkdirp",
     "awesome-typescript-loader": "~5.2.1",
-    "nativescript-dev-typescript": "~0.8.0",
-    "nativescript-dev-webpack": "~0.20.2",
+    "nativescript-dev-typescript": "~0.9.0",
+    "nativescript-dev-webpack": "~0.21.0",
     "nativescript-hook": "~0.2.5",
     "prettier": "../../node_modules/prettier",
     "prompt": "../../node_modules/prompt",
@@ -52,7 +52,7 @@
     "typescript": "../../node_modules/typescript"
   },
   "lint-staged": {
-    "*.{ts, js, json, css, scss, md}": [
+    "*.{ts, js, json, css, scss, md, html, xml}": [
       "tslint",
       "prettier --write",
       "git add"
