@@ -7,9 +7,12 @@ import {
   setActivityCallbacks,
   AndroidActivityCallbacks
 } from 'tns-core-modules/ui/frame';
+import * as application from 'tns-core-modules/application';
 
 @JavaProxy('com.permobil.smartdrive.MainActivity')
-@Interfaces([android.support.wear.ambient.AmbientModeSupport.AmbientCallbackProvider])
+@Interfaces([
+  android.support.wear.ambient.AmbientModeSupport.AmbientCallbackProvider
+])
 class MainActivity extends android.support.v7.app.AppCompatActivity
   implements
     android.support.wear.ambient.AmbientModeSupport.AmbientCallbackProvider {
@@ -103,19 +106,31 @@ class MainActivity extends android.support.v7.app.AppCompatActivity
 }
 
 class MyAmbientCallback extends android.support.wear.ambient.AmbientModeSupport
-.AmbientCallback {
+  .AmbientCallback {
   public onEnterAmbient(ambientDetails: android.os.Bundle): void {
     // Handle entering ambient mode
-    console.log('onEnterAmbient from callback...');
+    const eventData = {
+      eventName: 'enterAmbient',
+      object: null
+    };
+    application.notify(eventData);
   }
 
   public onExitAmbient(): void {
     // Handle exiting ambient mode
-    console.log('onExitAmbient from callback...');
+    const eventData = {
+      eventName: 'exitAmbient',
+      object: null
+    };
+    application.notify(eventData);
   }
 
   public onUpdateAmbient(): void {
     // Update the content
-    console.log('onUpdateAmbient from callback...');
+    const eventData = {
+      eventName: 'updateAmbient',
+      object: null
+    };
+    application.notify(eventData);
   }
 }

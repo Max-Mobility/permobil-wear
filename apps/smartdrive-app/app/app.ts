@@ -17,6 +17,21 @@ Sentry.init(
 export const injector = ReflectiveInjector.resolveAndCreate([...SERVICES]);
 const sentryService: SentryService = injector.get(SentryService);
 
+// handle ambient mode callbacks
+application.on('enterAmbient', args => {
+  console.log('enterAmbient executed...');
+});
+
+// handle ambient mode callbacks
+application.on('exitAmbient', args => {
+  console.log('exitAmbient executed...');
+});
+
+// handle ambient mode callbacks
+application.on('updateAmbient', args => {
+  console.log('updateAmbient executed...');
+});
+
 // setup application level events
 application.on(
   application.uncaughtErrorEvent,
