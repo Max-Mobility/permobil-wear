@@ -262,6 +262,7 @@ module.exports = env => {
         [
           { from: { glob: 'assets/**' } },
           { from: { glob: 'fonts/**' } },
+          { from: { glob: '**/*.css' } },
           { from: { glob: '**/*.jpg' } },
           { from: { glob: '**/*.png' } }
         ],
