@@ -120,3 +120,7 @@ package-lock.json
 !libs/core/packet/packet_bindings.js
 !**/webpack.config.js
 !sketch_running_on_nrf52_neopixel.js
+
+
+
+!ns-themes/**.js
