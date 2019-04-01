@@ -4,6 +4,16 @@ import { Kinvey } from 'kinvey-nativescript-sdk';
 import { Sentry } from 'nativescript-sentry';
 import * as application from 'tns-core-modules/application';
 import './utils/async-await';
+import * as themes from 'nativescript-themes';
+
+// apply our default theme for the app
+themes.applyTheme(themes.getAppliedTheme('theme-default.css'));
+
+const sDateFormat = new java.text.SimpleDateFormat(
+  'K:mm a',
+  java.util.Locale.US
+);
+export let currentSystemTime = sDateFormat.format(new java.util.Date());
 
 // initialize Kinvey
 Kinvey.init({ appKey: `${APP_KEY}`, appSecret: `${APP_SECRET}` });
@@ -19,17 +29,23 @@ const sentryService: SentryService = injector.get(SentryService);
 
 // handle ambient mode callbacks
 application.on('enterAmbient', args => {
-  console.log('enterAmbient executed...');
+  console.log('enterAmbient executed...', args.data);
+  currentSystemTime = sDateFormat.format(new java.util.Date());
+  console.log('current system time', currentSystemTime);
+  themes.applyTheme('theme-ambient.css');
 });
 
 // handle ambient mode callbacks
 application.on('exitAmbient', args => {
-  console.log('exitAmbient executed...');
+  console.log('exitAmbient executed...', args.data);
+  themes.applyTheme('theme-default.css');
 });
 
 // handle ambient mode callbacks
 application.on('updateAmbient', args => {
-  console.log('updateAmbient executed...');
+  console.log('updateAmbient executed...', args.data);
+  currentSystemTime = sDateFormat.format(new java.util.Date());
+  console.log('current system time', currentSystemTime);
 });
 
 // setup application level events
