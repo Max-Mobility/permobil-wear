@@ -44,12 +44,9 @@ class MainActivity extends android.support.v7.app.AppCompatActivity
 
     this._callbacks.onCreate(this, savedInstanceState, super.onCreate);
 
-    console.log('attaching ambientController');
-
     this.ambientController = android.support.wear.ambient.AmbientModeSupport.attach(
       this
     );
-    console.log('ambientController', this.ambientController);
   }
 
   public onSaveInstanceState(outState: android.os.Bundle): void {
@@ -107,11 +104,33 @@ class MainActivity extends android.support.v7.app.AppCompatActivity
 
 class MyAmbientCallback extends android.support.wear.ambient.AmbientModeSupport
   .AmbientCallback {
+  /** If the display is low-bit in ambient mode. i.e. it requires anti-aliased fonts. */
+  public mIsLowBitAmbient: boolean;
+
+  /**
+   * If the display requires burn-in protection in ambient mode, rendered pixels need to be
+   * intermittently offset to avoid screen burn-in.
+   */
+  public mDoBurnInProtection: boolean;
+
   public onEnterAmbient(ambientDetails: android.os.Bundle): void {
+    this.mIsLowBitAmbient = ambientDetails.getBoolean(
+      android.support.wear.ambient.AmbientModeSupport.EXTRA_LOWBIT_AMBIENT,
+      false
+    );
+    this.mDoBurnInProtection = ambientDetails.getBoolean(
+      android.support.wear.ambient.AmbientModeSupport.EXTRA_BURN_IN_PROTECTION,
+      false
+    );
+
     // Handle entering ambient mode
     const eventData = {
       eventName: 'enterAmbient',
-      object: null
+      object: null,
+      data: {
+        isLowBitAmbient: this.mIsLowBitAmbient,
+        doBurnInProtection: this.mDoBurnInProtection
+      }
     };
     application.notify(eventData);
   }
@@ -120,7 +139,11 @@ class MyAmbientCallback extends android.support.wear.ambient.AmbientModeSupport
     // Handle exiting ambient mode
     const eventData = {
       eventName: 'exitAmbient',
-      object: null
+      object: null,
+      data: {
+        isLowBitAmbient: this.mIsLowBitAmbient,
+        doBurnInProtection: this.mDoBurnInProtection
+      }
     };
     application.notify(eventData);
   }
@@ -129,7 +152,11 @@ class MyAmbientCallback extends android.support.wear.ambient.AmbientModeSupport
     // Update the content
     const eventData = {
       eventName: 'updateAmbient',
-      object: null
+      object: null,
+      data: {
+        isLowBitAmbient: this.mIsLowBitAmbient,
+        doBurnInProtection: this.mDoBurnInProtection
+      }
     };
     application.notify(eventData);
   }
