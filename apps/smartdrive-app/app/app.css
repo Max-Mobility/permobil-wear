@@ -8,6 +8,10 @@ Page {
   background-color: #262626;
 }
 
+.dark-page {
+  background-color: #000;
+}
+
 label {
   color: #fff;
 }

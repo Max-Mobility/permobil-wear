@@ -3,7 +3,7 @@
   xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
   xmlns:lv="nativescript-wear-os/packages/listview" 
   xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" navigatingTo="navigatingTo" actionBarHidden="true">
-  <GridLayout rows="*, *" columns="*">
+  <GridLayout rows="*, *" columns="*" class="page">
 
     // Main Home Page Layout
     <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
