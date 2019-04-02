@@ -6,6 +6,7 @@ import {
   ExceptionOptions
 } from 'nativescript-sentry';
 import { Injectable } from 'injection-js';
+import { Log } from '../utils';
 
 export enum LoggingCategory {
   Info = 'Info',
@@ -15,7 +16,7 @@ export enum LoggingCategory {
 @Injectable()
 export class SentryService {
   public logError(error) {
-    console.log(error);
+    Log.E(error);
     Sentry.captureException(error, {});
   }
 

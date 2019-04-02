@@ -5,7 +5,8 @@ import {
   Prop,
   SentryService,
   SmartDrive,
-  throttle
+  throttle,
+  Log
 } from '@permobil/core';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 import { LottieView } from 'nativescript-lottie';
@@ -150,7 +151,6 @@ export class MainViewModel extends Observable {
   private _motionDetectedLottie: LottieView;
 
   private _settingsLayout: SwipeDismissLayout;
-  private _mainviewLayout: WearOsListView;
 
   private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
@@ -184,7 +184,7 @@ export class MainViewModel extends Observable {
       )} g`;
     }
 
-    console.log(
+    Log.D(
       { device },
       'Device Info: ',
       device.manufacturer,
@@ -250,24 +250,24 @@ export class MainViewModel extends Observable {
   }
 
   disableAccelerometer() {
-    // console.log('disableAccelerometer');
+    // Log.D('disableAccelerometer');
     if (this._smartDrive && this._smartDrive.ableToSend) {
-      console.log('Turning off Motor!');
+      Log.D('Turning off Motor!');
       this._smartDrive
         .stopMotor()
-        .catch(err => console.log('could not stop motor', err));
+        .catch(err => Log.E('Could not stop motor', err));
     }
     try {
       accelerometer.stopAccelerometerUpdates();
     } catch (err) {
-      console.log('could not disable accelerometer', err);
+      Log.E('could not disable accelerometer', err);
     }
     this._isListeningAccelerometer = false;
     return;
   }
 
   onAccelerometerData(data) {
-    // console.log('onAccelerometerData');
+    // Log.D('onAccelerometerData');
     // only showing linear acceleration data for now
     if (data.sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
       const z = data.z;
@@ -276,10 +276,10 @@ export class MainViewModel extends Observable {
         diff = Math.abs(z);
       }
 
-      // console.log('checking', this.tapSensitivity, 'against', diff);
+      // Log.D('checking', this.tapSensitivity, 'against', diff);
 
       if (diff > this.tapSensitivity && !this.motionDetected) {
-        // console.log('Motion detected!', { diff });
+        // Log.D('Motion detected!', { diff });
         // register motion detected and block out futher motion detection
         this.motionDetected = true;
         setTimeout(() => {
@@ -287,17 +287,17 @@ export class MainViewModel extends Observable {
         }, 300);
         // now send
         if (this._smartDrive && this._smartDrive.ableToSend) {
-          console.log('Sending tap!');
+          Log.D('Sending tap!');
           this._smartDrive
             .sendTap()
-            .catch(err => console.log('could not send tap', err));
+            .catch(err => Log.E('could not send tap', err));
         }
       }
     }
   }
 
   enableAccelerometer() {
-    // console.log('enableAccelerometer');
+    // Log.D('enableAccelerometer');
     try {
       accelerometer.startAccelerometerUpdates(
         this.onAccelerometerData.bind(this),
@@ -305,17 +305,17 @@ export class MainViewModel extends Observable {
       );
       this._isListeningAccelerometer = true;
     } catch (err) {
-      console.log('could not enable accelerometer', err);
+      Log.E('Could not enable accelerometer', err);
     }
   }
 
   async onMotorInfo(args: any) {
-    // console.log('onMotorInfo event');
+    // Log.D('onMotorInfo event');
     this.motorOn = this._smartDrive.driving;
   }
 
   async onDistance(args: any) {
-    // console.log('onDistance event');
+    // Log.D('onDistance event');
 
     // save the updated distance
     appSettings.setNumber(
@@ -337,7 +337,7 @@ export class MainViewModel extends Observable {
   }
 
   async onSmartDriveVersion(args: any) {
-    // console.log('onSmartDriveVersion event');
+    // Log.D('onSmartDriveVersion event');
 
     // save the updated SmartDrive data values
     appSettings.setNumber(
@@ -366,7 +366,7 @@ export class MainViewModel extends Observable {
   }
 
   saveNewSmartDrive() {
-    console.log('saveNewSmartDrive()');
+    Log.D('saveNewSmartDrive()');
 
     new Toasty(
       'Scanning for SmartDrives...',
@@ -378,7 +378,7 @@ export class MainViewModel extends Observable {
     this._bluetoothService
       .scanForSmartDrives(3)
       .then(() => {
-        console.log('Discovered SmartDrives: ' + BluetoothService.SmartDrives);
+        Log.D('Discovered SmartDrives: ' + BluetoothService.SmartDrives);
 
         // make sure we have smartdrives
         if (BluetoothService.SmartDrives.length <= 0) {
@@ -407,7 +407,7 @@ export class MainViewModel extends Observable {
           actions: addresses,
           cancelButtonText: 'Dismiss'
         }).then(result => {
-          console.log('result', result);
+          Log.D('result', result);
 
           // if user selected one of the smartdrives in the action dialog, attempt to connect to it
           if (addresses.indexOf(result) > -1) {
@@ -428,7 +428,7 @@ export class MainViewModel extends Observable {
         });
       })
       .catch(error => {
-        console.log('could not scan', error);
+        Log.E('could not scan', error);
       });
   }
 
@@ -461,7 +461,7 @@ export class MainViewModel extends Observable {
   }
 
   connectToSavedSmartDrive() {
-    console.log('connectToSavedSmartDrive()');
+    Log.D('connectToSavedSmartDrive()');
     if (
       this._savedSmartDriveAddress === null ||
       this._savedSmartDriveAddress.length === 0
@@ -573,7 +573,7 @@ export class MainViewModel extends Observable {
             );
           },
           onSensorChanged: event => {
-            console.log(event.values[0]);
+            Log.D(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
             let accStr = 'Unknown';
             switch (this.heartRateAccuracy) {
@@ -632,14 +632,14 @@ export class MainViewModel extends Observable {
       const mHeartRateSensor = mSensorManager.getDefaultSensor(
         android.hardware.Sensor.TYPE_HEART_RATE
       );
-      console.log(mHeartRateSensor);
+      Log.D(mHeartRateSensor);
 
       const didRegListener = mSensorManager.registerListener(
         this._heartrateListener,
         mHeartRateSensor,
         android.hardware.SensorManager.SENSOR_DELAY_NORMAL
       );
-      console.log({ didRegListener });
+      Log.D({ didRegListener });
 
       if (didRegListener) {
         this.isGettingHeartRate = true;
@@ -648,28 +648,25 @@ export class MainViewModel extends Observable {
         // don't read heart rate for more than one minute at a time
         setTimeout(() => {
           if (this.isGettingHeartRate) {
-            console.log('timer cancelling heart rate');
+            Log.D('Timer cancelling heart rate');
             this.startHeartRate();
           }
         }, 60000);
 
-        console.log('Registered heart rate sensor listener');
+        Log.D('Registered heart rate sensor listener');
       } else {
-        console.log('Heart Rate listener did not register.');
+        Log.D('Heart Rate listener did not register.');
       }
     } catch (error) {
-      console.log({ error });
+      Log.E({ error });
     }
-  }
-  onMainLayoutLoaded(args) {
-    this._mainviewLayout = args.object as WearOsListView;
   }
 
   onSettingsLayoutLoaded(args) {
     this._settingsLayout = args.object as SwipeDismissLayout;
 
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      console.log('dimissedEvent', args.object);
+      Log.D('dimissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
       this.isSettingsLayoutEnabled = false;
@@ -684,10 +681,10 @@ export class MainViewModel extends Observable {
   onVoiceInputTap() {
     promptUserForSpeech()
       .then(result => {
-        console.log('result from speech', result);
+        Log.D('result from speech', result);
       })
       .catch(error => {
-        console.log('speech error', error);
+        Log.E('speech error', error);
       });
   }
 
@@ -724,7 +721,7 @@ export class MainViewModel extends Observable {
   }
 
   private _stopHeartAnimation() {
-    console.log('stop heart animation');
+    Log.D('Stop heart animation');
   }
 
   private _trimAccelerometerData(value: number) {

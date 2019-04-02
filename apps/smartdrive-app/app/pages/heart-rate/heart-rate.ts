@@ -2,12 +2,13 @@ import * as application from 'tns-core-modules/application';
 import { ShownModallyData, Page } from 'tns-core-modules/ui/frame';
 import { screen } from 'tns-core-modules/platform';
 import { fromObject } from 'tns-core-modules/data/observable';
+import { Log } from '@permobil/core';
 
 let page: Page;
 
 export function startHeartRate() {
   try {
-    console.log('getHeartRateData');
+    Log.D('getHeartRateData');
     const activity =
       application.android.startActivity ||
       application.android.foregroundActivity;
@@ -31,19 +32,19 @@ export function startHeartRate() {
     const mHeartRateSensor = mSensorManager.getDefaultSensor(
       (android.hardware.Sensor as any).TYPE_HEART_RATE
     );
-    console.log('mHeartRateSensor', mHeartRateSensor);
+    Log.D('mHeartRateSensor', mHeartRateSensor);
 
     const sensorListener = new android.hardware.SensorEventListener({
       onAccuracyChanged: (sensor, accuracy) => {},
       onSensorChanged: event => {
-        console.log(`Sensor: ${event.sensor}`);
-        console.log(`Timestamp: ${event.timestamp}`);
-        console.log(`Values: ${event.values}`);
+        Log.D(`Sensor: ${event.sensor}`);
+        Log.D(`Timestamp: ${event.timestamp}`);
+        Log.D(`Values: ${event.values}`);
         this.heartRate = event.values[0].toString();
       }
     });
 
-    console.log('sensorListener', sensorListener);
+    Log.D('sensorListener', sensorListener);
 
     mSensorManager.registerListener(
       sensorListener,
@@ -51,14 +52,14 @@ export function startHeartRate() {
       android.hardware.SensorManager.SENSOR_DELAY_NORMAL
     );
 
-    console.log('Registered heart rate sensor listener');
+    Log.D('Registered heart rate sensor listener');
   } catch (error) {
-    console.log(error);
+    Log.E(error);
   }
 }
 
 export function onShowingModally(args: ShownModallyData) {
-  console.log('onShowingModally');
+  Log.D('onShowingModally');
   page = args.object as any;
   page.bindingContext = fromObject({
     halfScreenHeight: screen.mainScreen.heightDIPs * 0.5
