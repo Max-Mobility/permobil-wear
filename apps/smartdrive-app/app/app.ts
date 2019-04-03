@@ -11,7 +11,6 @@ import { Sentry } from 'nativescript-sentry';
 import * as application from 'tns-core-modules/application';
 import './utils/async-await';
 import * as themes from 'nativescript-themes';
-import { View } from 'tns-core-modules/ui/page/page';
 
 Log.D('Setting the default theme for the app styles');
 // apply our default theme for the app
