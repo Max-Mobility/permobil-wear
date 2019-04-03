@@ -7,7 +7,7 @@ import { Log } from '@permobil/core';
 // Event handler for Page "navigatingTo" event attached in main-page.xml
 export function navigatingTo(args: EventData) {
   const page = args.object as Page;
-  page.bindingContext = new MainViewModel(page);
+  page.bindingContext = new MainViewModel();
 
   Kinvey.ping().then(() => {
     Log.D('Kinvey is active.');
