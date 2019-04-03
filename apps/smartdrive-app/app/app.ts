@@ -11,17 +11,22 @@ import { Sentry } from 'nativescript-sentry';
 import * as application from 'tns-core-modules/application';
 import './utils/async-await';
 import * as themes from 'nativescript-themes';
+import { View } from 'tns-core-modules/ui/page/page';
 
 Log.D('Setting the default theme for the app styles');
 // apply our default theme for the app
 themes.applyTheme(themes.getAppliedTheme('theme-default.css'));
 
-const sDateFormat = new java.text.SimpleDateFormat(
-  'K:mm a',
-  java.util.Locale.US
-);
-export let currentSystemTime = sDateFormat.format(new java.util.Date());
-Log.D(`Current system time: ${currentSystemTime}`);
+/**
+ * Exposing the system time from app.ts so we can use it throughout the app if needed.
+ * Right now, it's only being used here in the ambient mode callbacks. This way we can bind/print
+ * the time on the screen during the ambient update callback.
+ */
+export const currentSystemTime = () =>
+  new java.text.SimpleDateFormat('h:mm a', java.util.Locale.US).format(
+    new java.util.Date()
+  );
+Log.D(`Current system time: ${currentSystemTime()}`);
 
 // initialize Kinvey
 Kinvey.init({ appKey: `${APP_KEY}`, appSecret: `${APP_SECRET}` });
@@ -38,23 +43,19 @@ const sentryService: SentryService = injector.get(SentryService);
 
 // handle ambient mode callbacks
 application.on('enterAmbient', args => {
-  Log.D('enterAmbient executed...', args.data);
+  Log.D('enterAmbient', args.data, currentSystemTime());
   themes.applyTheme('theme-ambient.css');
-  currentSystemTime = sDateFormat.format(new java.util.Date());
-  Log.D('current system time', currentSystemTime);
 });
 
 // handle ambient mode callbacks
 application.on('exitAmbient', args => {
-  Log.D('exitAmbient executed...', args.data);
+  Log.D('exitAmbient', args.data, currentSystemTime());
   themes.applyTheme('theme-default.css');
 });
 
 // handle ambient mode callbacks
 application.on('updateAmbient', args => {
-  Log.D('updateAmbient executed...', args.data);
-  currentSystemTime = sDateFormat.format(new java.util.Date());
-  Log.D('current system time', currentSystemTime);
+  Log.D('updateAmbient', args.data, currentSystemTime());
 });
 
 // setup application level events
