@@ -6,7 +6,8 @@ import {
   SentryService,
   SmartDrive,
   throttle,
-  Log
+  Log,
+  SensorDataService
 } from '@permobil/core';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 import { LottieView } from 'nativescript-lottie';
@@ -30,15 +31,14 @@ import {
 } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
 import { action, alert } from 'tns-core-modules/ui/dialogs';
-import { AnimationCurve } from 'tns-core-modules/ui/enums';
-import { Page, topmost } from 'tns-core-modules/ui/frame';
-import { Image } from 'tns-core-modules/ui/image';
-import { injector } from '../../app';
+import { Page } from 'tns-core-modules/ui/frame';
+import { injector, currentSystemTime } from '../../app';
 import {
   hideOffScreenLayout,
   promptUserForSpeech,
   showOffScreenLayout
 } from '../../utils';
+import { setInterval } from 'tns-core-modules/timer/timer';
 
 export class MainViewModel extends Observable {
   /**
@@ -135,6 +135,13 @@ export class MainViewModel extends Observable {
       class: 'icon',
       text: 'Updates',
       func: this.onUpdatesTap.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://settings',
+      class: 'icon',
+      text: 'Data Collection',
+      func: this.onStartDataCollection.bind(this)
     }
   );
 
@@ -146,26 +153,21 @@ export class MainViewModel extends Observable {
    */
   private _isListeningAccelerometer = false;
   private _heartrateListener;
-  private _page: Page;
   private _smartDrive: SmartDrive;
-  private _motionDetectedLottie: LottieView;
-
   private _settingsLayout: SwipeDismissLayout;
-
   private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
 
-  // private _bluetoothService: BluetoothService;
-
   constructor(
-    page: Page,
     private _bluetoothService: BluetoothService = injector.get(
       BluetoothService
     ),
-    private _sentryService: SentryService = injector.get(SentryService)
+    private _sentryService: SentryService = injector.get(SentryService),
+    private _sensorDataService: SensorDataService = injector.get(
+      SensorDataService
+    )
   ) {
     super();
-    this._page = page;
 
     // load savedSmartDriveAddress from settings / memory
     const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
@@ -185,16 +187,15 @@ export class MainViewModel extends Observable {
     }
 
     Log.D(
-      { device },
-      'Device Info: ',
-      device.manufacturer,
-      device.model,
-      device.os,
-      device.osVersion,
-      device.sdkVersion,
-      device.region,
-      device.language,
-      device.uuid
+      'Device Info: ---',
+      'Manufacturer: ' + device.manufacturer,
+      'Model: ' + device.model,
+      'OS: ' + device.os,
+      'OS Version: ' + device.osVersion,
+      'SDK Version: ' + device.sdkVersion,
+      'Region: ' + device.region,
+      'Device Language: ' + device.language,
+      'UUID: ' + device.uuid
     );
   }
 
@@ -350,19 +351,15 @@ export class MainViewModel extends Observable {
     );
     appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
 
-    /*
-    // log breadcrumb
-    throttle(
-      10000,
-      this._sentryService.logBreadCrumb(
+    setInterval(() => {
+      Log.D(
         `Updated SD: ${this._smartDrive.address} -- MCU: ${
           this._smartDrive.mcu_version
         }, BLE: ${this._smartDrive.ble_version}, Battery: ${
           this._smartDrive.battery
         }`
-      )
-    );
-	  */
+      );
+    }, 10000);
   }
 
   saveNewSmartDrive() {
@@ -378,15 +375,10 @@ export class MainViewModel extends Observable {
     this._bluetoothService
       .scanForSmartDrives(3)
       .then(() => {
-        Log.D('Discovered SmartDrives: ' + BluetoothService.SmartDrives);
+        Log.D('Discovered SmartDrives', BluetoothService.SmartDrives);
 
         // make sure we have smartdrives
         if (BluetoothService.SmartDrives.length <= 0) {
-          // new Toasty(
-          //   'No SmartDrives found nearby.',
-          //   ToastDuration.SHORT,
-          //   ToastPosition.CENTER
-          // ).show();
           showConfirmationActivity(
             'No SmartDrives found nearby.',
             ConfirmationActivityType.FAILURE
@@ -414,11 +406,6 @@ export class MainViewModel extends Observable {
             // save the smartdrive here
             this._savedSmartDriveAddress = result;
             appSettings.setString(DataKeys.SD_SAVED_ADDRESS, result);
-            // new Toasty(
-            //   'Paired to SmartDrive ' + result,
-            //   ToastDuration.SHORT,
-            //   ToastPosition.CENTER
-            // ).show();
 
             showConfirmationActivity(
               `Paired to SmartDrive ${result}`,
@@ -617,7 +604,6 @@ export class MainViewModel extends Observable {
       if (this.isGettingHeartRate === true) {
         this.isGettingHeartRate = false;
         this.updateHeartRateButtonText('Read Heart Rate');
-        this._stopHeartAnimation();
         mSensorManager.unregisterListener(this._heartrateListener);
         return;
       }
@@ -644,7 +630,6 @@ export class MainViewModel extends Observable {
       if (didRegListener) {
         this.isGettingHeartRate = true;
         this.updateHeartRateButtonText('Reading Heart Rate');
-        this._animateHeartIcon();
         // don't read heart rate for more than one minute at a time
         setTimeout(() => {
           if (this.isGettingHeartRate) {
@@ -696,36 +681,12 @@ export class MainViewModel extends Observable {
     ).show();
   }
 
-  private _animateHeartIcon() {
-    const heartIcon = topmost().currentPage.getViewById('heartIcon') as Image;
-
-    heartIcon
-      .animate({
-        scale: {
-          x: 1.2,
-          y: 1.2
-        },
-        duration: 200,
-        curve: AnimationCurve.easeIn
-      })
-      .then(() => {
-        heartIcon.animate({
-          scale: {
-            x: 0,
-            y: 0
-          },
-          duration: 200,
-          curve: AnimationCurve.easeOut
-        });
-      });
-  }
-
-  private _stopHeartAnimation() {
-    Log.D('Stop heart animation');
-  }
-
   private _trimAccelerometerData(value: number) {
     const x = value.toString();
     return x.substring(0, 8);
+  }
+
+  onStartDataCollection() {
+    // this._sensorDataService.saveRecord(record);
   }
 }
