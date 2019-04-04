@@ -1,7 +1,7 @@
 export interface AccelerometerData {
-  x: number;
-  y: number;
-  z: number;
+  data: {};
+  sensor: string;
+  date: number;
 }
 export declare type SensorDelay = 'normal' | 'game' | 'ui' | 'fastest';
 export interface AccelerometerOptions {
@@ -14,3 +14,13 @@ declare function startAccelerometerUpdates(
 ): void;
 
 declare function stopAccelerometerUpdates(): void;
+
+export enum SensorType {
+  LINEAR_ACCELERATION = 'LINEAR_ACCELERATION',
+  GRAVITY = 'GRAVITY',
+  MAGNETIC_FIELD = 'MAGNETIC_FIELD',
+  ROTATION_VECTOR = 'ROTATION_VECTOR',
+  GYROSCOPE = 'GYROSCOPE',
+  STATIONARY_DETECT = 'STATIONARY_DETECT',
+  SIGNIFICANT_MOTION = 'SIGNIFICANT_MOTION'
+}
