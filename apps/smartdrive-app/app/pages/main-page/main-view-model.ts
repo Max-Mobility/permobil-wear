@@ -10,14 +10,9 @@ import {
   SensorDataService
 } from '@permobil/core';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
-import { LottieView } from 'nativescript-lottie';
 import * as permissions from 'nativescript-permissions';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
-import {
-  SwipeDismissLayout,
-  WearOsLayout,
-  WearOsListView
-} from 'nativescript-wear-os';
+import { SwipeDismissLayout } from 'nativescript-wear-os';
 import {
   showSuccess,
   showFailure
@@ -31,14 +26,17 @@ import {
 } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
 import { action, alert } from 'tns-core-modules/ui/dialogs';
-import { Page } from 'tns-core-modules/ui/frame';
 import { injector, currentSystemTime } from '../../app';
 import {
   hideOffScreenLayout,
   promptUserForSpeech,
   showOffScreenLayout
 } from '../../utils';
-import { setInterval } from 'tns-core-modules/timer/timer';
+import { setInterval, clearInterval } from 'tns-core-modules/timer';
+
+let sensorInterval = null;
+let dataCollectionTimeout = 10;
+const sensorData = [];
 
 export class MainViewModel extends Observable {
   /**
@@ -117,6 +115,13 @@ export class MainViewModel extends Observable {
     },
     {
       type: 'button',
+      image: 'res://ic_watch_white',
+      class: 'icon',
+      text: 'Data Collection',
+      func: this.onStartDataCollection.bind(this)
+    },
+    {
+      type: 'button',
       image: 'res://favorite',
       class: 'icon',
       text: 'Read Heart Rate',
@@ -135,13 +140,6 @@ export class MainViewModel extends Observable {
       class: 'icon',
       text: 'Updates',
       func: this.onUpdatesTap.bind(this)
-    },
-    {
-      type: 'button',
-      image: 'res://settings',
-      class: 'icon',
-      text: 'Data Collection',
-      func: this.onStartDataCollection.bind(this)
     }
   );
 
@@ -267,34 +265,49 @@ export class MainViewModel extends Observable {
     return;
   }
 
-  onAccelerometerData(data) {
-    // Log.D('onAccelerometerData');
-    // only showing linear acceleration data for now
-    if (data.sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
-      const z = data.z;
-      let diff = z;
-      if (this.motorOn) {
-        diff = Math.abs(z);
-      }
-
-      // Log.D('checking', this.tapSensitivity, 'against', diff);
-
-      if (diff > this.tapSensitivity && !this.motionDetected) {
-        // Log.D('Motion detected!', { diff });
-        // register motion detected and block out futher motion detection
-        this.motionDetected = true;
-        setTimeout(() => {
-          this.motionDetected = false;
-        }, 300);
-        // now send
-        if (this._smartDrive && this._smartDrive.ableToSend) {
-          Log.D('Sending tap!');
-          this._smartDrive
-            .sendTap()
-            .catch(err => Log.E('could not send tap', err));
-        }
+  async onAccelerometerData(data) {
+    if (dataCollectionTimeout > 1) {
+      sensorData.push(data);
+    }
+    if (dataCollectionTimeout < 1) {
+      this.disableAccelerometer();
+      // need to write the data locally, after the 60 second interval we will iterate the array of records and push to Kinvey
+      for (let i = 0; i < sensorData.length; i++) {
+        const el = sensorData[i];
+        console.log('el', el);
+        await this._sensorDataService.saveRecord(el).catch(err => {
+          Log.E(err);
+        });
       }
     }
+
+    // Log.D('onAccelerometerData');
+    // only showing linear acceleration data for now
+    // if (data.sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
+    //   const z = data.z;
+    //   let diff = z;
+    //   if (this.motorOn) {
+    //     diff = Math.abs(z);
+    //   }
+
+    //   // Log.D('checking', this.tapSensitivity, 'against', diff);
+
+    //   if (diff > this.tapSensitivity && !this.motionDetected) {
+    //     // Log.D('Motion detected!', { diff });
+    //     // register motion detected and block out futher motion detection
+    //     this.motionDetected = true;
+    //     setTimeout(() => {
+    //       this.motionDetected = false;
+    //     }, 300);
+    //     // now send
+    //     if (this._smartDrive && this._smartDrive.ableToSend) {
+    //       Log.D('Sending tap!');
+    //       this._smartDrive
+    //         .sendTap()
+    //         .catch(err => Log.E('could not send tap', err));
+    //     }
+    //   }
+    // }
   }
 
   enableAccelerometer() {
@@ -436,9 +449,7 @@ export class MainViewModel extends Observable {
     // now connect to smart drive
     this._smartDrive.connect();
     this.connected = true;
-    new Toasty(`Connected to ${this._smartDrive.address}`)
-      .setToastPosition(ToastPosition.CENTER)
-      .show();
+    showSuccess(`Connected to ${this._smartDrive.address}`, 2);
   }
 
   connectToSavedSmartDrive() {
@@ -447,11 +458,7 @@ export class MainViewModel extends Observable {
       this._savedSmartDriveAddress === null ||
       this._savedSmartDriveAddress.length === 0
     ) {
-      new Toasty(
-        'You must pair to a SmartDrive first!',
-        ToastDuration.LONG,
-        ToastPosition.CENTER
-      ).show();
+      showFailure('You must pair to a SmartDrive first.', 3);
       return Promise.resolve(false);
     }
 
@@ -661,11 +668,7 @@ export class MainViewModel extends Observable {
   }
 
   onUpdatesTap() {
-    new Toasty(
-      'No updates available.',
-      ToastDuration.LONG,
-      ToastPosition.CENTER
-    ).show();
+    showSuccess('No updates available.', 4);
   }
 
   private _trimAccelerometerData(value: number) {
@@ -674,6 +677,24 @@ export class MainViewModel extends Observable {
   }
 
   onStartDataCollection() {
-    // this._sensorDataService.saveRecord(record);
+    try {
+      console.log('start data collection');
+      this.enableAccelerometer();
+
+      sensorInterval = setInterval(() => {
+        Log.D('dataCollectionTimeout', dataCollectionTimeout);
+
+        if (dataCollectionTimeout < 1) {
+          Log.D('Clearing the sensor data collection interval...');
+          dataCollectionTimeout = 0;
+          clearInterval(sensorInterval);
+          return;
+        }
+
+        dataCollectionTimeout--;
+      }, 1000);
+    } catch (error) {
+      Log.E(error);
+    }
   }
 }

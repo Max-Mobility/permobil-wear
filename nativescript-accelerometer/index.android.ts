@@ -1,19 +1,18 @@
 /// <reference path="./node_modules/tns-platform-declarations/android-25.d.ts" />
 
 import * as application from 'tns-core-modules/application';
-import { AccelerometerOptions } from './base';
+import { AccelerometerOptions, SensorType, AccelerometerData } from './base';
 
-const baseAcceleration = -9.81;
+// const baseAcceleration = -9.81;
 
 // GYROSCOPE handling
-const deltaRotationVector = float[4];
-const NS2S = 1 / 1000000000.0;
-const EPSILON = 0.000000001;
-let timestamp;
+// const deltaRotationVector = float[4];
+// const NS2S = 1 / 1000000000.0;
+// const EPSILON = 0.000000001;
+// let timestamp;
 // end GYROSCOPE
 
 let triggerEventListener: android.hardware.TriggerEventListener;
-
 let sensorListener: android.hardware.SensorEventListener;
 let sensorManager: android.hardware.SensorManager;
 let accelerometerSensor: android.hardware.Sensor;
@@ -45,7 +44,7 @@ function getNativeDelay(options?: AccelerometerOptions): number {
 }
 
 export function startAccelerometerUpdates(
-  callback: (AccelerometerData) => void,
+  callback: (AccelerometerData: AccelerometerData) => void,
   options?: AccelerometerOptions
 ) {
   if (sensorListener) {
@@ -172,93 +171,103 @@ export function startAccelerometerUpdates(
     onAccuracyChanged: (sensor, accuracy) => {},
     onSensorChanged: event => {
       const sensorType = event.sensor.getType();
-      const d = new Date();
-      const n = d.getMilliseconds();
+      const seconds = new Date().getTime() / 1000;
+
       // change mapped values here based on sensor type
       if (sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
         // https://developer.android.com/reference/android/hardware/SensorEvent.html#sensor.type_linear_acceleration:
         wrappedCallback({
-          x: event.values[0] / baseAcceleration,
-          y: event.values[1] / baseAcceleration,
-          z: event.values[2] / baseAcceleration,
-          sensorType,
-          timemilli: n
+          data: {
+            x: event.values[0],
+            y: event.values[1],
+            z: event.values[2]
+          },
+          sensor: SensorType.LINEAR_ACCELERATION,
+          time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_GRAVITY) {
         // https://developer.android.com/reference/android/hardware/SensorEvent.html#sensor.type_gravity:
         wrappedCallback({
-          x: event.values[0],
-          y: event.values[1],
-          z: event.values[2],
-          sensorType,
-          timemilli: n
+          data: {
+            x: event.values[0],
+            y: event.values[1],
+            z: event.values[2]
+          },
+          sensor: SensorType.GRAVITY,
+          time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_MAGNETIC_FIELD) {
         // https://developer.android.com/reference/android/hardware/SensorEvent.html#sensor.type_magnetic_field:
         wrappedCallback({
-          x: event.values[0],
-          y: event.values[1],
-          z: event.values[2],
-          sensorType,
-          timemilli: n
+          data: {
+            x: event.values[0],
+            y: event.values[1],
+            z: event.values[2]
+          },
+          sensor: SensorType.MAGNETIC_FIELD,
+          time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_ROTATION_VECTOR) {
         // https://developer.android.com/reference/android/hardware/SensorEvent.html#sensor.type_rotation_vector:
         // don't divide by baseAcceleration on anything other than linear_acceleration
         wrappedCallback({
-          x: event.values[0], // x*sin(θ/2)
-          y: event.values[1], // y*sin(θ/2)
-          z: event.values[2], // z*sin(θ/2)
-          cos: event.values[3], // cos(θ/2)
-          heading_accuracy: event.values[4], // estimated heading Accuracy (in radians) (-1 if unavailable)
-          sensorType,
-          timemilli: n
+          data: {
+            x: event.values[0], // x*sin(θ/2)
+            y: event.values[1], // y*sin(θ/2)
+            z: event.values[2], // z*sin(θ/2)
+            cos: event.values[3], // cos(θ/2)
+            heading_accuracy: event.values[4] // estimated heading Accuracy (in radians) (-1 if unavailable)
+          },
+          sensor: SensorType.ROTATION_VECTOR,
+          time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_GYROSCOPE) {
         // https://developer.android.com/reference/android/hardware/SensorEvent.html#values
-        let axisX = event.values[0];
-        let axisY = event.values[1];
-        let axisZ = event.values[2];
+        // let axisX = event.values[0];
+        // let axisY = event.values[1];
+        // let axisZ = event.values[2];
 
-        if (timestamp !== 0) {
-          const dT = (event.timestamp - timestamp) * NS2S;
+        // if (timestamp !== 0) {
+        //   const dT = (event.timestamp - timestamp) * NS2S;
 
-          // Calculate the angular speed of the sample
-          const omegaMagnitude = sqrt(
-            axisX * axisX + axisY * axisY + axisZ * axisZ
-          );
+        //   // Calculate the angular speed of the sample
+        //   const omegaMagnitude = sqrt(
+        //     axisX * axisX + axisY * axisY + axisZ * axisZ
+        //   );
 
-          // Normalize the rotation vector if it's big enough to get the axis
-          if (omegaMagnitude > EPSILON) {
-            axisX /= omegaMagnitude;
-            axisY /= omegaMagnitude;
-            axisZ /= omegaMagnitude;
-          }
+        //   // Normalize the rotation vector if it's big enough to get the axis
+        //   if (omegaMagnitude > EPSILON) {
+        //     axisX /= omegaMagnitude;
+        //     axisY /= omegaMagnitude;
+        //     axisZ /= omegaMagnitude;
+        //   }
 
-          // Integrate around this axis with the angular speed by the time step
-          // in order to get a delta rotation from this sample over the time step
-          // We will convert this axis-angle representation of the delta rotation
-          // into a quaternion before turning it into the rotation matrix.
-          const thetaOverTwo = (omegaMagnitude * dT) / 2.0;
-          const sinThetaOverTwo = sin(thetaOverTwo);
-          const cosThetaOverTwo = cos(thetaOverTwo);
-          deltaRotationVector[0] = sinThetaOverTwo * axisX;
-          deltaRotationVector[1] = sinThetaOverTwo * axisY;
-          deltaRotationVector[2] = sinThetaOverTwo * axisZ;
-          deltaRotationVector[3] = cosThetaOverTwo;
-        }
+        //   // Integrate around this axis with the angular speed by the time step
+        //   // in order to get a delta rotation from this sample over the time step
+        //   // We will convert this axis-angle representation of the delta rotation
+        //   // into a quaternion before turning it into the rotation matrix.
+        //   const thetaOverTwo = (omegaMagnitude * dT) / 2.0;
+        //   const sinThetaOverTwo = sin(thetaOverTwo);
+        //   const cosThetaOverTwo = cos(thetaOverTwo);
+        //   deltaRotationVector[0] = sinThetaOverTwo * axisX;
+        //   deltaRotationVector[1] = sinThetaOverTwo * axisY;
+        //   deltaRotationVector[2] = sinThetaOverTwo * axisZ;
+        //   deltaRotationVector[3] = cosThetaOverTwo;
+        // }
 
-        timestamp = event.timestamp;
-        const deltaRotationMatrix = float[9];
-        getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
+        // timestamp = event.timestamp;
+        // const deltaRotationMatrix = float[9];
+        // getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
         // TODO: handle getting the current rotation
 
         wrappedCallback({
-          x: axisX,
-          y: axisY,
-          z: axisZ,
-          sensorType,
-          timemilli: n
+          data: {
+            x: event.values[0],
+            y: event.values[1],
+            z: event.values[2]
+          },
+          sensor: SensorType.GRAVITY,
+          time: seconds
         });
       } else if (
         sensorType === android.hardware.Sensor.TYPE_STATIONARY_DETECT
@@ -269,27 +278,33 @@ export function startAccelerometerUpdates(
          * The only allowed value is 1.0.
          */
         wrappedCallback({
-          stationary: true,
-          value: event.values[0],
-          sensorType,
-          timemilli: n
+          data: {
+            stationary: true,
+            value: event.values[0]
+          },
+          sensor: SensorType.STATIONARY_DETECT,
+          time: seconds
         });
       } else if (
         sensorType === android.hardware.Sensor.TYPE_SIGNIFICANT_MOTION
       ) {
         startTriggerSensor();
         wrappedCallback({
-          significant_motion: true,
-          sensorType,
-          timemilli: n
+          data: {
+            significant_motion: true
+          },
+          sensor: SensorType.SIGNIFICANT_MOTION,
+          time: seconds
         });
       } else {
         wrappedCallback({
-          x: event.values[0],
-          y: event.values[1],
-          z: event.values[2],
-          sensorType,
-          timemilli: n
+          data: {
+            x: event.values[0],
+            y: event.values[1],
+            z: event.values[2]
+          },
+          sensor: 'Unknown',
+          time: seconds
         });
       }
     }
