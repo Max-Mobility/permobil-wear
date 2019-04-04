@@ -29,7 +29,7 @@
     "nativescript-permissions": "../../node_modules/nativescript-permissions",
     "nativescript-sentry": "../../node_modules/nativescript-sentry",
     "nativescript-theme-core": "../../node_modules/nativescript-theme-core",
-    "nativescript-themes": "../../ns-themes",
+    "nativescript-themes": "../../node_modules/nativescript-themes",
     "nativescript-toasty": "../../node_modules/nativescript-toasty",
     "nativescript-ui-chart": "../../node_modules/nativescript-ui-chart",
     "nativescript-wear-os": "../../node_modules/nativescript-wear-os",
