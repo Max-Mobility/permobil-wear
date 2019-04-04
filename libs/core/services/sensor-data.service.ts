@@ -1,6 +1,12 @@
+/// <reference path="../node_modules/tns-platform-declarations/android-26.d.ts" />
+
 import { Injectable } from 'injection-js';
 import { Kinvey } from 'kinvey-nativescript-sdk';
-import { device, Device } from 'tns-core-modules/platform';
+import { device } from 'tns-core-modules/platform';
+import {
+  AccelerometerData,
+  getSensorList
+} from 'nativescript-accelerometer-advanced';
 import { Log } from '../utils';
 
 @Injectable()
@@ -11,23 +17,42 @@ export class SensorDataService {
     Log.D('SensorDataService constructor...');
   }
 
-  async saveRecord(record: WatchSensorData) {
-    // make sure the record has sensor data and sensor type
-    if (!record.data || !record.sensor) {
-      Log.D(`No data or sensor for the record ${record}`);
-      return;
+  async saveRecord(sensor_data: AccelerometerData[]) {
+    try {
+      const deviceSensors = getSensorList() as android.hardware.Sensor[];
+      const sensor_list = [];
+      deviceSensors.forEach(i => {
+        sensor_list.push({
+          id: i.getId(),
+          vendor: i.getVendor(),
+          version: i.getVersion(),
+          name: i.getName(),
+          power: i.getPower()
+        });
+      });
+      Log.D(`Saving data collection record for WatchData to Kinvey...`);
+      const dbRecord = {
+        sensor_data,
+        sensor_list,
+        device_uuid: device.uuid,
+        device_manufacturer: device.manufacturer,
+        device_model: device.model,
+        device_os_version: device.osVersion,
+        device_sdk_version: device.sdkVersion
+      };
+      await this._datastore.save(dbRecord);
+      Log.D('WatchData record saved on Kinvey.');
+    } catch (error) {
+      Log.E(error);
     }
-    (record.uuid = device.uuid),
-      (record.manufacturer = device.manufacturer),
-      (record.model = device.model),
-      (record.osVersion = device.osVersion),
-      (record.sdkVersion = device.sdkVersion),
-      await this._datastore.save(record);
   }
 }
 
-interface WatchSensorData extends Device {
-  data: {};
-  sensor: string;
-  time: number;
+interface WatchData {
+  data: AccelerometerData[];
+  uuid: string;
+  manufacturer: string;
+  model: string;
+  osVersion: string;
+  sdkVersion: string;
 }

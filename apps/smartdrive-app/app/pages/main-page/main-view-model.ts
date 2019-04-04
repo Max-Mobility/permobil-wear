@@ -35,8 +35,8 @@ import {
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
 
 let sensorInterval = null;
-let dataCollectionTimeout = 10;
-const sensorData = [];
+let dataCollectionTimeout = 60;
+const sensorData: accelerometer.AccelerometerData[] = [];
 
 export class MainViewModel extends Observable {
   /**
@@ -144,7 +144,8 @@ export class MainViewModel extends Observable {
   );
 
   private _powerAssistButtonIndex = 1;
-  private _heartRateButtonIndex = 3;
+  private _dataCollectionButtonIndex = 3;
+  private _heartRateButtonIndex = 4;
 
   /**
    * Boolean to track if accelerometer is already registered listener events.
@@ -265,20 +266,21 @@ export class MainViewModel extends Observable {
     return;
   }
 
-  async onAccelerometerData(data) {
+  async onAccelerometerData(data: accelerometer.AccelerometerData) {
     if (dataCollectionTimeout > 1) {
       sensorData.push(data);
     }
     if (dataCollectionTimeout < 1) {
       this.disableAccelerometer();
+      Log.D(`Sensor Data Length: ${sensorData.length}`);
       // need to write the data locally, after the 60 second interval we will iterate the array of records and push to Kinvey
-      for (let i = 0; i < sensorData.length; i++) {
-        const el = sensorData[i];
-        console.log('el', el);
-        await this._sensorDataService.saveRecord(el).catch(err => {
-          Log.E(err);
-        });
-      }
+      this._sensorDataService.saveRecord(sensorData);
+      // for (let i = 0; i < sensorData.length; i++) {
+      //   const el = sensorData[i];
+      //   await this._sensorDataService.saveRecord(el).catch(err => {
+      //     Log.E(err);
+      //   });
+      // }
     }
 
     // Log.D('onAccelerometerData');
@@ -311,7 +313,7 @@ export class MainViewModel extends Observable {
   }
 
   enableAccelerometer() {
-    // Log.D('enableAccelerometer');
+    Log.D('Enable accelerometer...');
     try {
       accelerometer.startAccelerometerUpdates(
         this.onAccelerometerData.bind(this),
@@ -678,7 +680,6 @@ export class MainViewModel extends Observable {
 
   onStartDataCollection() {
     try {
-      console.log('start data collection');
       this.enableAccelerometer();
 
       sensorInterval = setInterval(() => {
@@ -687,14 +688,24 @@ export class MainViewModel extends Observable {
         if (dataCollectionTimeout < 1) {
           Log.D('Clearing the sensor data collection interval...');
           dataCollectionTimeout = 0;
+          this._updateDataCollectionButtonText(`Data Collection`);
           clearInterval(sensorInterval);
           return;
         }
 
+        this._updateDataCollectionButtonText(
+          `Seconds Remaining: ${dataCollectionTimeout}`
+        );
         dataCollectionTimeout--;
       }, 1000);
     } catch (error) {
       Log.E(error);
     }
+  }
+
+  private _updateDataCollectionButtonText(newText: string) {
+    const item = this.items.getItem(this._dataCollectionButtonIndex);
+    item.text = newText;
+    this.items.setItem(this._dataCollectionButtonIndex, item);
   }
 }
