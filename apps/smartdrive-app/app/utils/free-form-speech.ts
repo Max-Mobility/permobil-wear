@@ -1,4 +1,5 @@
 import * as app from 'tns-core-modules/application';
+import { Log } from '@permobil/core';
 
 export const SMARTDRIVE_SPEECH_REQUEST_CODE = 5425;
 
@@ -26,9 +27,9 @@ export function promptUserForSpeech() {
             const results = intentData.getStringArrayListExtra(
               android.speech.RecognizerIntent.EXTRA_RESULTS
             ) as java.util.ArrayList<string>;
-            console.log('printing spoken results');
-            console.log('size of results list: ' + results.size());
-            console.log('is results empty: ' + results.isEmpty());
+            Log.D('printing spoken results');
+            Log.D('size of results list: ' + results.size());
+            Log.D('is results empty: ' + results.isEmpty());
             const spokenText = results.get(0);
             resolve(spokenText);
           }

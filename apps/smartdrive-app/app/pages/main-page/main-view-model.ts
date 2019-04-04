@@ -5,7 +5,9 @@ import {
   Prop,
   SentryService,
   SmartDrive,
-  throttle
+  throttle,
+  Log,
+  SensorDataService
 } from '@permobil/core';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 import { LottieView } from 'nativescript-lottie';
@@ -17,9 +19,9 @@ import {
   WearOsListView
 } from 'nativescript-wear-os';
 import {
-  showConfirmationActivity,
-  ConfirmationActivityType
-} from 'nativescript-wear-os/utils';
+  showSuccess,
+  showFailure
+} from 'nativescript-wear-os/packages/dialogs';
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
@@ -29,15 +31,14 @@ import {
 } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
 import { action, alert } from 'tns-core-modules/ui/dialogs';
-import { AnimationCurve } from 'tns-core-modules/ui/enums';
-import { Page, topmost } from 'tns-core-modules/ui/frame';
-import { Image } from 'tns-core-modules/ui/image';
-import { injector } from '../../app';
+import { Page } from 'tns-core-modules/ui/frame';
+import { injector, currentSystemTime } from '../../app';
 import {
   hideOffScreenLayout,
   promptUserForSpeech,
   showOffScreenLayout
 } from '../../utils';
+import { setInterval } from 'tns-core-modules/timer/timer';
 
 export class MainViewModel extends Observable {
   /**
@@ -134,6 +135,13 @@ export class MainViewModel extends Observable {
       class: 'icon',
       text: 'Updates',
       func: this.onUpdatesTap.bind(this)
+    },
+    {
+      type: 'button',
+      image: 'res://settings',
+      class: 'icon',
+      text: 'Data Collection',
+      func: this.onStartDataCollection.bind(this)
     }
   );
 
@@ -145,27 +153,21 @@ export class MainViewModel extends Observable {
    */
   private _isListeningAccelerometer = false;
   private _heartrateListener;
-  private _page: Page;
   private _smartDrive: SmartDrive;
-  private _motionDetectedLottie: LottieView;
-
   private _settingsLayout: SwipeDismissLayout;
-  private _mainviewLayout: WearOsListView;
-
   private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
 
-  // private _bluetoothService: BluetoothService;
-
   constructor(
-    page: Page,
     private _bluetoothService: BluetoothService = injector.get(
       BluetoothService
     ),
-    private _sentryService: SentryService = injector.get(SentryService)
+    private _sentryService: SentryService = injector.get(SentryService),
+    private _sensorDataService: SensorDataService = injector.get(
+      SensorDataService
+    )
   ) {
     super();
-    this._page = page;
 
     // load savedSmartDriveAddress from settings / memory
     const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
@@ -184,17 +186,16 @@ export class MainViewModel extends Observable {
       )} g`;
     }
 
-    console.log(
-      { device },
-      'Device Info: ',
-      device.manufacturer,
-      device.model,
-      device.os,
-      device.osVersion,
-      device.sdkVersion,
-      device.region,
-      device.language,
-      device.uuid
+    Log.D(
+      'Device Info: ---',
+      'Manufacturer: ' + device.manufacturer,
+      'Model: ' + device.model,
+      'OS: ' + device.os,
+      'OS Version: ' + device.osVersion,
+      'SDK Version: ' + device.sdkVersion,
+      'Region: ' + device.region,
+      'Device Language: ' + device.language,
+      'UUID: ' + device.uuid
     );
   }
 
@@ -250,24 +251,24 @@ export class MainViewModel extends Observable {
   }
 
   disableAccelerometer() {
-    // console.log('disableAccelerometer');
+    // Log.D('disableAccelerometer');
     if (this._smartDrive && this._smartDrive.ableToSend) {
-      console.log('Turning off Motor!');
+      Log.D('Turning off Motor!');
       this._smartDrive
         .stopMotor()
-        .catch(err => console.log('could not stop motor', err));
+        .catch(err => Log.E('Could not stop motor', err));
     }
     try {
       accelerometer.stopAccelerometerUpdates();
     } catch (err) {
-      console.log('could not disable accelerometer', err);
+      Log.E('could not disable accelerometer', err);
     }
     this._isListeningAccelerometer = false;
     return;
   }
 
   onAccelerometerData(data) {
-    // console.log('onAccelerometerData');
+    // Log.D('onAccelerometerData');
     // only showing linear acceleration data for now
     if (data.sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
       const z = data.z;
@@ -276,10 +277,10 @@ export class MainViewModel extends Observable {
         diff = Math.abs(z);
       }
 
-      // console.log('checking', this.tapSensitivity, 'against', diff);
+      // Log.D('checking', this.tapSensitivity, 'against', diff);
 
       if (diff > this.tapSensitivity && !this.motionDetected) {
-        // console.log('Motion detected!', { diff });
+        // Log.D('Motion detected!', { diff });
         // register motion detected and block out futher motion detection
         this.motionDetected = true;
         setTimeout(() => {
@@ -287,17 +288,17 @@ export class MainViewModel extends Observable {
         }, 300);
         // now send
         if (this._smartDrive && this._smartDrive.ableToSend) {
-          console.log('Sending tap!');
+          Log.D('Sending tap!');
           this._smartDrive
             .sendTap()
-            .catch(err => console.log('could not send tap', err));
+            .catch(err => Log.E('could not send tap', err));
         }
       }
     }
   }
 
   enableAccelerometer() {
-    // console.log('enableAccelerometer');
+    // Log.D('enableAccelerometer');
     try {
       accelerometer.startAccelerometerUpdates(
         this.onAccelerometerData.bind(this),
@@ -305,17 +306,17 @@ export class MainViewModel extends Observable {
       );
       this._isListeningAccelerometer = true;
     } catch (err) {
-      console.log('could not enable accelerometer', err);
+      Log.E('Could not enable accelerometer', err);
     }
   }
 
   async onMotorInfo(args: any) {
-    // console.log('onMotorInfo event');
+    // Log.D('onMotorInfo event');
     this.motorOn = this._smartDrive.driving;
   }
 
   async onDistance(args: any) {
-    // console.log('onDistance event');
+    // Log.D('onDistance event');
 
     // save the updated distance
     appSettings.setNumber(
@@ -337,7 +338,7 @@ export class MainViewModel extends Observable {
   }
 
   async onSmartDriveVersion(args: any) {
-    // console.log('onSmartDriveVersion event');
+    // Log.D('onSmartDriveVersion event');
 
     // save the updated SmartDrive data values
     appSettings.setNumber(
@@ -350,23 +351,19 @@ export class MainViewModel extends Observable {
     );
     appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
 
-    /*
-    // log breadcrumb
-    throttle(
-      10000,
-      this._sentryService.logBreadCrumb(
+    setInterval(() => {
+      Log.D(
         `Updated SD: ${this._smartDrive.address} -- MCU: ${
           this._smartDrive.mcu_version
         }, BLE: ${this._smartDrive.ble_version}, Battery: ${
           this._smartDrive.battery
         }`
-      )
-    );
-	  */
+      );
+    }, 10000);
   }
 
   saveNewSmartDrive() {
-    console.log('saveNewSmartDrive()');
+    Log.D('saveNewSmartDrive()');
 
     new Toasty(
       'Scanning for SmartDrives...',
@@ -378,19 +375,11 @@ export class MainViewModel extends Observable {
     this._bluetoothService
       .scanForSmartDrives(3)
       .then(() => {
-        console.log('Discovered SmartDrives: ' + BluetoothService.SmartDrives);
+        Log.D('Discovered SmartDrives', BluetoothService.SmartDrives);
 
         // make sure we have smartdrives
         if (BluetoothService.SmartDrives.length <= 0) {
-          // new Toasty(
-          //   'No SmartDrives found nearby.',
-          //   ToastDuration.SHORT,
-          //   ToastPosition.CENTER
-          // ).show();
-          showConfirmationActivity(
-            'No SmartDrives found nearby.',
-            ConfirmationActivityType.FAILURE
-          );
+          showFailure('No SmartDrives found nearby.');
           return;
         }
 
@@ -407,28 +396,20 @@ export class MainViewModel extends Observable {
           actions: addresses,
           cancelButtonText: 'Dismiss'
         }).then(result => {
-          console.log('result', result);
+          Log.D('result', result);
 
           // if user selected one of the smartdrives in the action dialog, attempt to connect to it
           if (addresses.indexOf(result) > -1) {
             // save the smartdrive here
             this._savedSmartDriveAddress = result;
             appSettings.setString(DataKeys.SD_SAVED_ADDRESS, result);
-            // new Toasty(
-            //   'Paired to SmartDrive ' + result,
-            //   ToastDuration.SHORT,
-            //   ToastPosition.CENTER
-            // ).show();
 
-            showConfirmationActivity(
-              `Paired to SmartDrive ${result}`,
-              ConfirmationActivityType.SUCCESS
-            );
+            showSuccess(`Paired to SmartDrive ${result}`);
           }
         });
       })
       .catch(error => {
-        console.log('could not scan', error);
+        Log.E('could not scan', error);
       });
   }
 
@@ -461,7 +442,7 @@ export class MainViewModel extends Observable {
   }
 
   connectToSavedSmartDrive() {
-    console.log('connectToSavedSmartDrive()');
+    Log.D('connectToSavedSmartDrive()');
     if (
       this._savedSmartDriveAddress === null ||
       this._savedSmartDriveAddress.length === 0
@@ -495,14 +476,7 @@ export class MainViewModel extends Observable {
             sd => sd.address === this._savedSmartDriveAddress
           )[0];
           if (!sd) {
-            // new Toasty(`Could not find ${this._savedSmartDriveAddress}`)
-            //   .setToastPosition(ToastPosition.CENTER)
-            //   .show();
-
-            showConfirmationActivity(
-              `Could not find ${this._savedSmartDriveAddress}`,
-              ConfirmationActivityType.FAILURE
-            );
+            showFailure(`Could not find ${this._savedSmartDriveAddress}`);
 
             return false;
           } else {
@@ -573,7 +547,7 @@ export class MainViewModel extends Observable {
             );
           },
           onSensorChanged: event => {
-            console.log(event.values[0]);
+            Log.D(event.values[0]);
             this.heartRate = event.values[0].toString().split('.')[0];
             let accStr = 'Unknown';
             switch (this.heartRateAccuracy) {
@@ -617,7 +591,6 @@ export class MainViewModel extends Observable {
       if (this.isGettingHeartRate === true) {
         this.isGettingHeartRate = false;
         this.updateHeartRateButtonText('Read Heart Rate');
-        this._stopHeartAnimation();
         mSensorManager.unregisterListener(this._heartrateListener);
         return;
       }
@@ -632,44 +605,40 @@ export class MainViewModel extends Observable {
       const mHeartRateSensor = mSensorManager.getDefaultSensor(
         android.hardware.Sensor.TYPE_HEART_RATE
       );
-      console.log(mHeartRateSensor);
+      Log.D(mHeartRateSensor);
 
       const didRegListener = mSensorManager.registerListener(
         this._heartrateListener,
         mHeartRateSensor,
         android.hardware.SensorManager.SENSOR_DELAY_NORMAL
       );
-      console.log({ didRegListener });
+      Log.D({ didRegListener });
 
       if (didRegListener) {
         this.isGettingHeartRate = true;
         this.updateHeartRateButtonText('Reading Heart Rate');
-        this._animateHeartIcon();
         // don't read heart rate for more than one minute at a time
         setTimeout(() => {
           if (this.isGettingHeartRate) {
-            console.log('timer cancelling heart rate');
+            Log.D('Timer cancelling heart rate');
             this.startHeartRate();
           }
         }, 60000);
 
-        console.log('Registered heart rate sensor listener');
+        Log.D('Registered heart rate sensor listener');
       } else {
-        console.log('Heart Rate listener did not register.');
+        Log.D('Heart Rate listener did not register.');
       }
     } catch (error) {
-      console.log({ error });
+      Log.E({ error });
     }
-  }
-  onMainLayoutLoaded(args) {
-    this._mainviewLayout = args.object as WearOsListView;
   }
 
   onSettingsLayoutLoaded(args) {
     this._settingsLayout = args.object as SwipeDismissLayout;
 
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      console.log('dimissedEvent', args.object);
+      Log.D('dimissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
       this.isSettingsLayoutEnabled = false;
@@ -684,10 +653,10 @@ export class MainViewModel extends Observable {
   onVoiceInputTap() {
     promptUserForSpeech()
       .then(result => {
-        console.log('result from speech', result);
+        Log.D('result from speech', result);
       })
       .catch(error => {
-        console.log('speech error', error);
+        Log.E('speech error', error);
       });
   }
 
@@ -699,36 +668,12 @@ export class MainViewModel extends Observable {
     ).show();
   }
 
-  private _animateHeartIcon() {
-    const heartIcon = topmost().currentPage.getViewById('heartIcon') as Image;
-
-    heartIcon
-      .animate({
-        scale: {
-          x: 1.2,
-          y: 1.2
-        },
-        duration: 200,
-        curve: AnimationCurve.easeIn
-      })
-      .then(() => {
-        heartIcon.animate({
-          scale: {
-            x: 0,
-            y: 0
-          },
-          duration: 200,
-          curve: AnimationCurve.easeOut
-        });
-      });
-  }
-
-  private _stopHeartAnimation() {
-    console.log('stop heart animation');
-  }
-
   private _trimAccelerometerData(value: number) {
     const x = value.toString();
     return x.substring(0, 8);
+  }
+
+  onStartDataCollection() {
+    // this._sensorDataService.saveRecord(record);
   }
 }
