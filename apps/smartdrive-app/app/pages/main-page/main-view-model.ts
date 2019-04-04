@@ -19,9 +19,9 @@ import {
   WearOsListView
 } from 'nativescript-wear-os';
 import {
-  showConfirmationActivity,
-  ConfirmationActivityType
-} from 'nativescript-wear-os/utils';
+  showSuccess,
+  showFailure
+} from 'nativescript-wear-os/packages/dialogs';
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
@@ -379,10 +379,7 @@ export class MainViewModel extends Observable {
 
         // make sure we have smartdrives
         if (BluetoothService.SmartDrives.length <= 0) {
-          showConfirmationActivity(
-            'No SmartDrives found nearby.',
-            ConfirmationActivityType.FAILURE
-          );
+          showFailure('No SmartDrives found nearby.');
           return;
         }
 
@@ -407,10 +404,7 @@ export class MainViewModel extends Observable {
             this._savedSmartDriveAddress = result;
             appSettings.setString(DataKeys.SD_SAVED_ADDRESS, result);
 
-            showConfirmationActivity(
-              `Paired to SmartDrive ${result}`,
-              ConfirmationActivityType.SUCCESS
-            );
+            showSuccess(`Paired to SmartDrive ${result}`);
           }
         });
       })
@@ -482,14 +476,7 @@ export class MainViewModel extends Observable {
             sd => sd.address === this._savedSmartDriveAddress
           )[0];
           if (!sd) {
-            // new Toasty(`Could not find ${this._savedSmartDriveAddress}`)
-            //   .setToastPosition(ToastPosition.CENTER)
-            //   .show();
-
-            showConfirmationActivity(
-              `Could not find ${this._savedSmartDriveAddress}`,
-              ConfirmationActivityType.FAILURE
-            );
+            showFailure(`Could not find ${this._savedSmartDriveAddress}`);
 
             return false;
           } else {
