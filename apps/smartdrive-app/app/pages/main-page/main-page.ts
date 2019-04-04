@@ -11,5 +11,14 @@ export function navigatingTo(args: EventData) {
 
   Kinvey.ping().then(() => {
     Log.D('Kinvey is active.');
+    Kinvey.User.login('bradwaynemartin@gmail.com', 'testtest')
+      .then(() => {
+        Log.D(
+          `Logged in brad's user, be sure to remove this after data collection work!`
+        );
+      })
+      .catch(error => {
+        Log.E(error);
+      });
   });
 }
