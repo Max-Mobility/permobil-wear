@@ -5,9 +5,9 @@
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
-	  "skipLibCheck": true,
+    "skipLibCheck": true,
     "sourceMap": false,
-    "declaration": false,
+    "declaration": true,
     "noLib": false,
     "noEmitHelpers": true,
     "experimentalDecorators": true,
@@ -20,6 +20,6 @@
       "*": ["./node_modules/tns-core-modules/*", "./node_modules/*"]
     }
   },
-  "files": ["base.ts", "index.android.ts", "index.ios.ts"],
+  "files": ["base.ts", "index.android.ts"],
   "exclude": ["node_modules", "platforms", "demo"]
 }
