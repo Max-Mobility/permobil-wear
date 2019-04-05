@@ -40,6 +40,7 @@ export class SensorDataService {
     });
 
     Log.D(`Saving data collection record for WatchData to Kinvey...`);
+    // getting the UUID of the device here. We've seen some crashes with core-modules device.uuid not resolving the android app instance.
     const nApp = app.android.nativeApp as android.app.Application;
     const resolver = nApp.getContentResolver();
     const deviceUUID = android.provider.Settings.Secure.getString(
