@@ -15,6 +15,10 @@ export enum LoggingCategory {
 
 @Injectable()
 export class SentryService {
+  constructor() {
+    Log.D('SentryService constructor...');
+  }
+
   public logError(error) {
     Log.E(error);
     Sentry.captureException(error, {});
