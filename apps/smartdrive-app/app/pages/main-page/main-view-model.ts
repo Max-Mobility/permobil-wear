@@ -35,7 +35,6 @@ import {
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
 
 let sensorInterval = null;
-let dataCollectionTimeout = 60;
 const sensorData: accelerometer.AccelerometerData[] = [];
 
 export class MainViewModel extends Observable {
@@ -58,6 +57,26 @@ export class MainViewModel extends Observable {
   tapSensitivityText: string = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
     2
   )} g`;
+
+  /**
+   * Data Collection Time Remaining (seconds)
+   */
+  @Prop()
+  dataCollectionTimeRemaining: number = 0;
+
+  /**
+   * The data collection timeout (seconds)
+   */
+  @Prop()
+  dataCollectionTime: number = 60;
+
+  /**
+   * The data collection timeout display text
+   */
+  @Prop()
+  dataCollectionTimeText: string = `Data Collection Time: ${
+    this.dataCollectionTime
+  } s`;
 
   /**
    * The heart rate accuracy for monitoring.
@@ -118,7 +137,7 @@ export class MainViewModel extends Observable {
       image: 'res://ic_watch_white',
       class: 'icon',
       text: 'Data Collection',
-      func: this.onStartDataCollection.bind(this)
+      func: this.onToggleDataCollection.bind(this)
     },
     {
       type: 'button',
@@ -151,6 +170,7 @@ export class MainViewModel extends Observable {
    * Boolean to track if accelerometer is already registered listener events.
    */
   private _isListeningAccelerometer = false;
+  private _isCollectingData = false;
   private _heartrateListener;
   private _smartDrive: SmartDrive;
   private _settingsLayout: SwipeDismissLayout;
@@ -236,7 +256,17 @@ export class MainViewModel extends Observable {
     if (this._powerAssistActive) {
       this._powerAssistActive = false;
       this.updatePowerAssistButtonText('Power Assist OFF');
-      this.disableAccelerometer();
+      // turn off the motor if SD is connected
+      if (this._smartDrive && this._smartDrive.ableToSend) {
+        Log.D('Turning off Motor!');
+        this._smartDrive
+          .stopMotor()
+          .catch(err => Log.E('Could not stop motor', err));
+      }
+      // now disable accel
+      if (!this._isCollectingData) {
+        this.disableAccelerometer();
+      }
       this.onDisconnectTap();
     } else {
       this.connectToSavedSmartDrive().then(didConnect => {
@@ -251,12 +281,6 @@ export class MainViewModel extends Observable {
 
   disableAccelerometer() {
     // Log.D('disableAccelerometer');
-    if (this._smartDrive && this._smartDrive.ableToSend) {
-      Log.D('Turning off Motor!');
-      this._smartDrive
-        .stopMotor()
-        .catch(err => Log.E('Could not stop motor', err));
-    }
     try {
       accelerometer.stopAccelerometerUpdates();
     } catch (err) {
@@ -267,22 +291,9 @@ export class MainViewModel extends Observable {
   }
 
   async onAccelerometerData(data: accelerometer.AccelerometerData) {
-    if (dataCollectionTimeout > 1) {
+    if (this._isCollectingData) {
       sensorData.push(data);
     }
-    if (dataCollectionTimeout < 1) {
-      this.disableAccelerometer();
-      Log.D(`Sensor Data Length: ${sensorData.length}`);
-      // need to write the data locally, after the 60 second interval we will iterate the array of records and push to Kinvey
-      this._sensorDataService.saveRecord(sensorData);
-      // for (let i = 0; i < sensorData.length; i++) {
-      //   const el = sensorData[i];
-      //   await this._sensorDataService.saveRecord(el).catch(err => {
-      //     Log.E(err);
-      //   });
-      // }
-    }
-
     // Log.D('onAccelerometerData');
     // only showing linear acceleration data for now
     // if (data.sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
@@ -315,11 +326,13 @@ export class MainViewModel extends Observable {
   enableAccelerometer() {
     Log.D('Enable accelerometer...');
     try {
-      accelerometer.startAccelerometerUpdates(
-        this.onAccelerometerData.bind(this),
-        { sensorDelay: 'game' }
-      );
-      this._isListeningAccelerometer = true;
+      if (!this._isListeningAccelerometer) {
+        accelerometer.startAccelerometerUpdates(
+          this.onAccelerometerData.bind(this),
+          { sensorDelay: 'game' }
+        );
+        this._isListeningAccelerometer = true;
+      }
     } catch (err) {
       Log.E('Could not enable accelerometer', err);
     }
@@ -344,12 +357,12 @@ export class MainViewModel extends Observable {
     );
 
     /*
-    this._sentryService.logBreadCrumb(
-      `Updated SD: ${this._smartDrive.address} -- SD_DISTANCE_CASE: ${
-        this._smartDrive.coastDistance
-      }, SD_DISTANCE_DRIVE: ${this._smartDrive.driveDistance}`
-    );
-	  */
+		  this._sentryService.logBreadCrumb(
+		  `Updated SD: ${this._smartDrive.address} -- SD_DISTANCE_CASE: ${
+          this._smartDrive.coastDistance
+		  }, SD_DISTANCE_DRIVE: ${this._smartDrive.driveDistance}`
+		  );
+		*/
   }
 
   async onSmartDriveVersion(args: any) {
@@ -678,25 +691,64 @@ export class MainViewModel extends Observable {
     return x.substring(0, 8);
   }
 
-  onStartDataCollection() {
+  onIncreaseDataCollectionTimeTap() {
+    this.dataCollectionTime =
+      this.dataCollectionTime < 600 ? this.dataCollectionTime + 1 : 600;
+    this.dataCollectionTimeText = `Data Collection Time: ${
+      this.dataCollectionTime
+    } s`;
+  }
+
+  onDecreaseDataCollectionTimeTap() {
+    this.dataCollectionTime =
+      this.dataCollectionTime > 1 ? this.dataCollectionTime - 1 : 1;
+    this.dataCollectionTimeText = `Data Collection Time: ${
+      this.dataCollectionTime
+    } s`;
+  }
+
+  onToggleDataCollection() {
+    if (sensorInterval) {
+      this.stopDataCollection();
+    } else {
+      this.startDataCollection();
+    }
+  }
+
+  stopDataCollection() {
+    // stop collecting data
+    this._isCollectingData = false;
+    // update display
+    this._updateDataCollectionButtonText(`Data Collection`);
+    // make sure the timer has stopped
+    Log.D('Clearing the sensor data collection interval...');
+    clearInterval(sensorInterval);
+    sensorInterval = null;
+    // disable accelerometer if not needed for SD control
+    if (!this._powerAssistActive) {
+      this.disableAccelerometer();
+    }
+    // send the data
+    Log.D(`Sensor Data Length: ${sensorData.length}`);
+    this._sensorDataService.saveRecord(sensorData);
+  }
+
+  startDataCollection() {
     try {
+      // enable accelerometer
       this.enableAccelerometer();
-
+      // initialize remaining time
+      this.dataCollectionTimeRemaining = this.dataCollectionTime;
+      // set up interval timer for updating display
       sensorInterval = setInterval(() => {
-        Log.D('dataCollectionTimeout', dataCollectionTimeout);
-
-        if (dataCollectionTimeout < 1) {
-          Log.D('Clearing the sensor data collection interval...');
-          dataCollectionTimeout = 0;
-          this._updateDataCollectionButtonText(`Data Collection`);
-          clearInterval(sensorInterval);
-          return;
+        if (this.dataCollectionTimeRemaining < 1) {
+          this.stopDataCollection();
+        } else {
+          this.dataCollectionTimeRemaining--;
+          this._updateDataCollectionButtonText(
+            `Seconds Remaining: ${this.dataCollectionTimeRemaining}`
+          );
         }
-
-        this._updateDataCollectionButtonText(
-          `Seconds Remaining: ${dataCollectionTimeout}`
-        );
-        dataCollectionTimeout--;
       }, 1000);
     } catch (error) {
       Log.E(error);
