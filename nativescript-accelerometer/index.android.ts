@@ -182,7 +182,7 @@ export function startAccelerometerUpdates(
             y: event.values[1],
             z: event.values[2]
           },
-          sensor: SensorType.LINEAR_ACCELERATION,
+          sensor: sensorType,
           time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_GRAVITY) {
@@ -193,7 +193,7 @@ export function startAccelerometerUpdates(
             y: event.values[1],
             z: event.values[2]
           },
-          sensor: SensorType.GRAVITY,
+          sensor: sensorType,
           time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_MAGNETIC_FIELD) {
@@ -204,7 +204,7 @@ export function startAccelerometerUpdates(
             y: event.values[1],
             z: event.values[2]
           },
-          sensor: SensorType.MAGNETIC_FIELD,
+          sensor: sensorType,
           time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_ROTATION_VECTOR) {
@@ -218,7 +218,7 @@ export function startAccelerometerUpdates(
             cos: event.values[3], // cos(θ/2)
             heading_accuracy: event.values[4] // estimated heading Accuracy (in radians) (-1 if unavailable)
           },
-          sensor: SensorType.ROTATION_VECTOR,
+          sensor: sensorType,
           time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_GYROSCOPE) {
@@ -266,7 +266,7 @@ export function startAccelerometerUpdates(
             y: event.values[1],
             z: event.values[2]
           },
-          sensor: SensorType.GRAVITY,
+          sensor: sensorType,
           time: seconds
         });
       } else if (
@@ -282,7 +282,7 @@ export function startAccelerometerUpdates(
             stationary: true,
             value: event.values[0]
           },
-          sensor: SensorType.STATIONARY_DETECT,
+          sensor: sensorType,
           time: seconds
         });
       } else if (
@@ -293,7 +293,7 @@ export function startAccelerometerUpdates(
           data: {
             significant_motion: true
           },
-          sensor: SensorType.SIGNIFICANT_MOTION,
+          sensor: sensorType,
           time: seconds
         });
       } else {
