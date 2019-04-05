@@ -255,8 +255,9 @@ export function startAccelerometerUpdates(
             x: event.values[0], // x*sin(θ/2)
             y: event.values[1], // y*sin(θ/2)
             z: event.values[2], // z*sin(θ/2)
-            cos: event.values[3], // cos(θ/2)
-            heading_accuracy: event.values[4] // should always be 0 since it doesn't report heading accuracy
+            cos: event.values[3] // cos(θ/2)
+            // values[4] trying to access ends up crashing
+            // heading_accuracy: event.values[4] // should always be 0 since it doesn't report heading accuracy
           },
           sensor: SensorType.GAME_ROTATION_VECTOR,
           timestamp: timestamp,
@@ -356,6 +357,7 @@ export function startAccelerometerUpdates(
   });
 
   const nativeDelay = getNativeDelay(options);
+  // register the listeners for the sensors we are able to use on the device
   if (accelerometerSensor)
     sensorManager.registerListener(
       sensorListener,
@@ -368,6 +370,18 @@ export function startAccelerometerUpdates(
     sensorManager.registerListener(sensorListener, gravitySensor, nativeDelay);
   if (rotationSensor)
     sensorManager.registerListener(sensorListener, rotationSensor, nativeDelay);
+  if (gameRotationSensor)
+    sensorManager.registerListener(
+      sensorListener,
+      gameRotationSensor,
+      nativeDelay
+    );
+  if (gyroScopeSensor)
+    sensorManager.registerListener(
+      sensorListener,
+      gyroScopeSensor,
+      nativeDelay
+    );
 }
 
 export function stopAccelerometerUpdates() {
@@ -459,7 +473,7 @@ function getGameRotationVectorSensor(
   sensorManager: android.hardware.SensorManager
 ) {
   // https://developer.android.com/reference/android/hardware/Sensor.html#TYPE_ROTATION_VECTOR
-  // constant value: 11
+  // constant value: 15
   return sensorManager.getDefaultSensor(
     android.hardware.Sensor.TYPE_GAME_ROTATION_VECTOR
   );
