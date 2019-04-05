@@ -1,5 +1,3 @@
-/// <reference path="../node_modules/tns-platform-declarations/android-26.d.ts" />
-
 import { Injectable } from 'injection-js';
 import { Kinvey } from 'kinvey-nativescript-sdk';
 import { device } from 'tns-core-modules/platform';
