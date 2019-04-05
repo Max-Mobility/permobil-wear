@@ -35,7 +35,7 @@ import {
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
 
 let sensorInterval = null;
-const sensorData: accelerometer.AccelerometerData[] = [];
+let sensorData: accelerometer.AccelerometerData[] = [];
 
 export class MainViewModel extends Observable {
   /**
@@ -729,8 +729,12 @@ export class MainViewModel extends Observable {
       this.disableAccelerometer();
     }
     // send the data
-    Log.D(`Sensor Data Length: ${sensorData.length}`);
-    this._sensorDataService.saveRecord(sensorData);
+    if (sensorData.length) {
+      Log.D(`Sensor Data Length: ${sensorData.length}`);
+      this._sensorDataService.saveRecord(sensorData);
+    }
+    // clear out the data
+    sensorData = [];
   }
 
   startDataCollection() {
