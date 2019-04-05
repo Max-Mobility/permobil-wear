@@ -539,7 +539,8 @@ export class MainViewModel extends Observable {
           accuracy: this.heartRateAccuracy
         },
         sensor: event.sensor.getType(),
-        date: new Date().getTime() / 1000
+        date: new Date().getTime() / 1000,
+        timestamp: event.sensor.timestamp
       });
     }
     //Log.D(event.values[0]);
