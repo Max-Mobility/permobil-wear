@@ -172,6 +172,7 @@ export function startAccelerometerUpdates(
     onSensorChanged: event => {
       const sensorType = event.sensor.getType();
       const seconds = new Date().getTime() / 1000;
+      const timestamp = event.timestamp;
 
       // change mapped values here based on sensor type
       if (sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
@@ -182,7 +183,8 @@ export function startAccelerometerUpdates(
             y: event.values[1],
             z: event.values[2]
           },
-          sensor: sensorType,
+          sensor: SensorType.LINEAR_ACCELERATION,
+          timestamp: timestamp,
           time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_GRAVITY) {
@@ -193,7 +195,8 @@ export function startAccelerometerUpdates(
             y: event.values[1],
             z: event.values[2]
           },
-          sensor: sensorType,
+          sensor: SensorType.GRAVITY,
+          timestamp: timestamp,
           time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_MAGNETIC_FIELD) {
@@ -204,7 +207,8 @@ export function startAccelerometerUpdates(
             y: event.values[1],
             z: event.values[2]
           },
-          sensor: sensorType,
+          sensor: SensorType.MAGNETIC_FIELD,
+          timestamp: timestamp,
           time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_ROTATION_VECTOR) {
@@ -218,7 +222,8 @@ export function startAccelerometerUpdates(
             cos: event.values[3], // cos(θ/2)
             heading_accuracy: event.values[4] // estimated heading Accuracy (in radians) (-1 if unavailable)
           },
-          sensor: sensorType,
+          sensor: SensorType.ROTATION_VECTOR,
+          timestamp: timestamp,
           time: seconds
         });
       } else if (sensorType === android.hardware.Sensor.TYPE_GYROSCOPE) {
@@ -266,7 +271,8 @@ export function startAccelerometerUpdates(
             y: event.values[1],
             z: event.values[2]
           },
-          sensor: sensorType,
+          sensor: SensorType.GYROSCOPE,
+          timestamp: timestamp,
           time: seconds
         });
       } else if (
@@ -282,7 +288,8 @@ export function startAccelerometerUpdates(
             stationary: true,
             value: event.values[0]
           },
-          sensor: sensorType,
+          sensor: SensorType.STATIONARY_DETECT,
+          timestamp: timestamp,
           time: seconds
         });
       } else if (
@@ -293,7 +300,8 @@ export function startAccelerometerUpdates(
           data: {
             significant_motion: true
           },
-          sensor: sensorType,
+          sensor: SensorType.SIGNIFICANT_MOTION,
+          timestamp: timestamp,
           time: seconds
         });
       } else {
@@ -304,6 +312,7 @@ export function startAccelerometerUpdates(
             z: event.values[2]
           },
           sensor: 'Unknown',
+          timestamp: timestamp,
           time: seconds
         });
       }

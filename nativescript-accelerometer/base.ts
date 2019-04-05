@@ -4,6 +4,7 @@ export interface AccelerometerData {
   data: {};
   sensor: string;
   date: number;
+  timestamp: number;
 }
 
 export interface AccelerometerOptions {

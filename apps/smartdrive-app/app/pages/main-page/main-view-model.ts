@@ -144,7 +144,7 @@ export class MainViewModel extends Observable {
       image: 'res://favorite',
       class: 'icon',
       text: 'Read Heart Rate',
-      func: this.startHeartRate.bind(this)
+      func: this.toggleHeartRate.bind(this)
     },
     {
       type: 'button',
@@ -296,31 +296,31 @@ export class MainViewModel extends Observable {
     }
     // Log.D('onAccelerometerData');
     // only showing linear acceleration data for now
-    // if (data.sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
-    //   const z = data.z;
-    //   let diff = z;
-    //   if (this.motorOn) {
-    //     diff = Math.abs(z);
-    //   }
+    if (data.sensor === accelerometer.SensorType.LINEAR_ACCELERATION) {
+      const z = (data.data as any).z;
+      let diff = z;
+      if (this.motorOn) {
+        diff = Math.abs(z);
+      }
 
-    //   // Log.D('checking', this.tapSensitivity, 'against', diff);
+      // Log.D('checking', this.tapSensitivity, 'against', diff);
 
-    //   if (diff > this.tapSensitivity && !this.motionDetected) {
-    //     // Log.D('Motion detected!', { diff });
-    //     // register motion detected and block out futher motion detection
-    //     this.motionDetected = true;
-    //     setTimeout(() => {
-    //       this.motionDetected = false;
-    //     }, 300);
-    //     // now send
-    //     if (this._smartDrive && this._smartDrive.ableToSend) {
-    //       Log.D('Sending tap!');
-    //       this._smartDrive
-    //         .sendTap()
-    //         .catch(err => Log.E('could not send tap', err));
-    //     }
-    //   }
-    // }
+      if (diff > this.tapSensitivity && !this.motionDetected) {
+        // Log.D('Motion detected!', { diff });
+        // register motion detected and block out futher motion detection
+        this.motionDetected = true;
+        setTimeout(() => {
+          this.motionDetected = false;
+        }, 300);
+        // now send
+        if (this._smartDrive && this._smartDrive.ableToSend) {
+          Log.D('Sending tap!');
+          this._smartDrive
+            .sendTap()
+            .catch(err => Log.E('could not send tap', err));
+        }
+      }
+    }
   }
 
   enableAccelerometer() {
@@ -355,14 +355,6 @@ export class MainViewModel extends Observable {
       DataKeys.SD_DISTANCE_DRIVE,
       this._smartDrive.driveDistance
     );
-
-    /*
-		  this._sentryService.logBreadCrumb(
-		  `Updated SD: ${this._smartDrive.address} -- SD_DISTANCE_CASE: ${
-          this._smartDrive.coastDistance
-		  }, SD_DISTANCE_DRIVE: ${this._smartDrive.driveDistance}`
-		  );
-		*/
   }
 
   async onSmartDriveVersion(args: any) {
@@ -538,103 +530,119 @@ export class MainViewModel extends Observable {
     }
   }
 
-  async startHeartRate() {
-    try {
-      // check permissions first
-      const hasPermission = permissions.hasPermission(
+  async onHeartRateData(event) {
+    // collect the data
+    if (this._isCollectingData) {
+      sensorData.push({
+        data: {
+          x: event.values[0],
+          accuracy: this.heartRateAccuracy
+        },
+        sensor: event.sensor.getType(),
+        date: new Date().getTime() / 1000
+      });
+    }
+    //Log.D(event.values[0]);
+    this.heartRate = event.values[0].toString().split('.')[0];
+    let accStr = 'Unknown';
+    switch (this.heartRateAccuracy) {
+      case 0:
+        accStr = 'Unreliable';
+        break;
+      case 1:
+        accStr = 'Low';
+        break;
+      case 2:
+        accStr = 'Medium';
+        break;
+      case 3:
+        accStr = 'High';
+        break;
+      case 0xffffffff:
+      case -1:
+        accStr = 'No Contact';
+        break;
+    }
+    this.updateHeartRateButtonText(`HR: ${this.heartRate}, ACC: ${accStr}`);
+
+    // save the heart rate
+    appSettings.setNumber(DataKeys.HEART_RATE, parseInt(this.heartRate, 10));
+  }
+
+  async toggleHeartRate() {
+    if (this.isGettingHeartRate) {
+      this.stopHeartRate();
+    } else {
+      this.startHeartRate();
+    }
+  }
+
+  private async getHeartRateSensorManager() {
+    // check permissions first
+    const hasPermission = permissions.hasPermission(
+      android.Manifest.permission.BODY_SENSORS
+    );
+    if (!hasPermission) {
+      await permissions.requestPermission(
         android.Manifest.permission.BODY_SENSORS
       );
-      if (!hasPermission) {
-        await permissions.requestPermission(
-          android.Manifest.permission.BODY_SENSORS
-        );
-      }
+    }
+    // get the sensor manager
+    const activity: android.app.Activity =
+      application.android.startActivity ||
+      application.android.foregroundActivity;
+    const mSensorManager = activity.getSystemService(
+      android.content.Context.SENSOR_SERVICE
+    ) as android.hardware.SensorManager;
+    if (!mSensorManager) {
+      alert({
+        message: 'Could not initialize the device sensors.',
+        okButtonText: 'Okay'
+      });
+    }
+    return mSensorManager;
+  }
 
-      const activity: android.app.Activity =
-        application.android.startActivity ||
-        application.android.foregroundActivity;
-      const mSensorManager = activity.getSystemService(
-        android.content.Context.SENSOR_SERVICE
-      ) as android.hardware.SensorManager;
+  async stopHeartRate() {
+    if (!this.isGettingHeartRate) {
+      return;
+    }
+    this.isGettingHeartRate = false;
+    this.updateHeartRateButtonText('Read Heart Rate');
+    try {
+      // now unregister
+      const sensorManager = await this.getHeartRateSensorManager();
+      sensorManager.unregisterListener(this._heartrateListener);
+      Log.D('Unregistered heart rate listener');
+    } catch (error) {
+      Log.E({ error });
+    }
+  }
 
+  async startHeartRate() {
+    if (this.isGettingHeartRate) {
+      return;
+    }
+    try {
+      // make the heart rate listener if we don't have it already
       if (!this._heartrateListener) {
         this._heartrateListener = new android.hardware.SensorEventListener({
           onAccuracyChanged: (sensor, accuracy) => {
             this.heartRateAccuracy = accuracy;
-            this._sentryService.logBreadCrumb(
-              `testing breadcrumb, heart rate accuracy: ${
-                this.heartRateAccuracy
-              }`,
-              LoggingCategory.Info
-            );
           },
-          onSensorChanged: event => {
-            Log.D(event.values[0]);
-            this.heartRate = event.values[0].toString().split('.')[0];
-            let accStr = 'Unknown';
-            switch (this.heartRateAccuracy) {
-              case 0:
-                accStr = 'Unreliable';
-                break;
-              case 1:
-                accStr = 'Low';
-                break;
-              case 2:
-                accStr = 'Medium';
-                break;
-              case 3:
-                accStr = 'High';
-                break;
-              case 0xffffffff:
-              case -1:
-                accStr = 'No Contact';
-                break;
-            }
-            this.updateHeartRateButtonText(
-              `HR: ${this.heartRate}, ACC: ${accStr}`
-            );
-
-            // log the recorded heart rate as a breadcrumb
-            this._sentryService.logBreadCrumb(
-              `testing breadcrumb, heartRate: ${this.heartRate}`,
-              LoggingCategory.Info
-            );
-
-            // save the heart rate
-            appSettings.setNumber(
-              DataKeys.HEART_RATE,
-              parseInt(this.heartRate, 10)
-            );
-          }
+          onSensorChanged: this.onHeartRateData.bind(this)
         });
       }
 
-      // if already getting the HR, then turn off on this tap
-      if (this.isGettingHeartRate === true) {
-        this.isGettingHeartRate = false;
-        this.updateHeartRateButtonText('Read Heart Rate');
-        mSensorManager.unregisterListener(this._heartrateListener);
-        return;
-      }
-
-      if (!mSensorManager) {
-        alert({
-          message: 'Could not initialize the device sensors.',
-          okButtonText: 'Okay'
-        });
-      }
-
-      const mHeartRateSensor = mSensorManager.getDefaultSensor(
+      const sensorManager = await this.getHeartRateSensorManager();
+      const mHeartRateSensor = sensorManager.getDefaultSensor(
         android.hardware.Sensor.TYPE_HEART_RATE
       );
-      Log.D(mHeartRateSensor);
-
-      const didRegListener = mSensorManager.registerListener(
+      const didRegListener = sensorManager.registerListener(
         this._heartrateListener,
         mHeartRateSensor,
         android.hardware.SensorManager.SENSOR_DELAY_NORMAL
       );
-      Log.D({ didRegListener });
 
       if (didRegListener) {
         this.isGettingHeartRate = true;
@@ -643,9 +651,9 @@ export class MainViewModel extends Observable {
         setTimeout(() => {
           if (this.isGettingHeartRate) {
             Log.D('Timer cancelling heart rate');
-            this.startHeartRate();
+            this.stopHeartRate();
           }
-        }, 60000);
+        }, this.dataCollectionTime * 1000);
 
         Log.D('Registered heart rate sensor listener');
       } else {
@@ -728,6 +736,8 @@ export class MainViewModel extends Observable {
     if (!this._powerAssistActive) {
       this.disableAccelerometer();
     }
+    // disable heart rate
+    this.stopHeartRate();
     // send the data
     if (sensorData.length) {
       Log.D(`Sensor Data Length: ${sensorData.length}`);
@@ -741,6 +751,9 @@ export class MainViewModel extends Observable {
     try {
       // enable accelerometer
       this.enableAccelerometer();
+      // enable heart rate sensor
+      this.startHeartRate();
+      this._isCollectingData = true;
       // initialize remaining time
       this.dataCollectionTimeRemaining = this.dataCollectionTime;
       // set up interval timer for updating display
