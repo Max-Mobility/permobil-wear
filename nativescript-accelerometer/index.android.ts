@@ -19,6 +19,7 @@ let accelerometerSensor: android.hardware.Sensor;
 let compassSensor: android.hardware.Sensor;
 let gravitySensor: android.hardware.Sensor;
 let rotationSensor: android.hardware.Sensor;
+let gameRotationSensor: android.hardware.Sensor;
 let gyroScopeSensor: android.hardware.Sensor;
 let stationarySensor: android.hardware.Sensor;
 let significantMotionSensor: android.hardware.Sensor;
@@ -79,6 +80,7 @@ export function startAccelerometerUpdates(
   let hasGravity = false;
   let hasCompass = false;
   let hasRotation = false;
+  let hasGameRotation = false;
   let hasGyroscope = false;
   let hasStationary = false;
   let hasSignificantMotion = false;
@@ -95,6 +97,10 @@ export function startAccelerometerUpdates(
       hasCompass = true;
     } else if (sensorType === android.hardware.Sensor.TYPE_ROTATION_VECTOR) {
       hasRotation = true;
+    } else if (
+      sensorType === android.hardware.Sensor.TYPE_GAME_ROTATION_VECTOR
+    ) {
+      hasGameRotation = true;
     } else if (sensorType === android.hardware.Sensor.TYPE_GYROSCOPE) {
       hasGyroscope = true;
     } else if (sensorType === android.hardware.Sensor.TYPE_STATIONARY_DETECT) {
@@ -136,6 +142,14 @@ export function startAccelerometerUpdates(
     }
   }
 
+  // set the game rotation sensor
+  if (!gameRotationSensor && hasGameRotation) {
+    gameRotationSensor = getGameRotationVectorSensor(sensorManager);
+    if (!gameRotationSensor) {
+      throw Error('Could not get gameRotation sensor.');
+    }
+  }
+
   // set the gyroscope sensor
   if (!gyroScopeSensor && hasGyroscope) {
     gyroScopeSensor = getGyroscopeSensor(sensorManager);
@@ -162,7 +176,12 @@ export function startAccelerometerUpdates(
   }
 
   // if we don't have the basic sensors throw an error
-  if (!accelerometerSensor && !gravitySensor && !rotationSensor) {
+  if (
+    !accelerometerSensor &&
+    !gravitySensor &&
+    !rotationSensor &&
+    !gameRotationSensor
+  ) {
     throw Error('Could not get reasonable sensor for accelerometer updates.');
   }
 
@@ -223,6 +242,23 @@ export function startAccelerometerUpdates(
             heading_accuracy: event.values[4] // estimated heading Accuracy (in radians) (-1 if unavailable)
           },
           sensor: SensorType.ROTATION_VECTOR,
+          timestamp: timestamp,
+          time: seconds
+        });
+      } else if (
+        sensorType === android.hardware.Sensor.TYPE_GAME_ROTATION_VECTOR
+      ) {
+        // https://developer.android.com/reference/android/hardware/SensorEvent.html#sensor.type_game_rotation_vector:
+        // don't divide by baseAcceleration on anything other than linear_acceleration
+        wrappedCallback({
+          data: {
+            x: event.values[0], // x*sin(θ/2)
+            y: event.values[1], // y*sin(θ/2)
+            z: event.values[2], // z*sin(θ/2)
+            cos: event.values[3], // cos(θ/2)
+            heading_accuracy: event.values[4] // should always be 0 since it doesn't report heading accuracy
+          },
+          sensor: SensorType.GAME_ROTATION_VECTOR,
           timestamp: timestamp,
           time: seconds
         });
@@ -416,6 +452,16 @@ function getRotationVectorSensor(
   // constant value: 11
   return sensorManager.getDefaultSensor(
     android.hardware.Sensor.TYPE_ROTATION_VECTOR
+  );
+}
+
+function getGameRotationVectorSensor(
+  sensorManager: android.hardware.SensorManager
+) {
+  // https://developer.android.com/reference/android/hardware/Sensor.html#TYPE_ROTATION_VECTOR
+  // constant value: 11
+  return sensorManager.getDefaultSensor(
+    android.hardware.Sensor.TYPE_GAME_ROTATION_VECTOR
   );
 }
 
