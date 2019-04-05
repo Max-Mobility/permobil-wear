@@ -543,7 +543,7 @@ export class MainViewModel extends Observable {
         timestamp: event.sensor.timestamp
       });
     }
-    //Log.D(event.values[0]);
+    // Log.D(event.values[0]);
     this.heartRate = event.values[0].toString().split('.')[0];
     let accStr = 'Unknown';
     switch (this.heartRateAccuracy) {
@@ -742,7 +742,14 @@ export class MainViewModel extends Observable {
     // send the data
     if (sensorData.length) {
       Log.D(`Sensor Data Length: ${sensorData.length}`);
-      this._sensorDataService.saveRecord(sensorData);
+      this._sensorDataService
+        .saveRecord(sensorData)
+        .then(() => {
+          showSuccess('Data collection saved.');
+        })
+        .catch(error => {
+          showFailure('Error saving sensor data.');
+        });
     }
     // clear out the data
     sensorData = [];
