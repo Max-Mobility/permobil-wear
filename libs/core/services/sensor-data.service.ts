@@ -25,7 +25,14 @@ export class SensorDataService {
           vendor: i.getVendor(),
           version: i.getVersion(),
           name: i.getName(),
-          power: i.getPower()
+          power: i.getPower(),
+          type: i.getType(),
+          string_type: i.getStringType(),
+          max_range: i.getMaximumRange(),
+          max_delay: i.getMaxDelay(),
+          min_delay: i.getMinDelay(),
+          resolution: i.getResolution(),
+          reporting_mode: i.getReportingMode()
         });
       });
       Log.D(`Saving data collection record for WatchData to Kinvey...`);
