@@ -538,7 +538,7 @@ export class MainViewModel extends Observable {
           x: event.values[0],
           accuracy: this.heartRateAccuracy
         },
-        sensor: event.sensor.getType(),
+        sensor: accelerometer.SensorType.HEART_RATE,
         date: new Date().getTime() / 1000,
         timestamp: event.sensor.timestamp
       });
