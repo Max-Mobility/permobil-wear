@@ -2,7 +2,6 @@ import { CLog, CLogTypes } from '../common';
 import { Bluetooth } from './android_main';
 
 @JavaProxy('com.nativescript.TNS_BluetoothGattCallback')
-// tslint:disable-next-line:class-name
 export class TNS_BluetoothGattCallback extends android.bluetooth
   .BluetoothGattCallback {
   private _owner: WeakRef<Bluetooth>;

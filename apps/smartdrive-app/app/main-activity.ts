@@ -1,8 +1,3 @@
-/// <reference path="./typings/wearable-support.2.4.0.d.ts" />
-/// <reference path="./typings/wear.d.ts" />
-
-/// <reference path="../node_modules/tns-platform-declarations/android-25.d.ts" />
-
 import {
   setActivityCallbacks,
   AndroidActivityCallbacks

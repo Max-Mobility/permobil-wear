@@ -29,6 +29,16 @@
             ]
         }
     },
+    "include": [
+        "./node_modules/tns-platform-declarations/android.d.ts",
+        "./node_modules/tns-platform-declarations/ios.d.ts",
+        "./app/typings/wear.d.ts",
+        "./app/typings/wearable-support.2.4.0.d.ts",
+        "./references.d.ts",
+        "./app/main-activity.ts",
+        "./app/app.ts",
+        "./app/**/.ts"
+    ],
     "exclude": [
         "node_modules",
         "platforms",

@@ -6,7 +6,6 @@ import { Bluetooth } from './android_main';
  * https://developer.android.com/reference/android/bluetooth/BluetoothAdapter.LeScanCallback.html
  */
 @JavaProxy('com.nativescript.TNS_LeScanCallback')
-// tslint:disable-next-line:class-name
 export class TNS_LeScanCallback extends android.bluetooth.BluetoothAdapter
   .LeScanCallback {
   private _owner: WeakRef<Bluetooth>;

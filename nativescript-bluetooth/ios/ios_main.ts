@@ -811,7 +811,7 @@ export class Bluetooth extends BluetoothCommon {
       try {
         if (!arg.value) {
           reject(
-            "You need to provide some data to write in the 'value' property"
+            `You need to provide some data to write in the 'value' property`
           );
           return;
         }

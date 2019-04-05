@@ -1,5 +1,3 @@
-/// <reference path="../node_modules/tns-platform-declarations/android-23.d.ts" />
-
 import * as application from 'tns-core-modules/application';
 import * as utils from 'tns-core-modules/utils/utils';
 import {
@@ -349,7 +347,7 @@ export class Bluetooth extends BluetoothCommon {
 
             if (!didStart) {
               // TODO error msg, see https://github.com/randdusing/cordova-plugin-bluetoothle/blob/master/src/android/BluetoothLePlugin.java#L758
-              reject("Scanning didn't start");
+              reject(`Scanning didn't start`);
               return;
             }
           } else {
@@ -541,7 +539,7 @@ export class Bluetooth extends BluetoothCommon {
           `Bluetooth.disconnect ---- connection: ${connection}`
         );
         if (!connection) {
-          reject("Peripheral wasn't connected");
+          reject(`Peripheral wasn't connected`);
           return;
         }
 
@@ -616,7 +614,7 @@ export class Bluetooth extends BluetoothCommon {
       try {
         if (!arg.value) {
           reject(
-            "You need to provide some data to write in the 'value' property"
+            `You need to provide some data to write in the 'value' property`
           );
           return;
         }
@@ -674,7 +672,7 @@ export class Bluetooth extends BluetoothCommon {
       try {
         if (!arg.value) {
           reject(
-            "You need to provide some data to write in the 'value' property"
+            `You need to provide some data to write in the 'value' property`
           );
           return;
         }
@@ -789,7 +787,7 @@ export class Bluetooth extends BluetoothCommon {
             CLogTypes.info,
             `Bluetooth.startNotifying ---- descriptor: ${bluetoothGattDescriptor}`
           );
-          //Any creation error will trigger the global catch. Ok.
+          // Any creation error will trigger the global catch. Ok.
         }
 
         // prefer notify over indicate
@@ -822,7 +820,7 @@ export class Bluetooth extends BluetoothCommon {
             function(result) {
               CLog(
                 CLogTypes.warning,
-                "No 'onNotify' callback function specified for 'startNotifying'"
+                `No 'onNotify' callback function specified for 'startNotifying'`
               );
             };
           const stateObject = this.connections[arg.peripheralUUID];

@@ -368,7 +368,7 @@ export class CBPeripheralManagerDelegateImpl extends NSObject
       request: request
     });
 
-    //peripheral.respond(request, CBATTError.Success);
+    // peripheral.respond(request, CBATTError.Success);
   }
 
   /**
@@ -428,7 +428,7 @@ export class CBPeripheralManagerDelegateImpl extends NSObject
       const r = requests.objectAtIndex(i);
 
       // set low connection latency
-      //peripheral.setDesiredConnectionLatencyForCentral(CBPeripheralManagerConnectionLatency.Low, r.central);
+      // peripheral.setDesiredConnectionLatencyForCentral(CBPeripheralManagerConnectionLatency.Low, r.central);
 
       const dev = deviceToCentral(r.central);
       owner.sendEvent(Bluetooth.characteristic_write_request_event, {
@@ -443,6 +443,6 @@ export class CBPeripheralManagerDelegateImpl extends NSObject
       });
     }
 
-    //peripheral.respond(requests[0], CBATTError.Success);
+    // peripheral.respond(requests[0], CBATTError.Success);
   }
 }

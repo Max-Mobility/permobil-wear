@@ -81,7 +81,7 @@ export class CBCentralManagerDelegateImpl extends NSObject
 
     CLog(
       CLogTypes.info,
-      "----- CBCentralManagerDelegateImpl centralManager:didConnectPeripheral, let's discover service"
+      `----- CBCentralManagerDelegateImpl centralManager:didConnectPeripheral, let's discover service`
     );
     peri.discoverServices(null);
     const eventData = {
