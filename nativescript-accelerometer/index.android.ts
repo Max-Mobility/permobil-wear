@@ -1,4 +1,4 @@
-/// <reference path="./node_modules/tns-platform-declarations/android-25.d.ts" />
+/// <reference path="./node_modules/tns-platform-declarations/android-26.d.ts" />
 
 import * as application from 'tns-core-modules/application';
 import { AccelerometerOptions, SensorType, AccelerometerData } from './base';
@@ -23,6 +23,8 @@ let gameRotationSensor: android.hardware.Sensor;
 let gyroScopeSensor: android.hardware.Sensor;
 let stationarySensor: android.hardware.Sensor;
 let significantMotionSensor: android.hardware.Sensor;
+let proximitySensor: android.hardware.Sensor;
+let lowLatencyOffbodyDetectSensor: android.hardware.Sensor;
 
 function getNativeDelay(options?: AccelerometerOptions): number {
   if (!options || !options.sensorDelay) {
@@ -84,6 +86,8 @@ export function startAccelerometerUpdates(
   let hasGyroscope = false;
   let hasStationary = false;
   let hasSignificantMotion = false;
+  let hasProximity = false;
+  let hasLowLatencyOffbodyDetect = false;
 
   // iterate the sensor list and set the sensor booleans to true if the list returned them
   for (let i = 0; i < sensorList.size(); i++) {
@@ -107,6 +111,12 @@ export function startAccelerometerUpdates(
       hasStationary = true;
     } else if (sensorType === android.hardware.Sensor.TYPE_SIGNIFICANT_MOTION) {
       hasSignificantMotion = true;
+    } else if (sensorType === android.hardware.Sensor.TYPE_PROXIMITY) {
+      hasProximity = true;
+    } else if (
+      sensorType === android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT
+    ) {
+      hasLowLatencyOffbodyDetect = true;
     }
   }
 
@@ -172,6 +182,24 @@ export function startAccelerometerUpdates(
     triggerEventListener = new SmartDriveTriggerListener();
     if (!significantMotionSensor) {
       throw Error('Could not get significant motion sensor');
+    }
+  }
+
+  // set the proximity sensor
+  if (!proximitySensor && hasProximity) {
+    proximitySensor = getProximitySensor(sensorManager);
+    if (!proximitySensor) {
+      throw Error('Could not get proximity sensor');
+    }
+  }
+
+  // set the low latency off-body detect sensor
+  if (!lowLatencyOffbodyDetectSensor && hasLowLatencyOffbodyDetect) {
+    lowLatencyOffbodyDetectSensor = getLowLatencyOffbodyDetectSensor(
+      sensorManager
+    );
+    if (!lowLatencyOffbodyDetectSensor) {
+      throw Error('Could not get low latency off-body detect sensor');
     }
   }
 
@@ -341,6 +369,61 @@ export function startAccelerometerUpdates(
           timestamp: timestamp,
           time: seconds
         });
+      } else if (sensorType === android.hardware.Sensor.TYPE_PROXIMITY) {
+        // https://developer.android.com/reference/android/hardware/Sensor.html#TYPE_PROXIMITY
+        /**
+         * values[0]: Proximity sensor distance measured in centimeters
+         *
+         * Note: Some proximity sensors only support a binary near
+         * or far measurement. In this case, the sensor should
+         * report its maximum range value in the far state and a
+         * lesser value in the near state.
+         */
+        wrappedCallback({
+          data: {
+            proximity: event.values[0]
+          },
+          sensor: SensorType.PROXIMITY,
+          timestamp: timestamp,
+          time: seconds
+        });
+      } else if (
+        sensorType === android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT
+      ) {
+        // https://developer.android.com/reference/android/hardware/Sensor.html#TYPE_LOW_LATENCY_OFFBODY_DETECT
+        /**
+         * A sensor of this type returns an event every time the
+         * device transitions from off-body to on-body and from
+         * on-body to off-body (e.g. a wearable device being removed
+         * from the wrist would trigger an event indicating an
+         * off-body transition). The event returned will contain a
+         * single value to indicate off-body state:
+         *
+         * values[0]: off-body state
+         *
+         * Valid values for off-body state:
+         * 1.0 (device is on-body)
+         * 0.0 (device is off-body)
+         *
+         * When a sensor of this type is activated, it must deliver
+         * the initial on-body or off-body event representing the
+         * current device state within 5 seconds of activating the
+         * sensor.
+         *
+         * This sensor must be able to detect and report an on-body
+         * to off-body transition within 1 second of the device
+         * being removed from the body, and must be able to detect
+         * and report an off-body to on-body transition within 5
+         * seconds of the device being put back onto the body.
+         */
+        wrappedCallback({
+          data: {
+            state: event.values[0]
+          },
+          sensor: SensorType.LOW_LATENCY_OFFBODY_DETECT,
+          timestamp: timestamp,
+          time: seconds
+        });
       } else {
         wrappedCallback({
           data: {
@@ -380,6 +463,18 @@ export function startAccelerometerUpdates(
     sensorManager.registerListener(
       sensorListener,
       gyroScopeSensor,
+      nativeDelay
+    );
+  if (proximitySensor)
+    sensorManager.registerListener(
+      sensorListener,
+      proximitySensor,
+      nativeDelay
+    );
+  if (lowLatencyOffbodyDetectSensor)
+    sensorManager.registerListener(
+      sensorListener,
+      lowLatencyOffbodyDetectSensor,
       nativeDelay
     );
 }
@@ -503,9 +598,24 @@ function getSignificantMotionSensor(
   );
 }
 
+function getProximitySensor(sensorManager: android.hardware.SensorManager) {
+  // https://developer.android.com/reference/android/hardware/Sensor.html#TYPE_PROXIMITY
+  // constant value: 8
+  return sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_PROXIMITY);
+}
+
+function getLowLatencyOffbodyDetectSensor(
+  sensorManager: android.hardware.SensorManager
+) {
+  // https://developer.android.com/reference/android/hardware/Sensor.html#TYPE_LOW_LATENCY_OFFBODY_DETECT
+  // constant value: 34
+  return sensorManager.getDefaultSensor(
+    android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT
+  );
+}
+
 function getOrientation() {
-  // https://developer.android.com/reference/android/hardware/Sensor.html#TYPE_SIGNIFICANT_MOTION
-  // constant value: 17
+  // https://developer.android.com/reference/android/hardware/SensorManager.html#getOrientation(float[],%20float[])
   return android.hardware.SensorManager.getOrientation(float[9], float[3]);
 }
 
