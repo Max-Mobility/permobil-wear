@@ -9,6 +9,7 @@ import {
   Log,
   SensorDataService
 } from '@permobil/core';
+import * as moment from 'moment';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 import * as permissions from 'nativescript-permissions';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
@@ -35,6 +36,7 @@ import {
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
 
 let sensorInterval = null;
+let sensorTimeout = null;
 let sensorData: accelerometer.AccelerometerData[] = [];
 
 export class MainViewModel extends Observable {
@@ -62,7 +64,7 @@ export class MainViewModel extends Observable {
    * Data Collection Time Remaining (seconds)
    */
   @Prop()
-  dataCollectionTimeRemaining: number = 0;
+  dataCollectionTimeRemaining: moment.Moment;
 
   /**
    * The data collection timeout (seconds)
@@ -642,7 +644,7 @@ export class MainViewModel extends Observable {
       const didRegListener = sensorManager.registerListener(
         this._heartrateListener,
         mHeartRateSensor,
-        android.hardware.SensorManager.SENSOR_DELAY_NORMAL
+        android.hardware.SensorManager.SENSOR_DELAY_UI
       );
 
       if (didRegListener) {
@@ -733,6 +735,8 @@ export class MainViewModel extends Observable {
     Log.D('Clearing the sensor data collection interval...');
     clearInterval(sensorInterval);
     sensorInterval = null;
+    clearTimeout(sensorTimeout);
+    sensorTimeout = null;
     // disable accelerometer if not needed for SD control
     if (!this._powerAssistActive) {
       this.disableAccelerometer();
@@ -763,17 +767,19 @@ export class MainViewModel extends Observable {
       this.startHeartRate();
       this._isCollectingData = true;
       // initialize remaining time
-      this.dataCollectionTimeRemaining = this.dataCollectionTime;
+      this.dataCollectionTimeRemaining = moment().add(
+        this.dataCollectionTime,
+        'seconds'
+      );
+      sensorTimeout = setTimeout(() => {
+        this.stopDataCollection();
+      }, this.dataCollectionTime * 1000);
       // set up interval timer for updating display
       sensorInterval = setInterval(() => {
-        if (this.dataCollectionTimeRemaining < 1) {
-          this.stopDataCollection();
-        } else {
-          this.dataCollectionTimeRemaining--;
-          this._updateDataCollectionButtonText(
-            `Seconds Remaining: ${this.dataCollectionTimeRemaining}`
-          );
-        }
+        var timeLeft = moment
+          .duration(this.dataCollectionTimeRemaining.diff(moment()))
+          .get('seconds');
+        this._updateDataCollectionButtonText(`Seconds Remaining: ${timeLeft}`);
       }, 1000);
     } catch (error) {
       Log.E(error);
