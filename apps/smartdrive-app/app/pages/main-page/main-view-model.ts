@@ -9,6 +9,8 @@ import {
   Log,
   SensorDataService
 } from '@permobil/core';
+import { padStart } from 'lodash';
+import * as moment from 'moment';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 import * as permissions from 'nativescript-permissions';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
@@ -35,6 +37,7 @@ import {
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
 
 let sensorInterval = null;
+let sensorTimeout = null;
 let sensorData: accelerometer.AccelerometerData[] = [];
 
 export class MainViewModel extends Observable {
@@ -62,7 +65,7 @@ export class MainViewModel extends Observable {
    * Data Collection Time Remaining (seconds)
    */
   @Prop()
-  dataCollectionTimeRemaining: number = 0;
+  dataCollectionTimeRemaining: moment.Moment;
 
   /**
    * The data collection timeout (seconds)
@@ -642,7 +645,7 @@ export class MainViewModel extends Observable {
       const didRegListener = sensorManager.registerListener(
         this._heartrateListener,
         mHeartRateSensor,
-        android.hardware.SensorManager.SENSOR_DELAY_NORMAL
+        android.hardware.SensorManager.SENSOR_DELAY_UI
       );
 
       if (didRegListener) {
@@ -702,7 +705,7 @@ export class MainViewModel extends Observable {
 
   onIncreaseDataCollectionTimeTap() {
     this.dataCollectionTime =
-      this.dataCollectionTime < 600 ? this.dataCollectionTime + 1 : 600;
+      this.dataCollectionTime < 600 ? this.dataCollectionTime + 10 : 600;
     this.dataCollectionTimeText = `Data Collection Time: ${
       this.dataCollectionTime
     } s`;
@@ -710,7 +713,7 @@ export class MainViewModel extends Observable {
 
   onDecreaseDataCollectionTimeTap() {
     this.dataCollectionTime =
-      this.dataCollectionTime > 1 ? this.dataCollectionTime - 1 : 1;
+      this.dataCollectionTime > 10 ? this.dataCollectionTime - 10 : 10;
     this.dataCollectionTimeText = `Data Collection Time: ${
       this.dataCollectionTime
     } s`;
@@ -733,6 +736,8 @@ export class MainViewModel extends Observable {
     Log.D('Clearing the sensor data collection interval...');
     clearInterval(sensorInterval);
     sensorInterval = null;
+    clearTimeout(sensorTimeout);
+    sensorTimeout = null;
     // disable accelerometer if not needed for SD control
     if (!this._powerAssistActive) {
       this.disableAccelerometer();
@@ -763,16 +768,26 @@ export class MainViewModel extends Observable {
       this.startHeartRate();
       this._isCollectingData = true;
       // initialize remaining time
-      this.dataCollectionTimeRemaining = this.dataCollectionTime;
+      this.dataCollectionTimeRemaining = moment().add(
+        this.dataCollectionTime,
+        'seconds'
+      );
+      sensorTimeout = setTimeout(() => {
+        this.stopDataCollection();
+      }, this.dataCollectionTime * 1000);
       // set up interval timer for updating display
       sensorInterval = setInterval(() => {
-        if (this.dataCollectionTimeRemaining < 1) {
+        var timeLeft = moment.duration(
+          this.dataCollectionTimeRemaining.diff(moment())
+        );
+        var m = padStart(timeLeft.get('minutes'), 2, '0');
+        var s = padStart(timeLeft.get('seconds'), 2, '0');
+        this._updateDataCollectionButtonText(`Time Remaining: ${m}:${s}`);
+        if (s < -5 || m < 0) {
+          // TODO: THIS IS A HACK TO MAKE SURE WE STOP DATA
+          // COLLECTION WHEN THE COUNTER BECOMES NEGATIVE IN CASE
+          // THE TIMEOUT DIDNT GET CALLED
           this.stopDataCollection();
-        } else {
-          this.dataCollectionTimeRemaining--;
-          this._updateDataCollectionButtonText(
-            `Seconds Remaining: ${this.dataCollectionTimeRemaining}`
-          );
         }
       }, 1000);
     } catch (error) {
