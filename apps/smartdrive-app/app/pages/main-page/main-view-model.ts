@@ -9,6 +9,7 @@ import {
   Log,
   SensorDataService
 } from '@permobil/core';
+import { padStart } from 'lodash';
 import * as moment from 'moment';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 import * as permissions from 'nativescript-permissions';
@@ -704,7 +705,7 @@ export class MainViewModel extends Observable {
 
   onIncreaseDataCollectionTimeTap() {
     this.dataCollectionTime =
-      this.dataCollectionTime < 600 ? this.dataCollectionTime + 1 : 600;
+      this.dataCollectionTime < 600 ? this.dataCollectionTime + 10 : 600;
     this.dataCollectionTimeText = `Data Collection Time: ${
       this.dataCollectionTime
     } s`;
@@ -712,7 +713,7 @@ export class MainViewModel extends Observable {
 
   onDecreaseDataCollectionTimeTap() {
     this.dataCollectionTime =
-      this.dataCollectionTime > 1 ? this.dataCollectionTime - 1 : 1;
+      this.dataCollectionTime > 10 ? this.dataCollectionTime - 10 : 10;
     this.dataCollectionTimeText = `Data Collection Time: ${
       this.dataCollectionTime
     } s`;
@@ -776,10 +777,18 @@ export class MainViewModel extends Observable {
       }, this.dataCollectionTime * 1000);
       // set up interval timer for updating display
       sensorInterval = setInterval(() => {
-        var timeLeft = moment
-          .duration(this.dataCollectionTimeRemaining.diff(moment()))
-          .get('seconds');
-        this._updateDataCollectionButtonText(`Seconds Remaining: ${timeLeft}`);
+        var timeLeft = moment.duration(
+          this.dataCollectionTimeRemaining.diff(moment())
+        );
+        var m = padStart(timeLeft.get('minutes'), 2, '0');
+        var s = padStart(timeLeft.get('seconds'), 2, '0');
+        this._updateDataCollectionButtonText(`Time Remaining: ${m}:${s}`);
+        if (s < -5 || m < 0) {
+          // TODO: THIS IS A HACK TO MAKE SURE WE STOP DATA
+          // COLLECTION WHEN THE COUNTER BECOMES NEGATIVE IN CASE
+          // THE TIMEOUT DIDNT GET CALLED
+          this.stopDataCollection();
+        }
       }, 1000);
     } catch (error) {
       Log.E(error);

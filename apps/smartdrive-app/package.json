@@ -19,6 +19,7 @@
     "@permobil/core": "file:../../libs/core",
     "buffer": "../../node_modules/buffer",
     "moment": "../../node_modules/moment",
+    "lodash": "../../node_modules/lodash",
     "injection-js": "../../node_modules/injection-js",
     "kinvey-nativescript-sdk": "../../node_modules/kinvey-nativescript-sdk",
     "nativescript-accelerometer-advanced": "file:../../nativescript-accelerometer",
