@@ -13,6 +13,7 @@ import { padStart } from 'lodash';
 import * as moment from 'moment';
 import * as accelerometer from 'nativescript-accelerometer-advanced';
 import * as permissions from 'nativescript-permissions';
+import { Vibrate } from 'nativescript-vibrate';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
 import {
@@ -180,6 +181,8 @@ export class MainViewModel extends Observable {
   private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
 
+  private _vibrator: Vibrate = new Vibrate();
+
   constructor(
     private _bluetoothService: BluetoothService = injector.get(
       BluetoothService
@@ -321,6 +324,8 @@ export class MainViewModel extends Observable {
           this._smartDrive
             .sendTap()
             .catch(err => Log.E('could not send tap', err));
+          Log.D('Vibrating for tap!');
+          this._vibrator.vibrate(200); // vibrate for 200 ms
         }
       }
     }
@@ -751,9 +756,13 @@ export class MainViewModel extends Observable {
         .saveRecord(sensorData)
         .then(() => {
           showSuccess('Data collection saved.');
+          Log.D('Vibrating for successful data collection!');
+          this._vibrator.vibrate(500); // vibrate for 500 ms
         })
         .catch(error => {
           showFailure('Error saving sensor data.');
+          Log.D('Vibrating for unsuccessful data collection!');
+          this._vibrator.vibrate(1000); // vibrate for 1000 ms
         });
     }
     // clear out the data
