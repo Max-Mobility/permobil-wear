@@ -13,6 +13,7 @@
 	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 	<!-- Required for Android 6+ when scanning for peripherals in the background  -->
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 	<!-- https://developer.android.com/training/wearables/apps/always-on#ambient-mode-class -->
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 
