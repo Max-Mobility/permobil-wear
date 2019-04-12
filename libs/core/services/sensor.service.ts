@@ -22,85 +22,89 @@ export class SensorService extends Observable {
   constructor() {
     super();
 
-    Log.D('SensorDataService constructor...');
-    this._datastore = Kinvey.DataStore.collection<any>('WatchData');
+    Log.D('SensorService constructor...');
     this.androidSensorClass = new AndroidSensors();
     this.androidSensorListener = new AndroidSensorListener({
       onAccuracyChanged: (sensor, accuracy) => {
-        const data: AccuracyChangedEventData = {
-          eventName: SensorDataService.AccuracyChanged,
+        const event: AccuracyChangedEventData = {
+          eventName: SensorService.AccuracyChanged,
           object: this,
           data: {
             sensor,
             accuracy
           }
         };
-        this.notify(data);
+        this.notify(event);
       },
       onSensorChanged: (result: string) => {
-        const data: SensorChangedEventData = {
-          eventName: SensorDataService.SensorChanged,
+        const event: SensorChangedEventData = {
+          eventName: SensorService.SensorChanged,
           object: this,
           data: JSON.parse(result) // parsing it here so it's JSON when observing the event
         };
-        this.notify(data);
+        this.notify(event);
       }
     });
 
     // set the sensor listener
     this.androidSensorClass.setListener(this.androidSensorListener);
+    // init the registered sensors array
+    this.registeredSensors = [];
+    // connect to the Kinvey WatchData collection
+    this._datastore = Kinvey.DataStore.collection<any>('WatchData');
   }
 
   /**
    * Starts all of the device sensors for data collection.
+   * @param delay [SensorDelay] - Default is GAME.
    */
-  startDeviceSensors() {
+  startDeviceSensors(delay: SensorDelay = SensorDelay.GAME) {
     // linear_acceleration
     const accelerationSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_LINEAR_ACCELERATION,
-      SensorDelay.GAME
+      delay
     );
     if (accelerationSensor) this.registeredSensors.push(accelerationSensor);
 
     // gravity
     const gravitySensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_GRAVITY,
-      SensorDelay.GAME
+      delay
     );
     if (gravitySensor) this.registeredSensors.push(gravitySensor);
 
     // magnetic
     const magneticSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_MAGNETIC_FIELD,
-      SensorDelay.GAME
+      delay
     );
     if (magneticSensor) this.registeredSensors.push(magneticSensor);
 
     // rotation_vector
     const rotationVectorSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_ROTATION_VECTOR,
-      SensorDelay.GAME
+      delay
     );
     if (rotationVectorSensor) this.registeredSensors.push(rotationVectorSensor);
 
     // game rotation_vector
     const gameRotationVector = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_GAME_ROTATION_VECTOR,
-      SensorDelay.GAME
+      delay
     );
     if (gameRotationVector) this.registeredSensors.push(gameRotationVector);
 
     // gyroscope
     const gyroscopeSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_GYROSCOPE,
-      SensorDelay.GAME
+      delay
     );
     if (gyroscopeSensor) this.registeredSensors.push(gyroscopeSensor);
 
     // stationary detect
     const stationaryDetectSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_STATIONARY_DETECT,
-      SensorDelay.GAME
+      delay
     );
     if (stationaryDetectSensor)
       this.registeredSensors.push(stationaryDetectSensor);
@@ -108,7 +112,7 @@ export class SensorService extends Observable {
     // significant motion
     const significantMotionSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_SIGNIFICANT_MOTION,
-      SensorDelay.GAME
+      delay
     );
     if (significantMotionSensor)
       this.registeredSensors.push(significantMotionSensor);
@@ -116,14 +120,14 @@ export class SensorService extends Observable {
     // proximity
     const proximitySensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_PROXIMITY,
-      SensorDelay.GAME
+      delay
     );
     if (proximitySensor) this.registeredSensors.push(proximitySensor);
 
     // off body
     const offbodySensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT,
-      SensorDelay.GAME
+      delay
     );
     if (offbodySensor) this.registeredSensors.push(offbodySensor);
   }
