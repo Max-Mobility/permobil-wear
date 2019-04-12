@@ -756,12 +756,12 @@ export class MainViewModel extends Observable {
     sensorData = [];
   }
 
-  startDataCollection() {
+  async startDataCollection() {
     try {
+      // enable heart rate sensor separate from other sensors
+      await this.startHeartRate();
       // enable accelerometer
       this.enableDeviceSensors();
-      // enable heart rate sensor separate from other sensors
-      this.startHeartRate();
       this._isCollectingData = true;
       // initialize remaining time
       this.dataCollectionTimeRemaining = moment().add(
