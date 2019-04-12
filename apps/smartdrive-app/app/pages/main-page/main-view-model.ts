@@ -5,7 +5,6 @@ import {
   Prop,
   SentryService,
   SmartDrive,
-  throttle,
   Log,
   SensorService,
   SensorChangedEventData,
@@ -21,7 +20,6 @@ import {
   showSuccess,
   showFailure
 } from 'nativescript-wear-os/packages/dialogs';
-import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
 import {
@@ -29,7 +27,7 @@ import {
   ChangedData
 } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
-import { action, alert } from 'tns-core-modules/ui/dialogs';
+import { action } from 'tns-core-modules/ui/dialogs';
 import { injector, currentSystemTime } from '../../app';
 import {
   hideOffScreenLayout,
@@ -37,11 +35,7 @@ import {
   showOffScreenLayout
 } from '../../utils';
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
-import {
-  AndroidSensors,
-  SensorDelay,
-  AndroidSensorListener
-} from 'nativescript-android-sensors';
+import { SensorDelay } from 'nativescript-android-sensors';
 
 let sensorInterval = null;
 let sensorTimeout = null;
@@ -200,11 +194,14 @@ export class MainViewModel extends Observable {
     this._sensorService.on(
       SensorService.AccuracyChanged,
       (args: AccuracyChangedEventData) => {
-        console.log('SensorService.AccuracyChanged', args);
+        Log.D(
+          'SensorService.AccuracyChanged',
+          args.data.sensor,
+          args.data.accuracy
+        );
         const sensor = args.data.sensor;
         const accuracy = args.data.accuracy;
 
-        Log.D('Accuracy Changed', sensor, accuracy);
         if (sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE) {
           this.heartRateAccuracy = accuracy;
 
@@ -243,9 +240,9 @@ export class MainViewModel extends Observable {
     this._sensorService.on(
       SensorService.SensorChanged,
       (args: SensorChangedEventData) => {
-        console.log('SensorService.SensorChanged', args);
+        Log.D('SensorService.SensorChanged', args.data);
 
-        const parsedData = JSON.parse(args.data);
+        const parsedData = args.data;
 
         // Log.D(event.values[0]);
         // if reporting heart rate update the text for UI
@@ -300,103 +297,6 @@ export class MainViewModel extends Observable {
         }
       }
     );
-
-    // this._androidSensors = new AndroidSensors();
-    // this.xSensorListener = new AndroidSensorListener({
-    //   onAccuracyChanged: (sensor, accuracy) => {
-    //     Log.D('Accuracy Changed', sensor, accuracy);
-    //     if (sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE) {
-    //       this.heartRateAccuracy = accuracy;
-
-    //       let accStr = 'Unknown';
-    //       switch (this.heartRateAccuracy) {
-    //         case 0:
-    //           accStr = 'Unreliable';
-    //           break;
-    //         case 1:
-    //           accStr = 'Low';
-    //           break;
-    //         case 2:
-    //           accStr = 'Medium';
-    //           break;
-    //         case 3:
-    //           accStr = 'High';
-    //           break;
-    //         case 0xffffffff:
-    //         case -1:
-    //           accStr = 'No Contact';
-    //           break;
-    //       }
-    //       this.updateHeartRateButtonText(
-    //         `HR: ${this.heartRate}, ACC: ${accStr}`
-    //       );
-
-    //       // save the heart rate
-    //       appSettings.setNumber(
-    //         DataKeys.HEART_RATE,
-    //         parseInt(this.heartRate, 10)
-    //       );
-    //     }
-    //   },
-    //   onSensorChanged: result => {
-    //     Log.D('Sensor Changed', result);
-    //     const parsedData = JSON.parse(result);
-
-    //     // Log.D(event.values[0]);
-    //     // if reporting heart rate update the text for UI
-    //     if (
-    //       parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
-    //     ) {
-    //       this.heartRate = parsedData.data[0].toString().split('.')[0];
-    //     }
-
-    //     // collect the data
-    //     if (this._isCollectingData) {
-    //       if (
-    //         parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
-    //       ) {
-    //         // add accuracy for heart rate data from sensors
-    //         parsedData.data.accuracy = this.heartRateAccuracy;
-    //         sensorData.push(parsedData);
-    //       } else {
-    //         sensorData.push(parsedData);
-    //       }
-    //     }
-
-    //     // Log.D('onAccelerometerData');
-    //     // only showing linear acceleration data for now
-    //     if (
-    //       parsedData.sensor ===
-    //       android.hardware.Sensor.STRING_TYPE_LINEAR_ACCELERATION
-    //     ) {
-    //       const z = (parsedData.data as any).z;
-    //       let diff = z;
-    //       if (this.motorOn) {
-    //         diff = Math.abs(z);
-    //       }
-
-    //       // Log.D('checking', this.tapSensitivity, 'against', diff);
-
-    //       if (diff > this.tapSensitivity && !this.motionDetected) {
-    //         // Log.D('Motion detected!', { diff });
-    //         // register motion detected and block out futher motion detection
-    //         this.motionDetected = true;
-    //         setTimeout(() => {
-    //           this.motionDetected = false;
-    //         }, 300);
-    //         // now send
-    //         if (this._smartDrive && this._smartDrive.ableToSend) {
-    //           Log.D('Sending tap!');
-    //           this._smartDrive
-    //             .sendTap()
-    //             .catch(err => Log.E('could not send tap', err));
-    //         }
-    //       }
-    //     }
-    //   }
-    // });
-
-    // this._androidSensors.setListener(this.xSensorListener);
 
     // load savedSmartDriveAddress from settings / memory
     const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
@@ -499,39 +399,6 @@ export class MainViewModel extends Observable {
     this._isListeningDeviceSensors = false;
     return;
   }
-
-  // async onAccelerometerData(data: accelerometer.AccelerometerData) {
-  //   if (this._isCollectingData) {
-  //     sensorData.push(data);
-  //   }
-  //   // Log.D('onAccelerometerData');
-  //   // only showing linear acceleration data for now
-  //   if (data.sensor === accelerometer.SensorType.LINEAR_ACCELERATION) {
-  //     const z = (data.data as any).z;
-  //     let diff = z;
-  //     if (this.motorOn) {
-  //       diff = Math.abs(z);
-  //     }
-
-  //     // Log.D('checking', this.tapSensitivity, 'against', diff);
-
-  //     if (diff > this.tapSensitivity && !this.motionDetected) {
-  //       // Log.D('Motion detected!', { diff });
-  //       // register motion detected and block out futher motion detection
-  //       this.motionDetected = true;
-  //       setTimeout(() => {
-  //         this.motionDetected = false;
-  //       }, 300);
-  //       // now send
-  //       if (this._smartDrive && this._smartDrive.ableToSend) {
-  //         Log.D('Sending tap!');
-  //         this._smartDrive
-  //           .sendTap()
-  //           .catch(err => Log.E('could not send tap', err));
-  //       }
-  //     }
-  //   }
-  // }
 
   enableDeviceSensors() {
     Log.D('Enable device sensors...');
