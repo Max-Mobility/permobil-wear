@@ -7,7 +7,9 @@ import {
   SmartDrive,
   throttle,
   Log,
-  SensorDataService
+  SensorService,
+  SensorChangedEventData,
+  AccuracyChangedEventData
 } from '@permobil/core';
 import { padStart } from 'lodash';
 import * as moment from 'moment';
@@ -183,12 +185,7 @@ export class MainViewModel extends Observable {
   private _settingsLayout: SwipeDismissLayout;
   private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
-  private _androidSensors: AndroidSensors;
-  private _deviceSensors: android.hardware.Sensor[] = [];
   private _heartRateSensor: android.hardware.Sensor; // HR sensor so we can start/stop it individually from the other sensors
-
-  private xSensorListener;
-
   private _vibrator: Vibrate = new Vibrate();
 
   constructor(
@@ -196,15 +193,17 @@ export class MainViewModel extends Observable {
       BluetoothService
     ),
     private _sentryService: SentryService = injector.get(SentryService),
-    private _sensorDataService: SensorDataService = injector.get(
-      SensorDataService
-    )
+    private _sensorService: SensorService = injector.get(SensorService)
   ) {
     super();
 
-    this._androidSensors = new AndroidSensors();
-    this.xSensorListener = new AndroidSensorListener({
-      onAccuracyChanged: (sensor, accuracy) => {
+    this._sensorService.on(
+      SensorService.AccuracyChanged,
+      (args: AccuracyChangedEventData) => {
+        console.log('SensorService.AccuracyChanged', args);
+        const sensor = args.data.sensor;
+        const accuracy = args.data.accuracy;
+
         Log.D('Accuracy Changed', sensor, accuracy);
         if (sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE) {
           this.heartRateAccuracy = accuracy;
@@ -238,10 +237,15 @@ export class MainViewModel extends Observable {
             parseInt(this.heartRate, 10)
           );
         }
-      },
-      onSensorChanged: result => {
-        Log.D('Sensor Changed', result);
-        const parsedData = JSON.parse(result);
+      }
+    );
+
+    this._sensorService.on(
+      SensorService.SensorChanged,
+      (args: SensorChangedEventData) => {
+        console.log('SensorService.SensorChanged', args);
+
+        const parsedData = JSON.parse(args.data);
 
         // Log.D(event.values[0]);
         // if reporting heart rate update the text for UI
@@ -295,9 +299,104 @@ export class MainViewModel extends Observable {
           }
         }
       }
-    });
+    );
 
-    this._androidSensors.setListener(this.xSensorListener);
+    // this._androidSensors = new AndroidSensors();
+    // this.xSensorListener = new AndroidSensorListener({
+    //   onAccuracyChanged: (sensor, accuracy) => {
+    //     Log.D('Accuracy Changed', sensor, accuracy);
+    //     if (sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE) {
+    //       this.heartRateAccuracy = accuracy;
+
+    //       let accStr = 'Unknown';
+    //       switch (this.heartRateAccuracy) {
+    //         case 0:
+    //           accStr = 'Unreliable';
+    //           break;
+    //         case 1:
+    //           accStr = 'Low';
+    //           break;
+    //         case 2:
+    //           accStr = 'Medium';
+    //           break;
+    //         case 3:
+    //           accStr = 'High';
+    //           break;
+    //         case 0xffffffff:
+    //         case -1:
+    //           accStr = 'No Contact';
+    //           break;
+    //       }
+    //       this.updateHeartRateButtonText(
+    //         `HR: ${this.heartRate}, ACC: ${accStr}`
+    //       );
+
+    //       // save the heart rate
+    //       appSettings.setNumber(
+    //         DataKeys.HEART_RATE,
+    //         parseInt(this.heartRate, 10)
+    //       );
+    //     }
+    //   },
+    //   onSensorChanged: result => {
+    //     Log.D('Sensor Changed', result);
+    //     const parsedData = JSON.parse(result);
+
+    //     // Log.D(event.values[0]);
+    //     // if reporting heart rate update the text for UI
+    //     if (
+    //       parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
+    //     ) {
+    //       this.heartRate = parsedData.data[0].toString().split('.')[0];
+    //     }
+
+    //     // collect the data
+    //     if (this._isCollectingData) {
+    //       if (
+    //         parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
+    //       ) {
+    //         // add accuracy for heart rate data from sensors
+    //         parsedData.data.accuracy = this.heartRateAccuracy;
+    //         sensorData.push(parsedData);
+    //       } else {
+    //         sensorData.push(parsedData);
+    //       }
+    //     }
+
+    //     // Log.D('onAccelerometerData');
+    //     // only showing linear acceleration data for now
+    //     if (
+    //       parsedData.sensor ===
+    //       android.hardware.Sensor.STRING_TYPE_LINEAR_ACCELERATION
+    //     ) {
+    //       const z = (parsedData.data as any).z;
+    //       let diff = z;
+    //       if (this.motorOn) {
+    //         diff = Math.abs(z);
+    //       }
+
+    //       // Log.D('checking', this.tapSensitivity, 'against', diff);
+
+    //       if (diff > this.tapSensitivity && !this.motionDetected) {
+    //         // Log.D('Motion detected!', { diff });
+    //         // register motion detected and block out futher motion detection
+    //         this.motionDetected = true;
+    //         setTimeout(() => {
+    //           this.motionDetected = false;
+    //         }, 300);
+    //         // now send
+    //         if (this._smartDrive && this._smartDrive.ableToSend) {
+    //           Log.D('Sending tap!');
+    //           this._smartDrive
+    //             .sendTap()
+    //             .catch(err => Log.E('could not send tap', err));
+    //         }
+    //       }
+    //     }
+    //   }
+    // });
+
+    // this._androidSensors.setListener(this.xSensorListener);
 
     // load savedSmartDriveAddress from settings / memory
     const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
@@ -376,7 +475,7 @@ export class MainViewModel extends Observable {
       }
       // now disable accel
       if (!this._isCollectingData) {
-        this.disableAccelerometer();
+        this.disableDeviceSensors();
       }
       this.onDisconnectTap();
     } else {
@@ -390,12 +489,12 @@ export class MainViewModel extends Observable {
     }
   }
 
-  disableAccelerometer() {
-    // Log.D('disableAccelerometer');
+  disableDeviceSensors() {
+    Log.D('Disabling device sensors.');
     try {
-      // accelerometer.stopAccelerometerUpdates();
+      this._sensorService.stopDeviceSensors();
     } catch (err) {
-      Log.E('could not disable accelerometer', err);
+      Log.E('Error disabling the device sensors:', err);
     }
     this._isListeningDeviceSensors = false;
     return;
@@ -438,84 +537,11 @@ export class MainViewModel extends Observable {
     Log.D('Enable device sensors...');
     try {
       if (!this._isListeningDeviceSensors) {
-        // linear_acceleration
-        const accelerationSensor = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_LINEAR_ACCELERATION,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(accelerationSensor);
-
-        // gravity
-        const gravitySensor = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_GRAVITY,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(gravitySensor);
-
-        // magnetic
-        const magneticSensor = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_MAGNETIC_FIELD,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(magneticSensor);
-
-        // rotation_vector
-        const rotationVectorSensor = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_ROTATION_VECTOR,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(rotationVectorSensor);
-
-        // game rotation_vector
-        const gameRotationVector = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_GAME_ROTATION_VECTOR,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(gameRotationVector);
-
-        // gyroscope
-        const gyroscopeSensor = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_GYROSCOPE,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(gyroscopeSensor);
-
-        // stationary detect
-        const stationaryDetectSensor = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_STATIONARY_DETECT,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(stationaryDetectSensor);
-
-        // significant motion
-        const significantMotionSensor = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_SIGNIFICANT_MOTION,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(significantMotionSensor);
-
-        // proximity
-        const proximitySensor = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_PROXIMITY,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(proximitySensor);
-
-        // off body
-        const offbodySensor = this._androidSensors.startSensor(
-          android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT,
-          SensorDelay.GAME
-        );
-        this._deviceSensors.push(offbodySensor);
-
-        // accelerometer.startAccelerometerUpdates(
-        //   this.onAccelerometerData.bind(this),
-        //   { sensorDelay: 'game' }
-        // );
+        this._sensorService.startDeviceSensors();
         this._isListeningDeviceSensors = true;
       }
     } catch (err) {
-      Log.E('Could not enable accelerometer', err);
+      Log.E('Error starting the device sensors', err);
     }
   }
 
@@ -723,6 +749,7 @@ export class MainViewModel extends Observable {
     if (!this.isGettingHeartRate) {
       return;
     }
+    this._sensorService.androidSensorClass.stopSensor(this._heartRateSensor);
     this.isGettingHeartRate = false;
     this.updateHeartRateButtonText('Read Heart Rate');
   }
@@ -747,12 +774,10 @@ export class MainViewModel extends Observable {
       }
 
       // start the heart rate sensor
-      this._heartRateSensor = this._androidSensors.startSensor(
+      this._heartRateSensor = this._sensorService.androidSensorClass.startSensor(
         android.hardware.Sensor.TYPE_HEART_RATE,
         SensorDelay.UI
       );
-      // push the HR sensor into the device sensor array so we can stop it later
-      this._deviceSensors.push(this._heartRateSensor);
 
       this.isGettingHeartRate = true;
       this.updateHeartRateButtonText('Reading Heart Rate');
@@ -840,14 +865,14 @@ export class MainViewModel extends Observable {
     sensorTimeout = null;
     // disable accelerometer if not needed for SD control
     if (!this._powerAssistActive) {
-      this.disableAccelerometer();
+      this.disableDeviceSensors();
     }
     // disable heart rate
     this.stopHeartRate();
     // send the data
     if (sensorData.length) {
       Log.D(`Sensor Data Length: ${sensorData.length}`);
-      this._sensorDataService
+      this._sensorService
         .saveRecord(sensorData)
         .then(() => {
           showSuccess('Data collection saved.');

@@ -22,7 +22,6 @@
     "kinvey-nativescript-sdk": "../../node_modules/kinvey-nativescript-sdk",
     "lodash": "../../node_modules/lodash",
     "moment": "../../node_modules/moment",
-    "nativescript-accelerometer-advanced": "file:../../nativescript-accelerometer",
     "nativescript-android-sensors": "file:../../node_modules/nativescript-android-sensors",
     "nativescript-animated-circle": "file:../../node_modules/nativescript-animated-circle",
     "nativescript-bluetooth": "file:../../nativescript-bluetooth",
