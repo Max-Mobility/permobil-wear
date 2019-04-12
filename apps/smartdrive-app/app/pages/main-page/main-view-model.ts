@@ -205,24 +205,10 @@ export class MainViewModel extends Observable {
     this._androidSensors = new AndroidSensors();
     this.xSensorListener = new AndroidSensorListener({
       onAccuracyChanged: (sensor, accuracy) => {
+        Log.D('Accuracy Changed', sensor, accuracy);
         if (sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE) {
           this.heartRateAccuracy = accuracy;
-          console.log('accuracy changed', sensor, accuracy);
 
-          // collect the data
-          if (this._isCollectingData) {
-            sensorData.push({
-              data: {
-                x: event.values[0],
-                accuracy: this.heartRateAccuracy
-              },
-              sensor: accelerometer.SensorType.HEART_RATE,
-              date: new Date().getTime() / 1000,
-              timestamp: event.sensor.timestamp
-            });
-          }
-          // Log.D(event.values[0]);
-          this.heartRate = event.values[0].toString().split('.')[0];
           let accStr = 'Unknown';
           switch (this.heartRateAccuracy) {
             case 0:
@@ -254,18 +240,37 @@ export class MainViewModel extends Observable {
         }
       },
       onSensorChanged: result => {
-        console.log('Sensor Changed:', result);
-        const data = JSON.parse(result);
-        if (this._isCollectingData) {
-          sensorData.push(data);
+        Log.D('Sensor Changed', result);
+        const parsedData = JSON.parse(result);
+
+        // Log.D(event.values[0]);
+        // if reporting heart rate update the text for UI
+        if (
+          parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
+        ) {
+          this.heartRate = parsedData.data[0].toString().split('.')[0];
         }
+
+        // collect the data
+        if (this._isCollectingData) {
+          if (
+            parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
+          ) {
+            // add accuracy for heart rate data from sensors
+            parsedData.data.accuracy = this.heartRateAccuracy;
+            sensorData.push(parsedData);
+          } else {
+            sensorData.push(parsedData);
+          }
+        }
+
         // Log.D('onAccelerometerData');
         // only showing linear acceleration data for now
         if (
-          data.sensor ===
+          parsedData.sensor ===
           android.hardware.Sensor.STRING_TYPE_LINEAR_ACCELERATION
         ) {
-          const z = (data.data as any).z;
+          const z = (parsedData.data as any).z;
           let diff = z;
           if (this.motorOn) {
             diff = Math.abs(z);
@@ -291,6 +296,7 @@ export class MainViewModel extends Observable {
         }
       }
     });
+
     this._androidSensors.setListener(this.xSensorListener);
 
     // load savedSmartDriveAddress from settings / memory
