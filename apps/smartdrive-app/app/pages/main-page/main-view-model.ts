@@ -227,30 +227,7 @@ export class MainViewModel extends Observable {
 
         if (sensor.getType() === android.hardware.Sensor.TYPE_HEART_RATE) {
           this.heartRateAccuracy = accuracy;
-
-          let accStr = 'Unknown';
-          switch (this.heartRateAccuracy) {
-            case android.hardware.SensorManager.SENSOR_STATUS_UNRELIABLE:
-              accStr = 'Unreliable';
-              break;
-            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_LOW:
-              accStr = 'Low';
-              break;
-            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
-              accStr = 'Medium';
-              break;
-            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
-              accStr = 'High';
-              break;
-            case 0xffffffff:
-            case android.hardware.SensorManager.SENSOR_STATUS_NO_CONTACT:
-              accStr = 'No Contact';
-              break;
-          }
-          this.updateHeartRateButtonText(
-            `HR: ${this.heartRate}, ACC: ${accStr}`
-          );
-
+          this.updateHeartRateButtonText();
           // save the heart rate
           appSettings.setNumber(
             DataKeys.HEART_RATE,
@@ -272,7 +249,8 @@ export class MainViewModel extends Observable {
         if (
           parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
         ) {
-          this.heartRate = parsedData.heart_rate.toString().split('.')[0];
+          this.heartRate = parsedData.data.heart_rate.toString().split('.')[0];
+          this.updateHeartRateButtonText();
         }
 
         // collect the data
@@ -440,7 +418,30 @@ export class MainViewModel extends Observable {
 
   updateHeartRateButtonText(newText: string) {
     const item = this.items.getItem(this._heartRateButtonIndex);
-    item.text = newText;
+    if (newText) {
+      item.text = newText;
+    } else {
+      let accStr = 'Unknown';
+      switch (this.heartRateAccuracy) {
+        case android.hardware.SensorManager.SENSOR_STATUS_UNRELIABLE:
+          accStr = 'Unreliable';
+          break;
+        case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_LOW:
+          accStr = 'Low';
+          break;
+        case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
+          accStr = 'Medium';
+          break;
+        case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
+          accStr = 'High';
+          break;
+        case 0xffffffff:
+        case android.hardware.SensorManager.SENSOR_STATUS_NO_CONTACT:
+          accStr = 'No Contact';
+          break;
+      }
+      item.text = `HR: ${this.heartRate}, ACC: ${accStr}`;
+    }
     this.items.setItem(this._heartRateButtonIndex, item);
   }
 
