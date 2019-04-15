@@ -25,7 +25,10 @@ export class SensorService extends Observable {
     Log.D('SensorService constructor...');
     this.androidSensorClass = new AndroidSensors();
     this.androidSensorListener = new AndroidSensorListener({
-      onAccuracyChanged: (sensor, accuracy) => {
+      onAccuracyChanged: (
+        sensor: android.hardware.Sensor,
+        accuracy: number
+      ) => {
         const event: AccuracyChangedEventData = {
           eventName: SensorService.AccuracyChanged,
           object: this,
@@ -204,7 +207,7 @@ interface WatchData {
 
 export interface AccuracyChangedEventData extends EventData {
   data: {
-    sensor: string;
+    sensor: android.hardware.Sensor;
     accuracy: number;
   };
 }

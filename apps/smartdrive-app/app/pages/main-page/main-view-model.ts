@@ -202,7 +202,7 @@ export class MainViewModel extends Observable {
         const sensor = args.data.sensor;
         const accuracy = args.data.accuracy;
 
-        if (sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE) {
+        if (sensor.getType() === android.hardware.Sensor.TYPE_HEART_RATE) {
           this.heartRateAccuracy = accuracy;
 
           let accStr = 'Unknown';
