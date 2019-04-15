@@ -416,7 +416,7 @@ export class MainViewModel extends Observable {
     }
   }
 
-  updateHeartRateButtonText(newText: string) {
+  updateHeartRateButtonText(newText?: string) {
     const item = this.items.getItem(this._heartRateButtonIndex);
     if (newText) {
       item.text = newText;
