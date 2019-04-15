@@ -39,7 +39,6 @@ import { setInterval, clearInterval } from 'tns-core-modules/timer';
 import { SensorDelay } from 'nativescript-android-sensors';
 
 let sensorInterval = null;
-let sensorTimeout = null;
 let sensorData = [];
 
 export class MainViewModel extends Observable {
@@ -511,7 +510,7 @@ export class MainViewModel extends Observable {
     this._isCollectingData = false;
     // update display
     this._updateDataCollectionButtonText(`Start Data Collection`);
-    // disable accelerometer if not needed for SD control
+    // disable sensors if not needed for SD control
     if (!this._powerAssistActive) {
       this.disableDeviceSensors();
     }
@@ -529,7 +528,7 @@ export class MainViewModel extends Observable {
     try {
       // enable heart rate sensor separate from other sensors
       await this.startHeartRate();
-      // enable accelerometer
+      // enable sensors
       this.enableDeviceSensors();
       // start collecting data
       this._isCollectingData = true;
@@ -589,7 +588,7 @@ export class MainViewModel extends Observable {
           .stopMotor()
           .catch(err => Log.E('Could not stop motor', err));
       }
-      // now disable accel
+      // now disable sensors
       if (!this._isCollectingData) {
         this.disableDeviceSensors();
       }
