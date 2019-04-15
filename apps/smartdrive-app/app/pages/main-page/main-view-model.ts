@@ -240,7 +240,7 @@ export class MainViewModel extends Observable {
     this._sensorService.on(
       SensorService.SensorChanged,
       (args: SensorChangedEventData) => {
-        Log.D('SensorService.SensorChanged', args.data);
+        // Log.D('SensorService.SensorChanged', args.data);
 
         const parsedData = args.data;
 
@@ -249,7 +249,7 @@ export class MainViewModel extends Observable {
         if (
           parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
         ) {
-          this.heartRate = parsedData.data[0].toString().split('.')[0];
+          this.heartRate = parsedData.data.heart_rate.toString().split('.')[0];
         }
 
         // collect the data
