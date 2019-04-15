@@ -74,6 +74,7 @@ application.on(
 
 application.on(application.launchEvent, args => {
   Log.D('App launch event...');
+  themes.applyTheme('theme-default.css');
 });
 
 application.on(application.displayedEvent, args => {

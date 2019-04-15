@@ -5,24 +5,22 @@ import {
   Prop,
   SentryService,
   SmartDrive,
-  throttle,
   Log,
-  SensorDataService
+  SensorService,
+  SensorChangedEventData,
+  AccuracyChangedEventData
 } from '@permobil/core';
-import * as accelerometer from 'nativescript-accelerometer-advanced';
-import { LottieView } from 'nativescript-lottie';
+import { padStart } from 'lodash';
+import { addSeconds, differenceInSeconds } from 'date-fns';
 import * as permissions from 'nativescript-permissions';
+import * as LS from 'nativescript-localstorage';
+import { Vibrate } from 'nativescript-vibrate';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
-import {
-  SwipeDismissLayout,
-  WearOsLayout,
-  WearOsListView
-} from 'nativescript-wear-os';
+import { SwipeDismissLayout } from 'nativescript-wear-os';
 import {
   showSuccess,
   showFailure
 } from 'nativescript-wear-os/packages/dialogs';
-import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
 import {
@@ -30,15 +28,18 @@ import {
   ChangedData
 } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
-import { action, alert } from 'tns-core-modules/ui/dialogs';
-import { Page } from 'tns-core-modules/ui/frame';
+import { action } from 'tns-core-modules/ui/dialogs';
 import { injector, currentSystemTime } from '../../app';
 import {
   hideOffScreenLayout,
   promptUserForSpeech,
   showOffScreenLayout
 } from '../../utils';
-import { setInterval } from 'tns-core-modules/timer/timer';
+import { setInterval, clearInterval } from 'tns-core-modules/timer';
+import { SensorDelay } from 'nativescript-android-sensors';
+
+let sensorInterval = null;
+let sensorData = [];
 
 export class MainViewModel extends Observable {
   /**
@@ -47,6 +48,29 @@ export class MainViewModel extends Observable {
   @Prop()
   heartRate: string;
 
+  /**
+   * The heart rate accuracy for monitoring.
+   */
+  @Prop()
+  heartRateAccuracy = 0;
+
+  /**
+   * Boolean to track if heart rate is being monitored.
+   */
+  @Prop()
+  public isGettingHeartRate = false;
+
+  /**
+   * Boolean to track the settings swipe layout visibility.
+   */
+  @Prop()
+  public isSettingsLayoutEnabled = false;
+
+  /**
+   *
+   * SmartDrive Related Data
+   *
+   */
   /**
    * The tap sensitivity threshold
    */
@@ -62,22 +86,10 @@ export class MainViewModel extends Observable {
   )} g`;
 
   /**
-   * The heart rate accuracy for monitoring.
+   * Boolean to track whether a tap has been performed.
    */
   @Prop()
-  heartRateAccuracy = 0;
-
-  /**
-   * Boolean to toggle when motion event detected to show animation in UI.
-   */
-  @Prop()
-  motionDetected = false;
-
-  /**
-   * Boolean to track if heart rate is being monitored.
-   */
-  @Prop()
-  public isGettingHeartRate = false;
+  hasTapped = false;
 
   /**
    * Boolean to handle logic if we have connected to a SD unit.
@@ -85,15 +97,15 @@ export class MainViewModel extends Observable {
   @Prop()
   public connected = false;
 
+  /**
+   * Boolean to track if the SmartDrive motor is on.
+   */
   @Prop()
   public motorOn = false;
 
   /**
-   * Boolean to track the settings swipe layout visibility.
+   * Array of menu items
    */
-  @Prop()
-  public isSettingsLayoutEnabled = false;
-
   @Prop()
   public items = new ObservableArray(
     {
@@ -117,10 +129,17 @@ export class MainViewModel extends Observable {
     },
     {
       type: 'button',
+      image: 'res://ic_watch_white',
+      class: 'icon',
+      text: 'Start Data Collection',
+      func: this.onToggleDataCollection.bind(this)
+    },
+    {
+      type: 'button',
       image: 'res://favorite',
       class: 'icon',
       text: 'Read Heart Rate',
-      func: this.startHeartRate.bind(this)
+      func: this.toggleHeartRate.bind(this)
     },
     {
       type: 'button',
@@ -135,39 +154,134 @@ export class MainViewModel extends Observable {
       class: 'icon',
       text: 'Updates',
       func: this.onUpdatesTap.bind(this)
-    },
-    {
-      type: 'button',
-      image: 'res://settings',
-      class: 'icon',
-      text: 'Data Collection',
-      func: this.onStartDataCollection.bind(this)
     }
   );
 
+  /**
+   * Index values into the menu
+   */
   private _powerAssistButtonIndex = 1;
-  private _heartRateButtonIndex = 3;
+  private _dataCollectionButtonIndex = 3;
+  private _heartRateButtonIndex = 4;
 
   /**
-   * Boolean to track if accelerometer is already registered listener events.
+   * State Management for Sensor Monitoring / Data Collection
    */
-  private _isListeningAccelerometer = false;
-  private _heartrateListener;
+  private _isListeningDeviceSensors = false;
+  private _isCollectingData = false;
+
+  /**
+   * SmartDrive Data / state management
+   */
   private _smartDrive: SmartDrive;
-  private _settingsLayout: SwipeDismissLayout;
-  private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
+  private _savedSmartDriveAddress: string = null;
+
+  /**
+   * User interaction objects
+   */
+  private _settingsLayout: SwipeDismissLayout;
+  private _heartRateSensor: android.hardware.Sensor; // HR sensor so we can start/stop it individually from the other sensors
+  private _vibrator: Vibrate = new Vibrate();
 
   constructor(
     private _bluetoothService: BluetoothService = injector.get(
       BluetoothService
     ),
     private _sentryService: SentryService = injector.get(SentryService),
-    private _sensorDataService: SensorDataService = injector.get(
-      SensorDataService
-    )
+    private _sensorService: SensorService = injector.get(SensorService)
   ) {
     super();
+
+    this._sensorService.on(
+      SensorService.AccuracyChanged,
+      (args: AccuracyChangedEventData) => {
+        Log.D(
+          'SensorService.AccuracyChanged',
+          args.data.sensor,
+          args.data.accuracy
+        );
+        const sensor = args.data.sensor;
+        const accuracy = args.data.accuracy;
+
+        if (sensor.getType() === android.hardware.Sensor.TYPE_HEART_RATE) {
+          this.heartRateAccuracy = accuracy;
+          this.updateHeartRateButtonText();
+          // save the heart rate
+          appSettings.setNumber(
+            DataKeys.HEART_RATE,
+            parseInt(this.heartRate, 10)
+          );
+        }
+      }
+    );
+
+    this._sensorService.on(
+      SensorService.SensorChanged,
+      (args: SensorChangedEventData) => {
+        // Log.D('SensorService.SensorChanged', args.data);
+
+        const parsedData = args.data;
+
+        // Log.D(event.values[0]);
+        // if reporting heart rate update the text for UI
+        if (
+          parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
+        ) {
+          this.heartRate = parsedData.data.heart_rate.toString().split('.')[0];
+          this.updateHeartRateButtonText();
+        }
+
+        // collect the data
+        if (this._isCollectingData) {
+          if (
+            parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
+          ) {
+            // add accuracy for heart rate data from sensors
+            parsedData.data.accuracy = this.heartRateAccuracy;
+            sensorData.push(parsedData);
+          } else {
+            sensorData.push(parsedData);
+          }
+        }
+
+        // Log.D('onAccelerometerData');
+        // only showing linear acceleration data for now
+        if (
+          parsedData.sensor ===
+          android.hardware.Sensor.STRING_TYPE_LINEAR_ACCELERATION
+        ) {
+          const z = (parsedData.data as any).z;
+          let diff = z;
+          if (this.motorOn) {
+            diff = Math.abs(z);
+          }
+
+          // Log.D('checking', this.tapSensitivity, 'against', diff);
+
+          if (diff > this.tapSensitivity && !this.hasTapped) {
+            // Log.D('Motion detected!', { diff });
+            // register motion detected and block out futher motion detection
+            this.hasTapped = true;
+            setTimeout(() => {
+              this.hasTapped = false;
+            }, 300);
+            // now send
+            if (this._smartDrive && this._smartDrive.ableToSend) {
+              if (this.motorOn) {
+                Log.D('Vibrating for tap while connected to SD and motor on!');
+                this._vibrator.cancel();
+                this._vibrator.vibrate(250); // vibrate for 250 ms
+              }
+              Log.D('Sending tap!');
+              this._smartDrive
+                .sendTap()
+                .catch(err => Log.E('could not send tap', err));
+            }
+          }
+        }
+      }
+    );
 
     // load savedSmartDriveAddress from settings / memory
     const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
@@ -199,6 +313,242 @@ export class MainViewModel extends Observable {
     );
   }
 
+  disableDeviceSensors() {
+    Log.D('Disabling device sensors.');
+    try {
+      this._sensorService.stopDeviceSensors();
+    } catch (err) {
+      Log.E('Error disabling the device sensors:', err);
+    }
+    this._isListeningDeviceSensors = false;
+    return;
+  }
+
+  enableDeviceSensors() {
+    Log.D('Enable device sensors...');
+    try {
+      if (!this._isListeningDeviceSensors) {
+        this._sensorService.startDeviceSensors();
+        this._isListeningDeviceSensors = true;
+      }
+    } catch (err) {
+      Log.E('Error starting the device sensors', err);
+    }
+  }
+
+  /**
+   * Heart Rate Handlers
+   */
+  async toggleHeartRate() {
+    if (this.isGettingHeartRate) {
+      this.stopHeartRate();
+    } else {
+      this.startHeartRate();
+    }
+  }
+
+  async stopHeartRate() {
+    if (!this.isGettingHeartRate) {
+      return;
+    }
+    this._sensorService.androidSensorClass.stopSensor(this._heartRateSensor);
+    this.isGettingHeartRate = false;
+    this.updateHeartRateButtonText('Read Heart Rate');
+  }
+
+  async startHeartRate() {
+    if (this.isGettingHeartRate) {
+      return;
+    }
+
+    try {
+      // make sure we have permisson for body sensors
+      const hasPermission = permissions.hasPermission(
+        android.Manifest.permission.BODY_SENSORS
+      );
+      if (!hasPermission) {
+        await permissions
+          .requestPermission(android.Manifest.permission.BODY_SENSORS)
+          .catch(error => {
+            Log.E(error);
+            return;
+          });
+      }
+
+      // start the heart rate sensor
+      this._heartRateSensor = this._sensorService.androidSensorClass.startSensor(
+        android.hardware.Sensor.TYPE_HEART_RATE,
+        SensorDelay.UI
+      );
+
+      this.isGettingHeartRate = true;
+      this.updateHeartRateButtonText('Reading Heart Rate');
+    } catch (error) {
+      Log.E({ error });
+    }
+  }
+
+  updateHeartRateButtonText(newText?: string) {
+    const item = this.items.getItem(this._heartRateButtonIndex);
+    if (newText) {
+      item.text = newText;
+    } else {
+      let accStr = 'Unknown';
+      switch (this.heartRateAccuracy) {
+        case android.hardware.SensorManager.SENSOR_STATUS_UNRELIABLE:
+          accStr = 'Unreliable';
+          break;
+        case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_LOW:
+          accStr = 'Low';
+          break;
+        case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
+          accStr = 'Medium';
+          break;
+        case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
+          accStr = 'High';
+          break;
+        case 0xffffffff:
+        case android.hardware.SensorManager.SENSOR_STATUS_NO_CONTACT:
+          accStr = 'No Contact';
+          break;
+      }
+      item.text = `HR: ${this.heartRate}, ACC: ${accStr}`;
+    }
+    this.items.setItem(this._heartRateButtonIndex, item);
+  }
+
+  onUpdatesTap() {
+    showSuccess('No updates available.', 4);
+  }
+
+  /**
+   * Setings page handlers
+   */
+  onSettingsLayoutLoaded(args) {
+    this._settingsLayout = args.object as SwipeDismissLayout;
+
+    this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
+      Log.D('dimissedEvent', args.object);
+      // hide the offscreen layout when dismissed
+      hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
+      this.isSettingsLayoutEnabled = false;
+    });
+  }
+
+  onSettingsTap() {
+    showOffScreenLayout(this._settingsLayout);
+    this.isSettingsLayoutEnabled = true;
+  }
+
+  onVoiceInputTap() {
+    promptUserForSpeech()
+      .then(result => {
+        Log.D('result from speech', result);
+      })
+      .catch(error => {
+        Log.E('speech error', error);
+      });
+  }
+
+  /**
+   * Data Collection Handlers
+   */
+  onToggleDataCollection() {
+    if (this._isCollectingData) {
+      this.stopDataCollection();
+    } else {
+      this.startDataCollection();
+    }
+  }
+
+  periodicDataStore() {
+    if (sensorData.length) {
+      // store the data on the device
+      const key = LS.length;
+      LS.setItemObject(key, sensorData);
+    }
+    // clear out the data
+    sensorData = [];
+  }
+
+  periodicDataSend() {
+    if (!LS.length) {
+      showSuccess('All Data saved.');
+      Log.D('Vibrating for successful data sending!');
+      this._vibrator.cancel();
+      this._vibrator.vibrate(500); // vibrate for 500 ms
+      return;
+    }
+    // get the first (oldest) record
+    const key = LS.key(0);
+    const record = LS.getItem(key);
+    // send the data to the server
+    this._sensorService
+      .saveRecord(record)
+      .then(() => {
+        // delete previous record
+        LS.removeItem(key);
+        // send records with 1 second between sends
+        setTimeout(this.periodicDataSend.bind(this), 1000);
+      })
+      .catch(error => {
+        showFailure('Error saving sensor data.');
+        Log.D('Vibrating for unsuccessful data collection!');
+        this._vibrator.cancel();
+        this._vibrator.vibrate(1000); // vibrate for 1000 ms
+        // wait longer between sends since the data collection failed
+        setTimeout(this.periodicDataSend.bind(this), 60000);
+      });
+  }
+
+  stopDataCollection() {
+    // make sure we're collecting data
+    if (!this._isCollectingData) {
+      return;
+    }
+    // stop collecting data
+    this._isCollectingData = false;
+    // update display
+    this._updateDataCollectionButtonText(`Start Data Collection`);
+    // disable sensors if not needed for SD control
+    if (!this._powerAssistActive) {
+      this.disableDeviceSensors();
+    }
+    // disable heart rate
+    this.stopHeartRate();
+    // clear out the interval
+    clearInterval(sensorInterval);
+    // make sure all data is stored
+    this.periodicDataStore();
+    // now start the sending process
+    setTimeout(this.periodicDataSend.bind(this), 500);
+  }
+
+  async startDataCollection() {
+    try {
+      // enable heart rate sensor separate from other sensors
+      await this.startHeartRate();
+      // enable sensors
+      this.enableDeviceSensors();
+      // start collecting data
+      this._isCollectingData = true;
+      this._updateDataCollectionButtonText('Stop Data Collection');
+      // set interval
+      sensorInterval = setInterval(this.periodicDataStore.bind(this), 60000);
+    } catch (error) {
+      Log.E(error);
+    }
+  }
+
+  private _updateDataCollectionButtonText(newText: string) {
+    const item = this.items.getItem(this._dataCollectionButtonIndex);
+    item.text = newText;
+    this.items.setItem(this._dataCollectionButtonIndex, item);
+  }
+
+  /**
+   * Smart Drive Interaction and Data Management
+   */
   onIncreaseTapSensitivityTap() {
     this.tapSensitivity =
       this.tapSensitivity < 2.0 ? this.tapSensitivity + 0.05 : 2.0;
@@ -227,139 +577,31 @@ export class MainViewModel extends Observable {
     this.items.setItem(this._powerAssistButtonIndex, item);
   }
 
-  updateHeartRateButtonText(newText: string) {
-    const item = this.items.getItem(this._heartRateButtonIndex);
-    item.text = newText;
-    this.items.setItem(this._heartRateButtonIndex, item);
-  }
-
   togglePowerAssist() {
     if (this._powerAssistActive) {
       this._powerAssistActive = false;
       this.updatePowerAssistButtonText('Power Assist OFF');
-      this.disableAccelerometer();
+      // turn off the motor if SD is connected
+      if (this._smartDrive && this._smartDrive.ableToSend) {
+        Log.D('Turning off Motor!');
+        this._smartDrive
+          .stopMotor()
+          .catch(err => Log.E('Could not stop motor', err));
+      }
+      // now disable sensors
+      if (!this._isCollectingData) {
+        this.disableDeviceSensors();
+      }
       this.onDisconnectTap();
     } else {
       this.connectToSavedSmartDrive().then(didConnect => {
         if (didConnect) {
           this._powerAssistActive = true;
-          this.enableAccelerometer();
+          this.enableDeviceSensors();
           this.updatePowerAssistButtonText('Power Assist ON');
         }
       });
     }
-  }
-
-  disableAccelerometer() {
-    // Log.D('disableAccelerometer');
-    if (this._smartDrive && this._smartDrive.ableToSend) {
-      Log.D('Turning off Motor!');
-      this._smartDrive
-        .stopMotor()
-        .catch(err => Log.E('Could not stop motor', err));
-    }
-    try {
-      accelerometer.stopAccelerometerUpdates();
-    } catch (err) {
-      Log.E('could not disable accelerometer', err);
-    }
-    this._isListeningAccelerometer = false;
-    return;
-  }
-
-  onAccelerometerData(data) {
-    // Log.D('onAccelerometerData');
-    // only showing linear acceleration data for now
-    if (data.sensorType === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
-      const z = data.z;
-      let diff = z;
-      if (this.motorOn) {
-        diff = Math.abs(z);
-      }
-
-      // Log.D('checking', this.tapSensitivity, 'against', diff);
-
-      if (diff > this.tapSensitivity && !this.motionDetected) {
-        // Log.D('Motion detected!', { diff });
-        // register motion detected and block out futher motion detection
-        this.motionDetected = true;
-        setTimeout(() => {
-          this.motionDetected = false;
-        }, 300);
-        // now send
-        if (this._smartDrive && this._smartDrive.ableToSend) {
-          Log.D('Sending tap!');
-          this._smartDrive
-            .sendTap()
-            .catch(err => Log.E('could not send tap', err));
-        }
-      }
-    }
-  }
-
-  enableAccelerometer() {
-    // Log.D('enableAccelerometer');
-    try {
-      accelerometer.startAccelerometerUpdates(
-        this.onAccelerometerData.bind(this),
-        { sensorDelay: 'game' }
-      );
-      this._isListeningAccelerometer = true;
-    } catch (err) {
-      Log.E('Could not enable accelerometer', err);
-    }
-  }
-
-  async onMotorInfo(args: any) {
-    // Log.D('onMotorInfo event');
-    this.motorOn = this._smartDrive.driving;
-  }
-
-  async onDistance(args: any) {
-    // Log.D('onDistance event');
-
-    // save the updated distance
-    appSettings.setNumber(
-      DataKeys.SD_DISTANCE_CASE,
-      this._smartDrive.coastDistance
-    );
-    appSettings.setNumber(
-      DataKeys.SD_DISTANCE_DRIVE,
-      this._smartDrive.driveDistance
-    );
-
-    /*
-    this._sentryService.logBreadCrumb(
-      `Updated SD: ${this._smartDrive.address} -- SD_DISTANCE_CASE: ${
-        this._smartDrive.coastDistance
-      }, SD_DISTANCE_DRIVE: ${this._smartDrive.driveDistance}`
-    );
-	  */
-  }
-
-  async onSmartDriveVersion(args: any) {
-    // Log.D('onSmartDriveVersion event');
-
-    // save the updated SmartDrive data values
-    appSettings.setNumber(
-      DataKeys.SD_VERSION_MCU,
-      this._smartDrive.mcu_version
-    );
-    appSettings.setNumber(
-      DataKeys.SD_VERSION_BLE,
-      this._smartDrive.ble_version
-    );
-    appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
-
-    setInterval(() => {
-      Log.D(
-        `Updated SD: ${this._smartDrive.address} -- MCU: ${
-          this._smartDrive.mcu_version
-        }, BLE: ${this._smartDrive.ble_version}, Battery: ${
-          this._smartDrive.battery
-        }`
-      );
-    }, 10000);
   }
 
   saveNewSmartDrive() {
@@ -436,9 +678,7 @@ export class MainViewModel extends Observable {
     // now connect to smart drive
     this._smartDrive.connect();
     this.connected = true;
-    new Toasty(`Connected to ${this._smartDrive.address}`)
-      .setToastPosition(ToastPosition.CENTER)
-      .show();
+    showSuccess(`Connected to ${this._smartDrive.address}`, 2);
   }
 
   connectToSavedSmartDrive() {
@@ -447,11 +687,7 @@ export class MainViewModel extends Observable {
       this._savedSmartDriveAddress === null ||
       this._savedSmartDriveAddress.length === 0
     ) {
-      new Toasty(
-        'You must pair to a SmartDrive first!',
-        ToastDuration.LONG,
-        ToastPosition.CENTER
-      ).show();
+      showFailure('You must pair to a SmartDrive first.', 3);
       return Promise.resolve(false);
     }
 
@@ -516,164 +752,52 @@ export class MainViewModel extends Observable {
     }
   }
 
-  async startHeartRate() {
-    try {
-      // check permissions first
-      const hasPermission = permissions.hasPermission(
-        android.Manifest.permission.BODY_SENSORS
-      );
-      if (!hasPermission) {
-        await permissions.requestPermission(
-          android.Manifest.permission.BODY_SENSORS
-        );
-      }
+  /*
+   * SMART DRIVE EVENT HANDLERS
+   */
+  async onMotorInfo(args: any) {
+    // Log.D('onMotorInfo event');
 
-      const activity: android.app.Activity =
-        application.android.startActivity ||
-        application.android.foregroundActivity;
-      const mSensorManager = activity.getSystemService(
-        android.content.Context.SENSOR_SERVICE
-      ) as android.hardware.SensorManager;
-
-      if (!this._heartrateListener) {
-        this._heartrateListener = new android.hardware.SensorEventListener({
-          onAccuracyChanged: (sensor, accuracy) => {
-            this.heartRateAccuracy = accuracy;
-            this._sentryService.logBreadCrumb(
-              `testing breadcrumb, heart rate accuracy: ${
-                this.heartRateAccuracy
-              }`,
-              LoggingCategory.Info
-            );
-          },
-          onSensorChanged: event => {
-            Log.D(event.values[0]);
-            this.heartRate = event.values[0].toString().split('.')[0];
-            let accStr = 'Unknown';
-            switch (this.heartRateAccuracy) {
-              case 0:
-                accStr = 'Unreliable';
-                break;
-              case 1:
-                accStr = 'Low';
-                break;
-              case 2:
-                accStr = 'Medium';
-                break;
-              case 3:
-                accStr = 'High';
-                break;
-              case 0xffffffff:
-              case -1:
-                accStr = 'No Contact';
-                break;
-            }
-            this.updateHeartRateButtonText(
-              `HR: ${this.heartRate}, ACC: ${accStr}`
-            );
-
-            // log the recorded heart rate as a breadcrumb
-            this._sentryService.logBreadCrumb(
-              `testing breadcrumb, heartRate: ${this.heartRate}`,
-              LoggingCategory.Info
-            );
-
-            // save the heart rate
-            appSettings.setNumber(
-              DataKeys.HEART_RATE,
-              parseInt(this.heartRate, 10)
-            );
-          }
-        });
-      }
-
-      // if already getting the HR, then turn off on this tap
-      if (this.isGettingHeartRate === true) {
-        this.isGettingHeartRate = false;
-        this.updateHeartRateButtonText('Read Heart Rate');
-        mSensorManager.unregisterListener(this._heartrateListener);
-        return;
-      }
-
-      if (!mSensorManager) {
-        alert({
-          message: 'Could not initialize the device sensors.',
-          okButtonText: 'Okay'
-        });
-      }
-
-      const mHeartRateSensor = mSensorManager.getDefaultSensor(
-        android.hardware.Sensor.TYPE_HEART_RATE
-      );
-      Log.D(mHeartRateSensor);
-
-      const didRegListener = mSensorManager.registerListener(
-        this._heartrateListener,
-        mHeartRateSensor,
-        android.hardware.SensorManager.SENSOR_DELAY_NORMAL
-      );
-      Log.D({ didRegListener });
-
-      if (didRegListener) {
-        this.isGettingHeartRate = true;
-        this.updateHeartRateButtonText('Reading Heart Rate');
-        // don't read heart rate for more than one minute at a time
-        setTimeout(() => {
-          if (this.isGettingHeartRate) {
-            Log.D('Timer cancelling heart rate');
-            this.startHeartRate();
-          }
-        }, 60000);
-
-        Log.D('Registered heart rate sensor listener');
+    if (this.motorOn !== this._smartDrive.driving) {
+      if (this._smartDrive.driving) {
+        Log.D('Vibrating for motor turning on!');
+        this._vibrator.cancel();
+        this._vibrator.vibrate(250); // vibrate for 250 ms
       } else {
-        Log.D('Heart Rate listener did not register.');
+        Log.D('Vibrating for motor turning off!');
+        this._vibrator.cancel();
+        this._vibrator.vibrate([100, 50, 100]); // vibrate twice
       }
-    } catch (error) {
-      Log.E({ error });
     }
+    this.motorOn = this._smartDrive.driving;
   }
 
-  onSettingsLayoutLoaded(args) {
-    this._settingsLayout = args.object as SwipeDismissLayout;
+  async onDistance(args: any) {
+    // Log.D('onDistance event');
 
-    this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      Log.D('dimissedEvent', args.object);
-      // hide the offscreen layout when dismissed
-      hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
-      this.isSettingsLayoutEnabled = false;
-    });
+    // save the updated distance
+    appSettings.setNumber(
+      DataKeys.SD_DISTANCE_CASE,
+      this._smartDrive.coastDistance
+    );
+    appSettings.setNumber(
+      DataKeys.SD_DISTANCE_DRIVE,
+      this._smartDrive.driveDistance
+    );
   }
 
-  onSettingsTap() {
-    showOffScreenLayout(this._settingsLayout);
-    this.isSettingsLayoutEnabled = true;
-  }
+  async onSmartDriveVersion(args: any) {
+    // Log.D('onSmartDriveVersion event');
 
-  onVoiceInputTap() {
-    promptUserForSpeech()
-      .then(result => {
-        Log.D('result from speech', result);
-      })
-      .catch(error => {
-        Log.E('speech error', error);
-      });
-  }
-
-  onUpdatesTap() {
-    new Toasty(
-      'No updates available.',
-      ToastDuration.LONG,
-      ToastPosition.CENTER
-    ).show();
-  }
-
-  private _trimAccelerometerData(value: number) {
-    const x = value.toString();
-    return x.substring(0, 8);
-  }
-
-  onStartDataCollection() {
-    // this._sensorDataService.saveRecord(record);
+    // save the updated SmartDrive data values
+    appSettings.setNumber(
+      DataKeys.SD_VERSION_MCU,
+      this._smartDrive.mcu_version
+    );
+    appSettings.setNumber(
+      DataKeys.SD_VERSION_BLE,
+      this._smartDrive.ble_version
+    );
+    appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
   }
 }

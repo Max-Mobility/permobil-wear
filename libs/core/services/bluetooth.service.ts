@@ -32,6 +32,8 @@ export class BluetoothService {
   private AppService: any = null;
 
   constructor() {
+    Log.D('BluetoothService constructor...');
+
     this.enabled = false;
     this.initialized = false;
     this._bluetooth = new Bluetooth();
