@@ -207,20 +207,20 @@ export class MainViewModel extends Observable {
 
           let accStr = 'Unknown';
           switch (this.heartRateAccuracy) {
-            case 0:
+            case android.hardware.SensorManager.SENSOR_STATUS_UNRELIABLE:
               accStr = 'Unreliable';
               break;
-            case 1:
+            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_LOW:
               accStr = 'Low';
               break;
-            case 2:
+            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
               accStr = 'Medium';
               break;
-            case 3:
+            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
               accStr = 'High';
               break;
             case 0xffffffff:
-            case -1:
+            case android.hardware.SensorManager.SENSOR_STATUS_NO_CONTACT:
               accStr = 'No Contact';
               break;
           }
