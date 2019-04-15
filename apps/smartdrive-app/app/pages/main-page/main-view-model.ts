@@ -11,8 +11,9 @@ import {
   AccuracyChangedEventData
 } from '@permobil/core';
 import { padStart } from 'lodash';
-import * as moment from 'moment';
+import { addSeconds, differenceInSeconds } from 'date-fns';
 import * as permissions from 'nativescript-permissions';
+import * as LS from 'nativescript-localstorage';
 import { Vibrate } from 'nativescript-vibrate';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
@@ -43,30 +44,10 @@ let sensorData = [];
 
 export class MainViewModel extends Observable {
   /**
-   * The heart rate data to render.
-   */
-  @Prop()
-  heartRate: string;
-
-  /**
-   * The tap sensitivity threshold
-   */
-  @Prop()
-  tapSensitivity: number = 0.5;
-
-  /**
-   * The tap sensitivity display
-   */
-  @Prop()
-  tapSensitivityText: string = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
-    2
-  )} g`;
-
-  /**
    * Data Collection Time Remaining (seconds)
    */
   @Prop()
-  dataCollectionTimeRemaining: moment.Moment;
+  dataCollectionTimeRemaining: Date;
 
   /**
    * The data collection timeout (seconds)
@@ -83,16 +64,16 @@ export class MainViewModel extends Observable {
   } s`;
 
   /**
+   * The heart rate data to render.
+   */
+  @Prop()
+  heartRate: string;
+
+  /**
    * The heart rate accuracy for monitoring.
    */
   @Prop()
   heartRateAccuracy = 0;
-
-  /**
-   * Boolean to toggle when motion event detected to show animation in UI.
-   */
-  @Prop()
-  motionDetected = false;
 
   /**
    * Boolean to track if heart rate is being monitored.
@@ -101,20 +82,51 @@ export class MainViewModel extends Observable {
   public isGettingHeartRate = false;
 
   /**
-   * Boolean to handle logic if we have connected to a SD unit.
-   */
-  @Prop()
-  public connected = false;
-
-  @Prop()
-  public motorOn = false;
-
-  /**
    * Boolean to track the settings swipe layout visibility.
    */
   @Prop()
   public isSettingsLayoutEnabled = false;
 
+  /**
+   *
+   * SmartDrive Related Data
+   *
+   */
+  /**
+   * The tap sensitivity threshold
+   */
+  @Prop()
+  tapSensitivity: number = 0.5;
+
+  /**
+   * The tap sensitivity display
+   */
+  @Prop()
+  tapSensitivityText: string = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
+    2
+  )} g`;
+
+  /**
+   * Boolean to track whether a tap has been performed.
+   */
+  @Prop()
+  hasTapped = false;
+
+  /**
+   * Boolean to handle logic if we have connected to a SD unit.
+   */
+  @Prop()
+  public connected = false;
+
+  /**
+   * Boolean to track if the SmartDrive motor is on.
+   */
+  @Prop()
+  public motorOn = false;
+
+  /**
+   * Array of menu items
+   */
   @Prop()
   public items = new ObservableArray(
     {
@@ -166,19 +178,30 @@ export class MainViewModel extends Observable {
     }
   );
 
+  /**
+   * Index values into the menu
+   */
   private _powerAssistButtonIndex = 1;
   private _dataCollectionButtonIndex = 3;
   private _heartRateButtonIndex = 4;
 
   /**
-   * Boolean to track if already listening for sensor data.
+   * State Management for Sensor Monitoring / Data Collection
    */
   private _isListeningDeviceSensors = false;
   private _isCollectingData = false;
+
+  /**
+   * SmartDrive Data / state management
+   */
   private _smartDrive: SmartDrive;
-  private _settingsLayout: SwipeDismissLayout;
-  private _savedSmartDriveAddress: string = null;
   private _powerAssistActive: boolean = false;
+  private _savedSmartDriveAddress: string = null;
+
+  /**
+   * User interaction objects
+   */
+  private _settingsLayout: SwipeDismissLayout;
   private _heartRateSensor: android.hardware.Sensor; // HR sensor so we can start/stop it individually from the other sensors
   private _vibrator: Vibrate = new Vibrate();
 
@@ -249,7 +272,7 @@ export class MainViewModel extends Observable {
         if (
           parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
         ) {
-          this.heartRate = parsedData.data.heart_rate.toString().split('.')[0];
+          this.heartRate = parsedData.heart_rate.toString().split('.')[0];
         }
 
         // collect the data
@@ -279,15 +302,20 @@ export class MainViewModel extends Observable {
 
           // Log.D('checking', this.tapSensitivity, 'against', diff);
 
-          if (diff > this.tapSensitivity && !this.motionDetected) {
+          if (diff > this.tapSensitivity && !this.hasTapped) {
             // Log.D('Motion detected!', { diff });
             // register motion detected and block out futher motion detection
-            this.motionDetected = true;
+            this.hasTapped = true;
             setTimeout(() => {
-              this.motionDetected = false;
+              this.hasTapped = false;
             }, 300);
             // now send
             if (this._smartDrive && this._smartDrive.ableToSend) {
+              if (this.motorOn) {
+                Log.D('Vibrating for tap while connected to SD and motor on!');
+                this._vibrator.cancel();
+                this._vibrator.vibrate(250); // vibrate for 250 ms
+              }
               Log.D('Sending tap!');
               this._smartDrive
                 .sendTap()
@@ -328,6 +356,243 @@ export class MainViewModel extends Observable {
     );
   }
 
+  disableDeviceSensors() {
+    Log.D('Disabling device sensors.');
+    try {
+      this._sensorService.stopDeviceSensors();
+    } catch (err) {
+      Log.E('Error disabling the device sensors:', err);
+    }
+    this._isListeningDeviceSensors = false;
+    return;
+  }
+
+  enableDeviceSensors() {
+    Log.D('Enable device sensors...');
+    try {
+      if (!this._isListeningDeviceSensors) {
+        this._sensorService.startDeviceSensors();
+        this._isListeningDeviceSensors = true;
+      }
+    } catch (err) {
+      Log.E('Error starting the device sensors', err);
+    }
+  }
+
+  /**
+   * Heart Rate Handlers
+   */
+  async toggleHeartRate() {
+    if (this.isGettingHeartRate) {
+      this.stopHeartRate();
+    } else {
+      this.startHeartRate();
+    }
+  }
+
+  async stopHeartRate() {
+    if (!this.isGettingHeartRate) {
+      return;
+    }
+    this._sensorService.androidSensorClass.stopSensor(this._heartRateSensor);
+    this.isGettingHeartRate = false;
+    this.updateHeartRateButtonText('Read Heart Rate');
+  }
+
+  async startHeartRate() {
+    if (this.isGettingHeartRate) {
+      return;
+    }
+
+    try {
+      // make sure we have permisson for body sensors
+      const hasPermission = permissions.hasPermission(
+        android.Manifest.permission.BODY_SENSORS
+      );
+      if (!hasPermission) {
+        await permissions
+          .requestPermission(android.Manifest.permission.BODY_SENSORS)
+          .catch(error => {
+            Log.E(error);
+            return;
+          });
+      }
+
+      // start the heart rate sensor
+      this._heartRateSensor = this._sensorService.androidSensorClass.startSensor(
+        android.hardware.Sensor.TYPE_HEART_RATE,
+        SensorDelay.UI
+      );
+
+      this.isGettingHeartRate = true;
+      this.updateHeartRateButtonText('Reading Heart Rate');
+      // don't read heart rate for more than one minute at a time
+      setTimeout(() => {
+        if (this.isGettingHeartRate) {
+          Log.D('Timer cancelling heart rate');
+          this.stopHeartRate();
+        }
+      }, this.dataCollectionTime * 1000);
+    } catch (error) {
+      Log.E({ error });
+    }
+  }
+
+  updateHeartRateButtonText(newText: string) {
+    const item = this.items.getItem(this._heartRateButtonIndex);
+    item.text = newText;
+    this.items.setItem(this._heartRateButtonIndex, item);
+  }
+
+  onUpdatesTap() {
+    showSuccess('No updates available.', 4);
+  }
+
+  /**
+   * Setings page handlers
+   */
+  onSettingsLayoutLoaded(args) {
+    this._settingsLayout = args.object as SwipeDismissLayout;
+
+    this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
+      Log.D('dimissedEvent', args.object);
+      // hide the offscreen layout when dismissed
+      hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
+      this.isSettingsLayoutEnabled = false;
+    });
+  }
+
+  onSettingsTap() {
+    showOffScreenLayout(this._settingsLayout);
+    this.isSettingsLayoutEnabled = true;
+  }
+
+  onVoiceInputTap() {
+    promptUserForSpeech()
+      .then(result => {
+        Log.D('result from speech', result);
+      })
+      .catch(error => {
+        Log.E('speech error', error);
+      });
+  }
+
+  onIncreaseDataCollectionTimeTap() {
+    this.dataCollectionTime =
+      this.dataCollectionTime < 600 ? this.dataCollectionTime + 10 : 600;
+    this.dataCollectionTimeText = `Data Collection Time: ${
+      this.dataCollectionTime
+    } s`;
+  }
+
+  onDecreaseDataCollectionTimeTap() {
+    this.dataCollectionTime =
+      this.dataCollectionTime > 10 ? this.dataCollectionTime - 10 : 10;
+    this.dataCollectionTimeText = `Data Collection Time: ${
+      this.dataCollectionTime
+    } s`;
+  }
+
+  /**
+   * Data Collection Handlers
+   */
+  onToggleDataCollection() {
+    if (sensorInterval) {
+      this.stopDataCollection();
+    } else {
+      this.startDataCollection();
+    }
+  }
+
+  stopDataCollection() {
+    // make sure we're collecting data
+    if (!this._isCollectingData) {
+      return;
+    }
+    // stop collecting data
+    this._isCollectingData = false;
+    // update display
+    this._updateDataCollectionButtonText(`Data Collection`);
+    // make sure the timer has stopped
+    Log.D('Clearing the sensor data collection interval...');
+    clearInterval(sensorInterval);
+    sensorInterval = null;
+    clearTimeout(sensorTimeout);
+    sensorTimeout = null;
+    // disable accelerometer if not needed for SD control
+    if (!this._powerAssistActive) {
+      this.disableDeviceSensors();
+    }
+    // disable heart rate
+    this.stopHeartRate();
+    // send the data
+    if (sensorData.length) {
+      Log.D(`Sensor Data Length: ${sensorData.length}`);
+      this._sensorService
+        .saveRecord(sensorData)
+        .then(() => {
+          showSuccess('Data collection saved.');
+          Log.D('Vibrating for successful data collection!');
+          this._vibrator.cancel();
+          this._vibrator.vibrate(500); // vibrate for 500 ms
+        })
+        .catch(error => {
+          showFailure('Error saving sensor data.');
+          Log.D('Vibrating for unsuccessful data collection!');
+          this._vibrator.cancel();
+          this._vibrator.vibrate(1000); // vibrate for 1000 ms
+        });
+    }
+    // clear out the data
+    sensorData = [];
+  }
+
+  async startDataCollection() {
+    try {
+      // enable heart rate sensor separate from other sensors
+      await this.startHeartRate();
+      // enable accelerometer
+      this.enableDeviceSensors();
+      this._isCollectingData = true;
+      // initialize remaining time
+      this.dataCollectionTimeRemaining = addSeconds(
+        new Date(),
+        this.dataCollectionTime
+      );
+      sensorTimeout = setTimeout(() => {
+        this.stopDataCollection();
+      }, this.dataCollectionTime * 1000);
+      // set up interval timer for updating display
+      sensorInterval = setInterval(() => {
+        const now = new Date();
+        const seconds = differenceInSeconds(
+          this.dataCollectionTimeRemaining,
+          now
+        );
+        const m = padStart(Math.floor(seconds / 60), 2, '0');
+        const s = padStart(seconds % 60, 2, '0');
+        this._updateDataCollectionButtonText(`Time Remaining: ${m}:${s}`);
+        if (s < 0 || m < 0) {
+          // TODO: THIS IS A HACK TO MAKE SURE WE STOP DATA
+          // COLLECTION WHEN THE COUNTER BECOMES NEGATIVE IN CASE
+          // THE TIMEOUT DIDNT GET CALLED
+          this.stopDataCollection();
+        }
+      }, 1000);
+    } catch (error) {
+      Log.E(error);
+    }
+  }
+
+  private _updateDataCollectionButtonText(newText: string) {
+    const item = this.items.getItem(this._dataCollectionButtonIndex);
+    item.text = newText;
+    this.items.setItem(this._dataCollectionButtonIndex, item);
+  }
+
+  /**
+   * Smart Drive Interaction and Data Management
+   */
   onIncreaseTapSensitivityTap() {
     this.tapSensitivity =
       this.tapSensitivity < 2.0 ? this.tapSensitivity + 0.05 : 2.0;
@@ -356,12 +621,6 @@ export class MainViewModel extends Observable {
     this.items.setItem(this._powerAssistButtonIndex, item);
   }
 
-  updateHeartRateButtonText(newText: string) {
-    const item = this.items.getItem(this._heartRateButtonIndex);
-    item.text = newText;
-    this.items.setItem(this._heartRateButtonIndex, item);
-  }
-
   togglePowerAssist() {
     if (this._powerAssistActive) {
       this._powerAssistActive = false;
@@ -387,73 +646,6 @@ export class MainViewModel extends Observable {
         }
       });
     }
-  }
-
-  disableDeviceSensors() {
-    Log.D('Disabling device sensors.');
-    try {
-      this._sensorService.stopDeviceSensors();
-    } catch (err) {
-      Log.E('Error disabling the device sensors:', err);
-    }
-    this._isListeningDeviceSensors = false;
-    return;
-  }
-
-  enableDeviceSensors() {
-    Log.D('Enable device sensors...');
-    try {
-      if (!this._isListeningDeviceSensors) {
-        this._sensorService.startDeviceSensors();
-        this._isListeningDeviceSensors = true;
-      }
-    } catch (err) {
-      Log.E('Error starting the device sensors', err);
-    }
-  }
-
-  async onMotorInfo(args: any) {
-    // Log.D('onMotorInfo event');
-    this.motorOn = this._smartDrive.driving;
-  }
-
-  async onDistance(args: any) {
-    // Log.D('onDistance event');
-
-    // save the updated distance
-    appSettings.setNumber(
-      DataKeys.SD_DISTANCE_CASE,
-      this._smartDrive.coastDistance
-    );
-    appSettings.setNumber(
-      DataKeys.SD_DISTANCE_DRIVE,
-      this._smartDrive.driveDistance
-    );
-  }
-
-  async onSmartDriveVersion(args: any) {
-    // Log.D('onSmartDriveVersion event');
-
-    // save the updated SmartDrive data values
-    appSettings.setNumber(
-      DataKeys.SD_VERSION_MCU,
-      this._smartDrive.mcu_version
-    );
-    appSettings.setNumber(
-      DataKeys.SD_VERSION_BLE,
-      this._smartDrive.ble_version
-    );
-    appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
-
-    setInterval(() => {
-      Log.D(
-        `Updated SD: ${this._smartDrive.address} -- MCU: ${
-          this._smartDrive.mcu_version
-        }, BLE: ${this._smartDrive.ble_version}, Battery: ${
-          this._smartDrive.battery
-        }`
-      );
-    }, 10000);
   }
 
   saveNewSmartDrive() {
@@ -604,196 +796,52 @@ export class MainViewModel extends Observable {
     }
   }
 
-  async toggleHeartRate() {
-    if (this.isGettingHeartRate) {
-      this.stopHeartRate();
-    } else {
-      this.startHeartRate();
-    }
-  }
+  /*
+   * SMART DRIVE EVENT HANDLERS
+   */
+  async onMotorInfo(args: any) {
+    // Log.D('onMotorInfo event');
 
-  async stopHeartRate() {
-    if (!this.isGettingHeartRate) {
-      return;
-    }
-    this._sensorService.androidSensorClass.stopSensor(this._heartRateSensor);
-    this.isGettingHeartRate = false;
-    this.updateHeartRateButtonText('Read Heart Rate');
-  }
-
-  async startHeartRate() {
-    if (this.isGettingHeartRate) {
-      return;
-    }
-
-    try {
-      // make sure we have permisson for body sensors
-      const hasPermission = permissions.hasPermission(
-        android.Manifest.permission.BODY_SENSORS
-      );
-      if (!hasPermission) {
-        await permissions
-          .requestPermission(android.Manifest.permission.BODY_SENSORS)
-          .catch(error => {
-            Log.E(error);
-            return;
-          });
+    if (this.motorOn !== this._smartDrive.driving) {
+      if (this._smartDrive.driving) {
+        Log.D('Vibrating for motor turning on!');
+        this._vibrator.cancel();
+        this._vibrator.vibrate(250); // vibrate for 250 ms
+      } else {
+        Log.D('Vibrating for motor turning off!');
+        this._vibrator.cancel();
+        this._vibrator.vibrate([100, 50, 100]); // vibrate twice
       }
-
-      // start the heart rate sensor
-      this._heartRateSensor = this._sensorService.androidSensorClass.startSensor(
-        android.hardware.Sensor.TYPE_HEART_RATE,
-        SensorDelay.UI
-      );
-
-      this.isGettingHeartRate = true;
-      this.updateHeartRateButtonText('Reading Heart Rate');
-      // don't read heart rate for more than one minute at a time
-      setTimeout(() => {
-        if (this.isGettingHeartRate) {
-          Log.D('Timer cancelling heart rate');
-          this.stopHeartRate();
-        }
-      }, this.dataCollectionTime * 1000);
-    } catch (error) {
-      Log.E({ error });
     }
+    this.motorOn = this._smartDrive.driving;
   }
 
-  onSettingsLayoutLoaded(args) {
-    this._settingsLayout = args.object as SwipeDismissLayout;
+  async onDistance(args: any) {
+    // Log.D('onDistance event');
 
-    this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      Log.D('dimissedEvent', args.object);
-      // hide the offscreen layout when dismissed
-      hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
-      this.isSettingsLayoutEnabled = false;
-    });
+    // save the updated distance
+    appSettings.setNumber(
+      DataKeys.SD_DISTANCE_CASE,
+      this._smartDrive.coastDistance
+    );
+    appSettings.setNumber(
+      DataKeys.SD_DISTANCE_DRIVE,
+      this._smartDrive.driveDistance
+    );
   }
 
-  onSettingsTap() {
-    showOffScreenLayout(this._settingsLayout);
-    this.isSettingsLayoutEnabled = true;
-  }
+  async onSmartDriveVersion(args: any) {
+    // Log.D('onSmartDriveVersion event');
 
-  onVoiceInputTap() {
-    promptUserForSpeech()
-      .then(result => {
-        Log.D('result from speech', result);
-      })
-      .catch(error => {
-        Log.E('speech error', error);
-      });
-  }
-
-  onUpdatesTap() {
-    showSuccess('No updates available.', 4);
-  }
-
-  private _trimAccelerometerData(value: number) {
-    const x = value.toString();
-    return x.substring(0, 8);
-  }
-
-  onIncreaseDataCollectionTimeTap() {
-    this.dataCollectionTime =
-      this.dataCollectionTime < 600 ? this.dataCollectionTime + 10 : 600;
-    this.dataCollectionTimeText = `Data Collection Time: ${
-      this.dataCollectionTime
-    } s`;
-  }
-
-  onDecreaseDataCollectionTimeTap() {
-    this.dataCollectionTime =
-      this.dataCollectionTime > 10 ? this.dataCollectionTime - 10 : 10;
-    this.dataCollectionTimeText = `Data Collection Time: ${
-      this.dataCollectionTime
-    } s`;
-  }
-
-  onToggleDataCollection() {
-    if (sensorInterval) {
-      this.stopDataCollection();
-    } else {
-      this.startDataCollection();
-    }
-  }
-
-  stopDataCollection() {
-    // stop collecting data
-    this._isCollectingData = false;
-    // update display
-    this._updateDataCollectionButtonText(`Data Collection`);
-    // make sure the timer has stopped
-    Log.D('Clearing the sensor data collection interval...');
-    clearInterval(sensorInterval);
-    sensorInterval = null;
-    clearTimeout(sensorTimeout);
-    sensorTimeout = null;
-    // disable accelerometer if not needed for SD control
-    if (!this._powerAssistActive) {
-      this.disableDeviceSensors();
-    }
-    // disable heart rate
-    this.stopHeartRate();
-    // send the data
-    if (sensorData.length) {
-      Log.D(`Sensor Data Length: ${sensorData.length}`);
-      this._sensorService
-        .saveRecord(sensorData)
-        .then(() => {
-          showSuccess('Data collection saved.');
-          Log.D('Vibrating for successful data collection!');
-          this._vibrator.vibrate(500); // vibrate for 500 ms
-        })
-        .catch(error => {
-          showFailure('Error saving sensor data.');
-          Log.D('Vibrating for unsuccessful data collection!');
-          this._vibrator.vibrate(1000); // vibrate for 1000 ms
-        });
-    }
-    // clear out the data
-    sensorData = [];
-  }
-
-  async startDataCollection() {
-    try {
-      // enable heart rate sensor separate from other sensors
-      await this.startHeartRate();
-      // enable accelerometer
-      this.enableDeviceSensors();
-      this._isCollectingData = true;
-      // initialize remaining time
-      this.dataCollectionTimeRemaining = moment().add(
-        this.dataCollectionTime,
-        'seconds'
-      );
-      sensorTimeout = setTimeout(() => {
-        this.stopDataCollection();
-      }, this.dataCollectionTime * 1000);
-      // set up interval timer for updating display
-      sensorInterval = setInterval(() => {
-        const timeLeft = moment.duration(
-          this.dataCollectionTimeRemaining.diff(moment())
-        );
-        const m = padStart(timeLeft.get('minutes'), 2, '0');
-        const s = padStart(timeLeft.get('seconds'), 2, '0');
-        this._updateDataCollectionButtonText(`Time Remaining: ${m}:${s}`);
-        if (s < -5 || m < 0) {
-          // TODO: THIS IS A HACK TO MAKE SURE WE STOP DATA
-          // COLLECTION WHEN THE COUNTER BECOMES NEGATIVE IN CASE
-          // THE TIMEOUT DIDNT GET CALLED
-          this.stopDataCollection();
-        }
-      }, 1000);
-    } catch (error) {
-      Log.E(error);
-    }
-  }
-
-  private _updateDataCollectionButtonText(newText: string) {
-    const item = this.items.getItem(this._dataCollectionButtonIndex);
-    item.text = newText;
-    this.items.setItem(this._dataCollectionButtonIndex, item);
+    // save the updated SmartDrive data values
+    appSettings.setNumber(
+      DataKeys.SD_VERSION_MCU,
+      this._smartDrive.mcu_version
+    );
+    appSettings.setNumber(
+      DataKeys.SD_VERSION_BLE,
+      this._smartDrive.ble_version
+    );
+    appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
   }
 }

@@ -21,7 +21,7 @@
     "injection-js": "../../node_modules/injection-js",
     "kinvey-nativescript-sdk": "../../node_modules/kinvey-nativescript-sdk",
     "lodash": "../../node_modules/lodash",
-    "moment": "../../node_modules/moment",
+    "date-fns": "../../node_modules/date-fns",
     "nativescript-android-sensors": "file:../../node_modules/nativescript-android-sensors",
     "nativescript-animated-circle": "file:../../node_modules/nativescript-animated-circle",
     "nativescript-bluetooth": "file:../../nativescript-bluetooth",
