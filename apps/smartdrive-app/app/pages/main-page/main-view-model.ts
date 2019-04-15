@@ -44,26 +44,6 @@ let sensorData = [];
 
 export class MainViewModel extends Observable {
   /**
-   * Data Collection Time Remaining (seconds)
-   */
-  @Prop()
-  dataCollectionTimeRemaining: Date;
-
-  /**
-   * The data collection timeout (seconds)
-   */
-  @Prop()
-  dataCollectionTime: number = 60;
-
-  /**
-   * The data collection timeout display text
-   */
-  @Prop()
-  dataCollectionTimeText: string = `Data Collection Time: ${
-    this.dataCollectionTime
-  } s`;
-
-  /**
    * The heart rate data to render.
    */
   @Prop()
@@ -152,7 +132,7 @@ export class MainViewModel extends Observable {
       type: 'button',
       image: 'res://ic_watch_white',
       class: 'icon',
-      text: 'Data Collection',
+      text: 'Start Data Collection',
       func: this.onToggleDataCollection.bind(this)
     },
     {
@@ -404,13 +384,6 @@ export class MainViewModel extends Observable {
 
       this.isGettingHeartRate = true;
       this.updateHeartRateButtonText('Reading Heart Rate');
-      // don't read heart rate for more than one minute at a time
-      setTimeout(() => {
-        if (this.isGettingHeartRate) {
-          Log.D('Timer cancelling heart rate');
-          this.stopHeartRate();
-        }
-      }, this.dataCollectionTime * 1000);
     } catch (error) {
       Log.E({ error });
     }
@@ -478,31 +451,55 @@ export class MainViewModel extends Observable {
       });
   }
 
-  onIncreaseDataCollectionTimeTap() {
-    this.dataCollectionTime =
-      this.dataCollectionTime < 600 ? this.dataCollectionTime + 10 : 600;
-    this.dataCollectionTimeText = `Data Collection Time: ${
-      this.dataCollectionTime
-    } s`;
-  }
-
-  onDecreaseDataCollectionTimeTap() {
-    this.dataCollectionTime =
-      this.dataCollectionTime > 10 ? this.dataCollectionTime - 10 : 10;
-    this.dataCollectionTimeText = `Data Collection Time: ${
-      this.dataCollectionTime
-    } s`;
-  }
-
   /**
    * Data Collection Handlers
    */
   onToggleDataCollection() {
-    if (sensorInterval) {
+    if (this._isCollectingData) {
       this.stopDataCollection();
     } else {
       this.startDataCollection();
     }
+  }
+
+  periodicDataStore() {
+    if (sensorData.length) {
+      // store the data on the device
+      const key = LS.length;
+      LS.setItemObject(key, sensorData);
+    }
+    // clear out the data
+    sensorData = [];
+  }
+
+  periodicDataSend() {
+    if (!LS.length) {
+      showSuccess('All Data saved.');
+      Log.D('Vibrating for successful data sending!');
+      this._vibrator.cancel();
+      this._vibrator.vibrate(500); // vibrate for 500 ms
+      return;
+    }
+    // get the first (oldest) record
+    const key = LS.key(0);
+    const record = LS.getItem(key);
+    // send the data to the server
+    this._sensorService
+      .saveRecord(record)
+      .then(() => {
+        // delete previous record
+        LS.removeItem(key);
+        // send records with 1 second between sends
+        setTimeout(this.periodicDataSend.bind(this), 1000);
+      })
+      .catch(error => {
+        showFailure('Error saving sensor data.');
+        Log.D('Vibrating for unsuccessful data collection!');
+        this._vibrator.cancel();
+        this._vibrator.vibrate(1000); // vibrate for 1000 ms
+        // wait longer between sends since the data collection failed
+        setTimeout(this.periodicDataSend.bind(this), 60000);
+      });
   }
 
   stopDataCollection() {
@@ -513,39 +510,19 @@ export class MainViewModel extends Observable {
     // stop collecting data
     this._isCollectingData = false;
     // update display
-    this._updateDataCollectionButtonText(`Data Collection`);
-    // make sure the timer has stopped
-    Log.D('Clearing the sensor data collection interval...');
-    clearInterval(sensorInterval);
-    sensorInterval = null;
-    clearTimeout(sensorTimeout);
-    sensorTimeout = null;
+    this._updateDataCollectionButtonText(`Start Data Collection`);
     // disable accelerometer if not needed for SD control
     if (!this._powerAssistActive) {
       this.disableDeviceSensors();
     }
     // disable heart rate
     this.stopHeartRate();
-    // send the data
-    if (sensorData.length) {
-      Log.D(`Sensor Data Length: ${sensorData.length}`);
-      this._sensorService
-        .saveRecord(sensorData)
-        .then(() => {
-          showSuccess('Data collection saved.');
-          Log.D('Vibrating for successful data collection!');
-          this._vibrator.cancel();
-          this._vibrator.vibrate(500); // vibrate for 500 ms
-        })
-        .catch(error => {
-          showFailure('Error saving sensor data.');
-          Log.D('Vibrating for unsuccessful data collection!');
-          this._vibrator.cancel();
-          this._vibrator.vibrate(1000); // vibrate for 1000 ms
-        });
-    }
-    // clear out the data
-    sensorData = [];
+    // clear out the interval
+    clearInterval(sensorInterval);
+    // make sure all data is stored
+    this.periodicDataStore();
+    // now start the sending process
+    setTimeout(this.periodicDataSend.bind(this), 500);
   }
 
   async startDataCollection() {
@@ -554,32 +531,11 @@ export class MainViewModel extends Observable {
       await this.startHeartRate();
       // enable accelerometer
       this.enableDeviceSensors();
+      // start collecting data
       this._isCollectingData = true;
-      // initialize remaining time
-      this.dataCollectionTimeRemaining = addSeconds(
-        new Date(),
-        this.dataCollectionTime
-      );
-      sensorTimeout = setTimeout(() => {
-        this.stopDataCollection();
-      }, this.dataCollectionTime * 1000);
-      // set up interval timer for updating display
-      sensorInterval = setInterval(() => {
-        const now = new Date();
-        const seconds = differenceInSeconds(
-          this.dataCollectionTimeRemaining,
-          now
-        );
-        const m = padStart(Math.floor(seconds / 60), 2, '0');
-        const s = padStart(seconds % 60, 2, '0');
-        this._updateDataCollectionButtonText(`Time Remaining: ${m}:${s}`);
-        if (s < 0 || m < 0) {
-          // TODO: THIS IS A HACK TO MAKE SURE WE STOP DATA
-          // COLLECTION WHEN THE COUNTER BECOMES NEGATIVE IN CASE
-          // THE TIMEOUT DIDNT GET CALLED
-          this.stopDataCollection();
-        }
-      }, 1000);
+      this._updateDataCollectionButtonText('Stop Data Collection');
+      // set interval
+      sensorInterval = setInterval(this.periodicDataStore.bind(this), 60000);
     } catch (error) {
       Log.E(error);
     }

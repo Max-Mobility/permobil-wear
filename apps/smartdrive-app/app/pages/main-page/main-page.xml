@@ -31,11 +31,6 @@
           <Button width="50%" text="-" tap="{{ onDecreaseTapSensitivityTap }}" fontSize="10"/>
           <Button width="50%" text="+" tap="{{ onIncreaseTapSensitivityTap }}" fontSize="10"/>
         </StackLayout>
-        <Label text="{{ dataCollectionTimeText }}" color="white" fontSize="15" textWrap="true" />
-        <StackLayout orientation="horizontal">
-          <Button width="50%" text="-" tap="{{ onDecreaseDataCollectionTimeTap }}" fontSize="10"/>
-          <Button width="50%" text="+" tap="{{ onIncreaseDataCollectionTimeTap }}" fontSize="10"/>
-        </StackLayout>
         <Button text="Speech Test" tap="{{ onVoiceInputTap }}" class="btn btn-primary" />
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
