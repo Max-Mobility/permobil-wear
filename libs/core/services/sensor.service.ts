@@ -61,53 +61,63 @@ export class SensorService extends Observable {
    * Starts all of the device sensors for data collection.
    * @param delay [SensorDelay] - Default is GAME.
    */
-  startDeviceSensors(delay: SensorDelay = SensorDelay.GAME) {
+  startDeviceSensors(
+    delay: SensorDelay = SensorDelay.GAME,
+    maxReportingDelay: number = null
+  ) {
     // linear_acceleration
     const accelerationSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_LINEAR_ACCELERATION,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (accelerationSensor) this.registeredSensors.push(accelerationSensor);
 
     // gravity
     const gravitySensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_GRAVITY,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (gravitySensor) this.registeredSensors.push(gravitySensor);
 
     // magnetic
     const magneticSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_MAGNETIC_FIELD,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (magneticSensor) this.registeredSensors.push(magneticSensor);
 
     // rotation_vector
     const rotationVectorSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_ROTATION_VECTOR,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (rotationVectorSensor) this.registeredSensors.push(rotationVectorSensor);
 
     // game rotation_vector
     const gameRotationVector = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_GAME_ROTATION_VECTOR,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (gameRotationVector) this.registeredSensors.push(gameRotationVector);
 
     // gyroscope
     const gyroscopeSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_GYROSCOPE,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (gyroscopeSensor) this.registeredSensors.push(gyroscopeSensor);
 
     // stationary detect
     const stationaryDetectSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_STATIONARY_DETECT,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (stationaryDetectSensor)
       this.registeredSensors.push(stationaryDetectSensor);
@@ -115,7 +125,8 @@ export class SensorService extends Observable {
     // significant motion
     const significantMotionSensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_SIGNIFICANT_MOTION,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (significantMotionSensor)
       this.registeredSensors.push(significantMotionSensor);
@@ -123,14 +134,16 @@ export class SensorService extends Observable {
     // proximity
     const proximitySensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_PROXIMITY,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (proximitySensor) this.registeredSensors.push(proximitySensor);
 
     // off body
     const offbodySensor = this.androidSensorClass.startSensor(
       android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT,
-      delay
+      delay,
+      maxReportingDelay
     );
     if (offbodySensor) this.registeredSensors.push(offbodySensor);
   }
