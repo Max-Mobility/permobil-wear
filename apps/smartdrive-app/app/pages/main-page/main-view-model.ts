@@ -302,6 +302,11 @@ export class MainViewModel extends Observable {
       }
     );
 
+    // start data store interval
+    sensorInterval = setInterval(this.periodicDataStore.bind(this), 60000);
+    // now start the sending process
+    setTimeout(this.periodicDataSend.bind(this), 500);
+
     // load savedSmartDriveAddress from settings / memory
     const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
     if (savedSDAddr && savedSDAddr.length) {
@@ -336,9 +341,10 @@ export class MainViewModel extends Observable {
     Log.D('Disabling device sensors.');
     try {
       // release the wake_lock
-      // this._wakeLock.release();
-      // Log.D('WakeLock released.');
+      this._wakeLock.release();
+      Log.D('WakeLock released.');
 
+      /*
       const activity: android.app.Activity =
         app.android.foregroundActivity || app.android.startActivity;
       activity
@@ -346,7 +352,7 @@ export class MainViewModel extends Observable {
         .clearFlags(
           android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         );
-
+		*/
       this._sensorService.stopDeviceSensors();
     } catch (err) {
       Log.E('Error disabling the device sensors:', err);
@@ -361,8 +367,9 @@ export class MainViewModel extends Observable {
       if (!this._isListeningDeviceSensors) {
         // adding wake_lock for testing different power scenarios
         // for when the watch enters ambient mode, to try and keep sensors running full power
-        // this._wakeLock.acquire();
-        // Log.D('WakeLock acquired.');
+        this._wakeLock.acquire();
+        Log.D('WakeLock acquired.');
+        /*
         const activity: android.app.Activity =
           app.android.foregroundActivity || app.android.startActivity;
         activity
@@ -370,8 +377,8 @@ export class MainViewModel extends Observable {
           .addFlags(
             android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
           );
-
-        this._sensorService.startDeviceSensors(SensorDelay.GAME, 500000);
+		  */
+        this._sensorService.startDeviceSensors(SensorDelay.UI, 500000);
         this._isListeningDeviceSensors = true;
       }
     } catch (err) {
@@ -516,10 +523,14 @@ export class MainViewModel extends Observable {
 
   periodicDataSend() {
     if (!LS.length) {
+      /*
       showSuccess('All Data saved.');
       Log.D('Vibrating for successful data sending!');
       this._vibrator.cancel();
       this._vibrator.vibrate(500); // vibrate for 500 ms
+		*/
+      // wait until some data has been created
+      setTimeout(this.periodicDataSend.bind(this), 60000);
       return;
     }
     // get the first (oldest) record
@@ -560,12 +571,9 @@ export class MainViewModel extends Observable {
     // disable heart rate
     this.stopHeartRate();
     // clear out the interval
-    clearInterval(sensorInterval);
     clearInterval(dataCollectionDisplayInterval);
     // make sure all data is stored
     this.periodicDataStore();
-    // now start the sending process
-    setTimeout(this.periodicDataSend.bind(this), 500);
   }
 
   updateDataDisplay() {
@@ -578,7 +586,7 @@ export class MainViewModel extends Observable {
   async startDataCollection() {
     try {
       // enable heart rate sensor separate from other sensors
-      await this.startHeartRate();
+      //await this.startHeartRate();
       // enable sensors
       this.enableDeviceSensors();
       // start collecting data
@@ -586,7 +594,6 @@ export class MainViewModel extends Observable {
       this._updateDataCollectionButtonText('Stop Data Collection');
       dataCollectionStartTime = new Date();
       // set interval
-      sensorInterval = setInterval(this.periodicDataStore.bind(this), 60000);
       dataCollectionDisplayInterval = setInterval(
         this.updateDataDisplay.bind(this),
         500
