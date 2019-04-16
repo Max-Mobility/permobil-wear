@@ -36,6 +36,7 @@ import {
   showOffScreenLayout
 } from '../../utils';
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
+import { ad as androidUtils } from 'tns-core-modules/utils/utils';
 import { SensorDelay } from 'nativescript-android-sensors';
 
 let sensorInterval = null;
@@ -184,6 +185,9 @@ export class MainViewModel extends Observable {
   private _heartRateSensor: android.hardware.Sensor; // HR sensor so we can start/stop it individually from the other sensors
   private _vibrator: Vibrate = new Vibrate();
 
+  private _powerManager: android.os.PowerManager;
+  private _wakeLock: android.os.PowerManager.WakeLock;
+
   constructor(
     private _bluetoothService: BluetoothService = injector.get(
       BluetoothService
@@ -192,6 +196,17 @@ export class MainViewModel extends Observable {
     private _sensorService: SensorService = injector.get(SensorService)
   ) {
     super();
+
+    this._powerManager = androidUtils
+      .getApplicationContext()
+      .getSystemService(
+        android.content.Context.POWER_SERVICE
+      ) as android.os.PowerManager;
+
+    this._wakeLock = this._powerManager.newWakeLock(
+      android.os.PowerManager.PARTIAL_WAKE_LOCK,
+      'SmartDriveApp::DataCollectionTag'
+    );
 
     this._sensorService.on(
       SensorService.AccuracyChanged,
@@ -316,6 +331,8 @@ export class MainViewModel extends Observable {
   disableDeviceSensors() {
     Log.D('Disabling device sensors.');
     try {
+      // release the wake_lock
+      this._wakeLock.release();
       this._sensorService.stopDeviceSensors();
     } catch (err) {
       Log.E('Error disabling the device sensors:', err);
@@ -328,6 +345,10 @@ export class MainViewModel extends Observable {
     Log.D('Enable device sensors...');
     try {
       if (!this._isListeningDeviceSensors) {
+        // adding wake_lock for testing different power scenarios
+        // for when the watch enters ambient mode, to try and keep sensors running full power
+        this._wakeLock.acquire();
+
         this._sensorService.startDeviceSensors(SensorDelay.GAME, 500000);
         this._isListeningDeviceSensors = true;
       }
