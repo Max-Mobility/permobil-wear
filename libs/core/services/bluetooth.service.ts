@@ -15,6 +15,8 @@ import { Packet } from '../packet';
 import { Observable } from 'tns-core-modules/data/observable';
 import { Log } from '../utils';
 
+declare const NSData: any;
+
 @Injectable()
 export class BluetoothService {
   // static members
