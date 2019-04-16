@@ -40,6 +40,8 @@ import { ad as androidUtils } from 'tns-core-modules/utils/utils';
 import { SensorDelay } from 'nativescript-android-sensors';
 
 let sensorInterval = null;
+let dataCollectionDisplayInterval = null;
+let dataCollectionStartTime;
 let sensorData = [];
 
 export class MainViewModel extends Observable {
@@ -539,10 +541,18 @@ export class MainViewModel extends Observable {
     this.stopHeartRate();
     // clear out the interval
     clearInterval(sensorInterval);
+    clearInterval(dataCollectionDisplayInterval);
     // make sure all data is stored
     this.periodicDataStore();
     // now start the sending process
     setTimeout(this.periodicDataSend.bind(this), 500);
+  }
+
+  updateDataDisplay() {
+    const seconds = differenceInSeconds(new Date(), dataCollectionStartTime);
+    const m = padStart(Math.floor(seconds / 60), 2, '0');
+    const s = padStart(seconds % 60, 2, '0');
+    this._updateDataCollectionButtonText(`Stop Data Collection\n${m}:${s}`);
   }
 
   async startDataCollection() {
@@ -554,8 +564,13 @@ export class MainViewModel extends Observable {
       // start collecting data
       this._isCollectingData = true;
       this._updateDataCollectionButtonText('Stop Data Collection');
+      dataCollectionStartTime = new Date();
       // set interval
       sensorInterval = setInterval(this.periodicDataStore.bind(this), 60000);
+      dataCollectionDisplayInterval = setInterval(
+        this.updateDataDisplay.bind(this),
+        500
+      );
     } catch (error) {
       Log.E(error);
     }
