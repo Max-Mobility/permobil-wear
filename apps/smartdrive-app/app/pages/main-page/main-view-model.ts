@@ -37,6 +37,7 @@ import {
 } from '../../utils';
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
 import { ad as androidUtils } from 'tns-core-modules/utils/utils';
+import * as app from 'tns-core-modules/application';
 import { SensorDelay } from 'nativescript-android-sensors';
 
 let sensorInterval = null;
@@ -207,6 +208,7 @@ export class MainViewModel extends Observable {
       android.os.PowerManager.PARTIAL_WAKE_LOCK,
       'SmartDriveApp::DataCollectionTag'
     );
+    Log.D('WakeLock created', this._wakeLock);
 
     this._sensorService.on(
       SensorService.AccuracyChanged,
@@ -332,7 +334,17 @@ export class MainViewModel extends Observable {
     Log.D('Disabling device sensors.');
     try {
       // release the wake_lock
-      this._wakeLock.release();
+      // this._wakeLock.release();
+      // Log.D('WakeLock released.');
+
+      const activity: android.app.Activity =
+        app.android.foregroundActivity || app.android.startActivity;
+      activity
+        .getWindow()
+        .clearFlags(
+          android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        );
+
       this._sensorService.stopDeviceSensors();
     } catch (err) {
       Log.E('Error disabling the device sensors:', err);
@@ -347,7 +359,15 @@ export class MainViewModel extends Observable {
       if (!this._isListeningDeviceSensors) {
         // adding wake_lock for testing different power scenarios
         // for when the watch enters ambient mode, to try and keep sensors running full power
-        this._wakeLock.acquire();
+        // this._wakeLock.acquire();
+        // Log.D('WakeLock acquired.');
+        const activity: android.app.Activity =
+          app.android.foregroundActivity || app.android.startActivity;
+        activity
+          .getWindow()
+          .addFlags(
+            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+          );
 
         this._sensorService.startDeviceSensors(SensorDelay.GAME, 500000);
         this._isListeningDeviceSensors = true;
