@@ -24,7 +24,9 @@ export class SensorService extends Observable {
     super();
 
     Log.D('SensorService constructor...');
-    this.androidSensorClass = new AndroidSensors();
+    // pass true for `liteData` for the sensor changed events
+    // use false in the constructor to get the heavier JSON data structure
+    this.androidSensorClass = new AndroidSensors(true);
     this.androidSensorListener = new AndroidSensorListener({
       onAccuracyChanged: (
         sensor: android.hardware.Sensor,
@@ -222,6 +224,10 @@ export class SensorService extends Observable {
 
     // now save to kinvey data collection
     return this._datastore.save(dbRecord);
+  }
+
+  public flush() {
+    this.androidSensorClass.flush();
   }
 }
 
