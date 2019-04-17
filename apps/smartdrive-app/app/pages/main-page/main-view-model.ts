@@ -1,5 +1,4 @@
 import {
-  BluetoothService,
   DataKeys,
   LoggingCategory,
   Prop,
@@ -14,7 +13,7 @@ import { addSeconds, differenceInSeconds } from 'date-fns';
 import * as permissions from 'nativescript-permissions';
 import * as LS from 'nativescript-localstorage';
 import { Vibrate } from 'nativescript-vibrate';
-import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
+//import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
 import {
   showSuccess,
@@ -27,7 +26,7 @@ import {
   ChangedData
 } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
-import { action } from 'tns-core-modules/ui/dialogs';
+import { prompt } from 'tns-core-modules/ui/dialogs';
 import { injector, currentSystemTime } from '../../app';
 import {
   hideOffScreenLayout,
@@ -162,10 +161,6 @@ export class MainViewModel extends Observable {
       }
     );
 
-    // start continuous data collection / sending
-    setTimeout(this.periodicDataSend.bind(this), 500);
-    this.startDataCollection();
-
     Log.D(
       'Device Info: ---',
       'Manufacturer: ' + device.manufacturer,
@@ -177,6 +172,49 @@ export class MainViewModel extends Observable {
       'Device Language: ' + device.language,
       'UUID: ' + device.uuid
     );
+
+    // load saved user identifier from settings / memory
+    const savedId = appSettings.getString(DataKeys.USER_IDENTIFIER);
+    if (this.idIsValid(savedId)) {
+      this._sensorService.identifier = savedId;
+      // start continuous data collection / sending
+      setTimeout(this.periodicDataSend.bind(this), 500);
+      this.startDataCollection();
+      Log.D('Data collection starting for', savedId);
+    } else {
+      // ask user for ID
+      prompt({
+        title: 'Enter Code',
+        message: 'Enter Data Collection Code',
+        okButtonText: 'OK',
+        cancelButtonText: 'Cancel'
+      })
+        .then((r: any) => {
+          const id = r.text;
+          const didEnterId = r.result;
+          if (didEnterId && this.idIsValid(id)) {
+            // save the id in the app settings
+            appSettings.setString(DataKeys.USER_IDENTIFIER, id);
+            // set the sensor service to use this user identifier
+            this._sensorService.identifier = id;
+            // start continuous data collection / sending
+            setTimeout(this.periodicDataSend.bind(this), 500);
+            this.startDataCollection();
+            Log.D('Data collection starting for', id);
+          } else {
+            Log.D('Invalid ID passed:', id);
+          }
+        })
+        .catch(err => {
+          Log.E('Error getting ID:', err);
+        });
+    }
+  }
+
+  idIsValid(id: string): boolean {
+    const regex = /PSDS[0-9]+/gi;
+    const testID = 'xxr&dxx';
+    return testID == id || regex.test(id);
   }
 
   disableDeviceSensors() {
