@@ -141,16 +141,16 @@ export class MainViewModel extends Observable {
       (args: SensorChangedEventData) => {
         // Log.D('SensorService.SensorChanged', args.data);
 
+        // if we're using litedata for android sensor plugin option
+        // the data structure is simplified to reduce redundant data
         const parsedData = args.data;
 
         // Log.D(event.values[0]);
-        if (
-          parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
-        ) {
+        if (parsedData.s === android.hardware.Sensor.TYPE_HEART_RATE) {
           // save the heart rate for use by the app
-          this.heartRate = parsedData.data.heart_rate.toString().split('.')[0];
+          this.heartRate = parsedData.d.heart_rate.toString().split('.')[0];
           // add accuracy for heart rate data from sensors
-          parsedData.data.accuracy = this.heartRateAccuracy;
+          parsedData.d.accuracy = this.heartRateAccuracy;
         }
 
         // collect the data
