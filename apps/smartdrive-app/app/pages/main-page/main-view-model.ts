@@ -15,6 +15,7 @@ import { addSeconds, differenceInSeconds } from 'date-fns';
 import * as permissions from 'nativescript-permissions';
 import * as LS from 'nativescript-localstorage';
 import { Vibrate } from 'nativescript-vibrate';
+import { ad as androidUtils } from 'tns-core-modules/utils/utils';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
 import {
@@ -33,13 +34,18 @@ import { injector, currentSystemTime } from '../../app';
 import {
   hideOffScreenLayout,
   promptUserForSpeech,
-  showOffScreenLayout
+  showOffScreenLayout,
+  getLastLocation,
+  bradTest
 } from '../../utils';
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
 import { SensorDelay } from 'nativescript-android-sensors';
+import * as app from 'tns-core-modules/application';
 
 let sensorInterval = null;
 let sensorData = [];
+
+declare const com: any;
 
 export class MainViewModel extends Observable {
   /**
@@ -436,8 +442,24 @@ export class MainViewModel extends Observable {
   }
 
   onSettingsTap() {
-    showOffScreenLayout(this._settingsLayout);
-    this.isSettingsLayoutEnabled = true;
+    // showOffScreenLayout(this._settingsLayout);
+    // this.isSettingsLayoutEnabled = true;damn
+
+    bradTest()
+      .then(result => {
+        console.log('bradTest', result);
+      })
+      .catch(error => {
+        console.log('bradTest', error);
+      });
+
+    getLastLocation()
+      .then(result => {
+        console.log('getLastLocation', result);
+      })
+      .catch(error => {
+        console.log('getLastLocation', error);
+      });
   }
 
   onVoiceInputTap() {
