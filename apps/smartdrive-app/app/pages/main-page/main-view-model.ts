@@ -129,13 +129,6 @@ export class MainViewModel extends Observable {
     },
     {
       type: 'button',
-      image: 'res://ic_watch_white',
-      class: 'icon',
-      text: 'Start Data Collection',
-      func: this.onToggleDataCollection.bind(this)
-    },
-    {
-      type: 'button',
       image: 'res://favorite',
       class: 'icon',
       text: 'Read Heart Rate',
@@ -161,14 +154,12 @@ export class MainViewModel extends Observable {
    * Index values into the menu
    */
   private _powerAssistButtonIndex = 1;
-  private _dataCollectionButtonIndex = 3;
-  private _heartRateButtonIndex = 4;
+  private _heartRateButtonIndex = 3;
 
   /**
    * State Management for Sensor Monitoring / Data Collection
    */
   private _isListeningDeviceSensors = false;
-  private _isCollectingData = false;
 
   /**
    * SmartDrive Data / state management
@@ -226,21 +217,13 @@ export class MainViewModel extends Observable {
         const parsedData = args.data;
 
         // Log.D(event.values[0]);
-        // if reporting heart rate update the text for UI
         if (parsedData.s === android.hardware.Sensor.TYPE_HEART_RATE) {
+          // save the heart rate for use by the app
           this.heartRate = parsedData.d.heart_rate.toString().split('.')[0];
+          // add accuracy for heart rate data from sensors
+          parsedData.d.accuracy = this.heartRateAccuracy;
+          // update the HR text for UI
           this.updateHeartRateButtonText();
-        }
-
-        // collect the data
-        if (this._isCollectingData) {
-          if (parsedData.s === android.hardware.Sensor.TYPE_HEART_RATE) {
-            // add accuracy for heart rate data from sensors
-            parsedData.d.accuracy = this.heartRateAccuracy;
-            sensorData.push(parsedData);
-          } else {
-            sensorData.push(parsedData);
-          }
         }
 
         // Log.D('onAccelerometerData');
@@ -425,7 +408,7 @@ export class MainViewModel extends Observable {
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
       Log.D('dimissedEvent', args.object);
       // hide the offscreen layout when dismissed
-      hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
+      hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
       this.isSettingsLayoutEnabled = false;
     });
   }
@@ -443,102 +426,6 @@ export class MainViewModel extends Observable {
       .catch(error => {
         Log.E('speech error', error);
       });
-  }
-
-  /**
-   * Data Collection Handlers
-   */
-  onToggleDataCollection() {
-    if (this._isCollectingData) {
-      this.stopDataCollection();
-    } else {
-      this.startDataCollection();
-    }
-  }
-
-  periodicDataStore() {
-    if (sensorData.length) {
-      // store the data on the device
-      const key = LS.length;
-      LS.setItemObject(key, sensorData);
-    }
-    // clear out the data
-    sensorData = [];
-  }
-
-  periodicDataSend() {
-    if (!LS.length) {
-      showSuccess('All Data saved.');
-      Log.D('Vibrating for successful data sending!');
-      this._vibrator.cancel();
-      this._vibrator.vibrate(500); // vibrate for 500 ms
-      return;
-    }
-    // get the first (oldest) record
-    const key = LS.key(0);
-    const record = LS.getItem(key);
-    // send the data to the server
-    this._sensorService
-      .saveRecord(record)
-      .then(() => {
-        // delete previous record
-        LS.removeItem(key);
-        // send records with 1 second between sends
-        setTimeout(this.periodicDataSend.bind(this), 1000);
-      })
-      .catch(error => {
-        showFailure('Error saving sensor data.');
-        Log.D('Vibrating for unsuccessful data collection!');
-        this._vibrator.cancel();
-        this._vibrator.vibrate(1000); // vibrate for 1000 ms
-        // wait longer between sends since the data collection failed
-        setTimeout(this.periodicDataSend.bind(this), 60000);
-      });
-  }
-
-  stopDataCollection() {
-    // make sure we're collecting data
-    if (!this._isCollectingData) {
-      return;
-    }
-    // stop collecting data
-    this._isCollectingData = false;
-    // update display
-    this._updateDataCollectionButtonText(`Start Data Collection`);
-    // disable sensors if not needed for SD control
-    if (!this._powerAssistActive) {
-      this.disableDeviceSensors();
-    }
-    // disable heart rate
-    this.stopHeartRate();
-    // clear out the interval
-    clearInterval(sensorInterval);
-    // make sure all data is stored
-    this.periodicDataStore();
-    // now start the sending process
-    setTimeout(this.periodicDataSend.bind(this), 500);
-  }
-
-  async startDataCollection() {
-    try {
-      // enable heart rate sensor separate from other sensors
-      await this.startHeartRate();
-      // enable sensors
-      this.enableDeviceSensors();
-      // start collecting data
-      this._isCollectingData = true;
-      this._updateDataCollectionButtonText('Stop Data Collection');
-      // set interval
-      sensorInterval = setInterval(this.periodicDataStore.bind(this), 60000);
-    } catch (error) {
-      Log.E(error);
-    }
-  }
-
-  private _updateDataCollectionButtonText(newText: string) {
-    const item = this.items.getItem(this._dataCollectionButtonIndex);
-    item.text = newText;
-    this.items.setItem(this._dataCollectionButtonIndex, item);
   }
 
   /**
@@ -584,9 +471,7 @@ export class MainViewModel extends Observable {
           .catch(err => Log.E('Could not stop motor', err));
       }
       // now disable sensors
-      if (!this._isCollectingData) {
-        this.disableDeviceSensors();
-      }
+      this.disableDeviceSensors();
       this.onDisconnectTap();
     } else {
       this.connectToSavedSmartDrive().then(didConnect => {

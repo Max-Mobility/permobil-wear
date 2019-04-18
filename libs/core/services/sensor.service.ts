@@ -18,6 +18,7 @@ export class SensorService extends Observable {
   public androidSensorListener;
   public registeredSensors: android.hardware.Sensor[];
   private _datastore: Kinvey.CacheStore;
+  private _identifier: string = 'XXPERMOBILR&DXX';
 
   constructor() {
     super();
@@ -160,6 +161,20 @@ export class SensorService extends Observable {
   }
 
   /**
+   * Gets the Identifier that will be saved with each record.
+   */
+  get identifier(): string {
+    return this._identifier;
+  }
+
+  /**
+   * Sets the Identifier that will be saved with each record.
+   */
+  set identifier(id: string) {
+    this._identifier = id;
+  }
+
+  /**
    * Saves a record to Kinvey with all of the sensor data and device information.
    * @param sensor_data [any[]] - An array of sensor data.
    */
@@ -196,6 +211,7 @@ export class SensorService extends Observable {
     );
 
     const dbRecord = {
+      user_identifier: this._identifier,
       sensor_data,
       sensor_list,
       device_uuid: deviceUUID,

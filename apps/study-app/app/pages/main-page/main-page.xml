@@ -24,14 +24,16 @@
 
     // Settings Layout "Page"
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
-      <wol:WearOsLayout>
-        <Label text="SmartDrive Settings" color="white" fontSize="25" textWrap="true" />
-        <Label text="{{ tapSensitivityText }}" color="white" fontSize="15" textWrap="true" />
-        <StackLayout orientation="horizontal">
-          <Button width="50%" text="-" tap="{{ onDecreaseTapSensitivityTap }}" fontSize="10"/>
-          <Button width="50%" text="+" tap="{{ onIncreaseTapSensitivityTap }}" fontSize="10"/>
-        </StackLayout>
-        <Button text="Speech Test" tap="{{ onVoiceInputTap }}" class="btn btn-primary" />
+      <wol:WearOsLayout visibility="{{ hasIdentifier ? 'visible' : 'collapsed' }}">
+		<Label text="User Identification" class="label" textWrap="true"/>
+		<Label text="{{ identifier }}" class="label" textWrap="true"/>
+        <Button text="Close" tap="{{ hideSettings }}" class="btn btn-primary" />
+      </wol:WearOsLayout>
+      <wol:WearOsLayout visibility="{{ !hasIdentifier ? 'visible' : 'collapsed' }}">
+		<Label text="User Identification" class="label" textWrap="true"/>
+		<TextField id="idInput" hint="Enter Code" text="{{ idInputText }}"/>
+        <Button text="OK" tap="{{ onUpdateIdentifier }}" class="btn btn-primary" />
+        <Button text="Cancel" tap="{{ hideSettings }}" class="btn btn-primary" />
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
 
