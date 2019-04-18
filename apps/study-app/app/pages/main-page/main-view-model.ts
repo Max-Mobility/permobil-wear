@@ -8,12 +8,11 @@ import {
   SensorChangedEventData,
   AccuracyChangedEventData
 } from '@permobil/core';
-import { padStart } from 'lodash';
-import { addSeconds, differenceInSeconds } from 'date-fns';
-import * as permissions from 'nativescript-permissions';
+//import { padStart } from 'lodash';
+//import { addSeconds, differenceInSeconds } from 'date-fns';
+//import * as permissions from 'nativescript-permissions';
 import * as LS from 'nativescript-localstorage';
 import { Vibrate } from 'nativescript-vibrate';
-//import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
 import {
   showSuccess,
@@ -26,7 +25,6 @@ import {
   ChangedData
 } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
-import { prompt } from 'tns-core-modules/ui/dialogs';
 import { injector, currentSystemTime } from '../../app';
 import { hideOffScreenLayout, showOffScreenLayout } from '../../utils';
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
@@ -36,24 +34,6 @@ let sensorInterval = null;
 let sensorData = [];
 
 export class MainViewModel extends Observable {
-  /**
-   * The heart rate data to render.
-   */
-  @Prop()
-  heartRate: string;
-
-  /**
-   * The heart rate accuracy for monitoring.
-   */
-  @Prop()
-  heartRateAccuracy = 0;
-
-  /**
-   * Boolean to track if heart rate is being monitored.
-   */
-  @Prop()
-  public isGettingHeartRate = false;
-
   /**
    * Boolean to track the settings swipe layout visibility.
    */
@@ -119,7 +99,6 @@ export class MainViewModel extends Observable {
    * User interaction objects
    */
   private _settingsLayout: SwipeDismissLayout;
-  private _heartRateSensor: android.hardware.Sensor; // HR sensor so we can start/stop it individually from the other sensors
   private _vibrator: Vibrate = new Vibrate();
 
   constructor(
@@ -138,15 +117,6 @@ export class MainViewModel extends Observable {
         );
         const sensor = args.data.sensor;
         const accuracy = args.data.accuracy;
-
-        if (sensor.getType() === android.hardware.Sensor.TYPE_HEART_RATE) {
-          this.heartRateAccuracy = accuracy;
-          // save the heart rate
-          appSettings.setNumber(
-            DataKeys.HEART_RATE,
-            parseInt(this.heartRate, 10)
-          );
-        }
       }
     );
 
@@ -160,14 +130,6 @@ export class MainViewModel extends Observable {
         const parsedData = args.data;
 
         // Log.D(event.values[0]);
-        if (parsedData.s === android.hardware.Sensor.TYPE_HEART_RATE) {
-          // save the heart rate for use by the app
-          this.heartRate = parsedData.d.heart_rate.toString().split('.')[0];
-          // add accuracy for heart rate data from sensors
-          parsedData.d.accuracy = this.heartRateAccuracy;
-        }
-
-        // collect the data
         if (this._isCollectingData) {
           // now save the data
           sensorData.push(parsedData);
@@ -228,55 +190,6 @@ export class MainViewModel extends Observable {
       }
     } catch (err) {
       Log.E('Error starting the device sensors', err);
-    }
-  }
-
-  /**
-   * Heart Rate Handlers
-   */
-  async toggleHeartRate() {
-    if (this.isGettingHeartRate) {
-      this.stopHeartRate();
-    } else {
-      this.startHeartRate();
-    }
-  }
-
-  async stopHeartRate() {
-    if (!this.isGettingHeartRate) {
-      return;
-    }
-    this._sensorService.androidSensorClass.stopSensor(this._heartRateSensor);
-    this.isGettingHeartRate = false;
-  }
-
-  async startHeartRate() {
-    if (this.isGettingHeartRate) {
-      return;
-    }
-
-    try {
-      // make sure we have permisson for body sensors
-      const hasPermission = permissions.hasPermission(
-        android.Manifest.permission.BODY_SENSORS
-      );
-      if (!hasPermission) {
-        await permissions
-          .requestPermission(android.Manifest.permission.BODY_SENSORS)
-          .catch(error => {
-            Log.E(error);
-            return;
-          });
-      }
-
-      // start the heart rate sensor
-      this._heartRateSensor = this._sensorService.androidSensorClass.startSensor(
-        android.hardware.Sensor.TYPE_HEART_RATE,
-        SensorDelay.UI
-      );
-      this.isGettingHeartRate = true;
-    } catch (error) {
-      Log.E({ error });
     }
   }
 
@@ -382,8 +295,6 @@ export class MainViewModel extends Observable {
     this._updateDataCollectionButtonText(`Start Data Collection`);
     // disable sensors
     this.disableDeviceSensors();
-    // disable heart rate
-    //this.stopHeartRate();
     // clear out the interval
     clearInterval(sensorInterval);
     // make sure all data is stored
@@ -391,9 +302,13 @@ export class MainViewModel extends Observable {
   }
 
   async startDataCollection() {
+    if (!this.hasIdentifier) {
+      showFailure('No Valid Identifier Set!');
+      this._vibrator.cancel();
+      this._vibrator.vibrate(1000); // vibrate for 1000 ms
+      return;
+    }
     try {
-      // enable heart rate sensor separate from other sensors
-      //await this.startHeartRate();
       // enable sensors
       this.enableDeviceSensors();
       // start collecting data

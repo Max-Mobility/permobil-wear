@@ -1,6 +1,6 @@
 {
   "nativescript": {
-    "id": "com.permobil.smartdrive.wearos",
+    "id": "com.permobil.smartdrive.study.data.collector.wearos",
     "tns-android": {
       "version": "5.3.0"
     }
