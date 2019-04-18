@@ -312,6 +312,34 @@ export class MainViewModel extends Observable {
       'Device Language: ' + device.language,
       'UUID: ' + device.uuid
     );
+
+    const apiClient = new com.google.android.gms.common.api.GoogleApiClient.Builder(
+      androidUtils.getApplicationContext()
+    )
+      .addApi(com.google.android.gms.location.LocationServices.API)
+      .addConnectionCallbacks(
+        new com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks(
+          {
+            onConnected: bundle => {
+              console.log('on connected bundle', bundle);
+            },
+            onConnectionSuspended: (cause: number) => {
+              console.log('onConnectionSuspended cause', cause);
+            }
+          }
+        )
+      )
+      .addOnConnectionFailedListener(
+        new com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener(
+          {
+            onConnectionFailed: result => {
+              console.log('api client connection failed', result);
+            }
+          }
+        )
+      )
+      .build();
+    apiClient.connect();
   }
 
   disableDeviceSensors() {
@@ -445,7 +473,7 @@ export class MainViewModel extends Observable {
         console.log('bradTest', result);
       })
       .catch(error => {
-        console.log('bradTest', error);
+        console.log('bradTest error', error);
       });
 
     getLastLocation()

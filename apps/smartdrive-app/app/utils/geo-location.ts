@@ -22,8 +22,6 @@ export function getLastLocation() {
       .addOnSuccessListener(
         new com.google.android.gms.tasks.OnSuccessListener({
           onSuccess: location => {
-            Log.D('Location', location);
-            alert(location);
             resolve(location);
           }
         })
@@ -31,8 +29,6 @@ export function getLastLocation() {
       .addOnFailureListener(
         new com.google.android.gms.tasks.OnFailureListener({
           onFailure: error => {
-            Log.E('Error with location', error);
-            alert(error);
             reject(error);
           }
         })
@@ -73,9 +69,6 @@ export function bradTest() {
       .addOnSuccessListener(
         new com.google.android.gms.tasks.OnSuccessListener({
           onSuccess(locationSettingsResponse) {
-            Log.D('locationSettingsResponse', locationSettingsResponse);
-            alert(locationSettingsResponse);
-
             // All location settings are satisfied. The client can initialize
             // location requests here.
             // ...
@@ -86,13 +79,7 @@ export function bradTest() {
       .addOnFailureListener(
         new com.google.android.gms.tasks.OnFailureListener({
           onFailure(error) {
-            Log.E('error', error);
-            console.log(error.getMessage());
-            alert(error);
             reject(error);
-            // All location settings are satisfied. The client can initialize
-            // location requests here.
-            // ...
           }
         })
       );
