@@ -1,0 +1,70 @@
+{
+  "nativescript": {
+    "id": "com.permobil.smartdrive.wearos",
+    "tns-android": {
+      "version": "5.3.0"
+    }
+  },
+  "main": "app.js",
+  "description": "NativeScript Application",
+  "license": "SEE LICENSE IN <your-license-filename>",
+  "repository": "https://github.com/Max-Mobility/permobil-wear",
+  "scripts": {
+    "// Brad Section": "*****************************************************************************************************",
+    "brad.debug.wifi": "adb tcpip 5555 && adb connect 192.168.1.65",
+    "// end Brad Section": "************************************************************************************************************",
+    "tslint": "tslint -p tsconfig.json -c tslint.json"
+  },
+  "dependencies": {
+    "@permobil/core": "file:../../libs/core",
+    "buffer": "../../node_modules/buffer",
+    "date-fns": "../../node_modules/date-fns",
+    "injection-js": "../../node_modules/injection-js",
+    "kinvey-nativescript-sdk": "../../node_modules/kinvey-nativescript-sdk",
+    "lodash": "../../node_modules/lodash",
+    "nativescript-android-sensors": "file:../../node_modules/nativescript-android-sensors",
+    "nativescript-animated-circle": "file:../../node_modules/nativescript-animated-circle",
+    "nativescript-bluetooth": "file:../../nativescript-bluetooth",
+    "nativescript-geolocation": "file:../../node_modules/nativescript-geolocation",
+    "nativescript-gif": "../../node_modules/nativescript-gif",
+    "nativescript-localstorage": "^2.0.0",
+    "nativescript-lottie": "../../node_modules/nativescript-lottie",
+    "nativescript-permissions": "../../node_modules/nativescript-permissions",
+    "nativescript-sentry": "../../node_modules/nativescript-sentry",
+    "nativescript-theme-core": "../../node_modules/nativescript-theme-core",
+    "nativescript-themes": "../../node_modules/nativescript-themes",
+    "nativescript-toasty": "../../node_modules/nativescript-toasty",
+    "nativescript-ui-chart": "../../node_modules/nativescript-ui-chart",
+    "nativescript-vibrate": "../../node_modules/nativescript-vibrate",
+    "nativescript-wear-os": "../../node_modules/nativescript-wear-os",
+    "reflect-metadata": "../../node_modules/reflect-metadata",
+    "smart-eval-kinvey": "file:../../node_modules/smart-eval-kinvey",
+    "tns-core-modules": "../../node_modules/tns-core-modules"
+  },
+  "devDependencies": {
+    "husky": "../../node_modules/husky",
+    "lint-staged": "../../node_modules/lint-staged",
+    "mkdirp": "../../node_modules/mkdirp",
+    "awesome-typescript-loader": "~5.2.1",
+    "nativescript-dev-typescript": "~0.9.0",
+    "nativescript-dev-webpack": "~0.21.0",
+    "nativescript-hook": "~0.2.5",
+    "prettier": "../../node_modules/prettier",
+    "prompt": "../../node_modules/prompt",
+    "rimraf": "../../node_modules/rimraf",
+    "tns-platform-declarations": "../../node_modules/tns-platform-declarations",
+    "tslint": "../../node_modules/tslint",
+    "typescript": "../../node_modules/typescript"
+  },
+  "lint-staged": {
+    "*.{ts, js, json, css, scss, md, html, xml}": [
+      "tslint",
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "prettier": {
+    "singleQuote": true,
+    "semi": true
+  }
+}
