@@ -2,5 +2,4 @@
 <resources>
     <string name="app_name">Study Data Collector</string>
     <string name="title_activity_kimera">Study Data Collector</string>
-    <string name="complications_provider_service_label">Study Data Collector</string>
 </resources>
