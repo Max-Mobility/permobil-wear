@@ -61,10 +61,10 @@ export class SensorService extends Observable {
 
   /**
    * Starts all of the device sensors for data collection.
-   * @param delay [SensorDelay] - Default is GAME.
+   * @param delay [number | SensorDelay] - Default is GAME.
    */
   startDeviceSensors(
-    delay: SensorDelay = SensorDelay.GAME,
+    delay = SensorDelay.GAME,
     maxReportingDelay: number = null
   ) {
     // linear_acceleration
@@ -215,15 +215,6 @@ export class SensorService extends Observable {
   }
 }
 
-interface WatchData {
-  data: any[];
-  uuid: string;
-  manufacturer: string;
-  model: string;
-  osVersion: string;
-  sdkVersion: string;
-}
-
 export interface AccuracyChangedEventData extends EventData {
   data: {
     sensor: android.hardware.Sensor;
@@ -231,5 +222,50 @@ export interface AccuracyChangedEventData extends EventData {
   };
 }
 export interface SensorChangedEventData extends EventData {
+  data: SensorDataStructure;
+}
+
+export interface SensorDataStructure {
+  /// LiteData Structure ---------------------------------------------------------------
+  /**
+   * The sensor int type, only valid using the LiteData option for AndroidSensors plugin.
+   */
+  s: number;
+
+  /**
+   * The sensor event time, only valid using the LiteData option for AndroidSensors plugin.
+   */
+  t: number;
+
+  /**
+   * The system time stamp, only valid using the LiteData option for AndroidSensors plugin.
+   */
+  ts: number;
+
+  /**
+   * The raw sensor data, only valid using the LiteData option for AndroidSensors plugin.
+   */
+  d: any;
+  /// ---------------------------------------------------------------------------------
+
+  /// Heavy Data, which is what will be used when you don't set the LiteData boolean on the constructor of the Android Sensors plugin.
+  /**
+   * The sensor string type, only valid when NOT using lite data option for AndroidSensors plugin.
+   */
+  sensor: string;
+
+  /**
+   * The sensor event timestamp, only valid when NOT using lite data option for AndroidSensors plugin.
+   */
+  time: number;
+
+  /**
+   * The system time, only valid when NOT using lite data option for AndroidSensors plugin.
+   */
+  timestamp: number;
+
+  /**
+   * The raw sensor data, only valid when NOT using lite data option for AndroidSensors plugin.
+   */
   data: any;
 }
