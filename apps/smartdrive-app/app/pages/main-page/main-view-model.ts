@@ -1,4 +1,5 @@
 import {
+  BluetoothService,
   DataKeys,
   LoggingCategory,
   Prop,
@@ -27,7 +28,7 @@ import {
   ChangedData
 } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
-import { prompt } from 'tns-core-modules/ui/dialogs';
+import { action } from 'tns-core-modules/ui/dialogs';
 import { injector, currentSystemTime } from '../../app';
 import {
   hideOffScreenLayout,
