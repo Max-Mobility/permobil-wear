@@ -227,24 +227,22 @@ export class MainViewModel extends Observable {
       (args: SensorChangedEventData) => {
         // Log.D('SensorService.SensorChanged', args.data);
 
+        // if we're using litedata for android sensor plugin option
+        // the data structure is simplified to reduce redundant data
         const parsedData = args.data;
 
         // Log.D(event.values[0]);
         // if reporting heart rate update the text for UI
-        if (
-          parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
-        ) {
-          this.heartRate = parsedData.data.heart_rate.toString().split('.')[0];
+        if (parsedData.s === android.hardware.Sensor.TYPE_HEART_RATE) {
+          this.heartRate = parsedData.d.heart_rate.toString().split('.')[0];
           this.updateHeartRateButtonText();
         }
 
         // collect the data
         if (this._isCollectingData) {
-          if (
-            parsedData.sensor === android.hardware.Sensor.STRING_TYPE_HEART_RATE
-          ) {
+          if (parsedData.s === android.hardware.Sensor.TYPE_HEART_RATE) {
             // add accuracy for heart rate data from sensors
-            parsedData.data.accuracy = this.heartRateAccuracy;
+            parsedData.d.accuracy = this.heartRateAccuracy;
             sensorData.push(parsedData);
           } else {
             sensorData.push(parsedData);
@@ -253,11 +251,8 @@ export class MainViewModel extends Observable {
 
         // Log.D('onAccelerometerData');
         // only showing linear acceleration data for now
-        if (
-          parsedData.sensor ===
-          android.hardware.Sensor.STRING_TYPE_LINEAR_ACCELERATION
-        ) {
-          const z = (parsedData.data as any).z;
+        if (parsedData.s === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
+          const z = (parsedData.d as any).z;
           let diff = z;
           if (this.motorOn) {
             diff = Math.abs(z);
