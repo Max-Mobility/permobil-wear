@@ -24,19 +24,17 @@
 
     // Settings Layout "Page"
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
-      <wol:WearOsLayout>
-        <Button text="Speech Test" tap="{{ onVoiceInputTap }}" class="btn btn-primary" />
+      <wol:WearOsLayout visibility="{{ hasIdentifier ? 'visible' : 'collapsed' }}">
+		<Label text="User Identification"/>
+		<Label text="{{ identifier }}"/>
+      </wol:WearOsLayout>
+      <wol:WearOsLayout visibility="{{ !hasIdentifier ? 'visible' : 'collapsed' }}">
+		<Label text="User Identification"/>
+		<TextField id="idInput" hint="Enter Code" text="{{ idInputText }}"/>
+        <Button text="OK" tap="{{ onUpdateIdentifier }}" class="btn btn-primary" />
+        <Button text="Cancel" tap="{{ hideSettings }}" class="btn btn-primary" />
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
-
-
-    <!-->
-        // Settings Layout "Page"
-    <sdl:SwipeDismissLayout row="0" col="0" loaded="{{ onUpdateLayoutLoaded }}" class="page" translateX="850" row="0" col="0">
-      <wol:WearOsLayout>
-        <Label text="Swipe to close." color="yellow" fontSize="25" textWrap="true" />
-      </wol:WearOsLayout>
-    </sdl:SwipeDismissLayout> -->
 
   </GridLayout>
 

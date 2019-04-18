@@ -65,6 +65,24 @@ export class MainViewModel extends Observable {
   public isSettingsLayoutEnabled = false;
 
   /**
+   * Boolean to track if the user has a valid identifier
+   */
+  @Prop()
+  public hasIdentifier = false;
+
+  /**
+   * The user's data identifier
+   */
+  @Prop()
+  identifier: string;
+
+  /**
+   * The user's input id text
+   */
+  @Prop()
+  idInputText: string;
+
+  /**
    * Array of menu items
    */
   @Prop()
@@ -175,39 +193,16 @@ export class MainViewModel extends Observable {
 
     // load saved user identifier from settings / memory
     const savedId = appSettings.getString(DataKeys.USER_IDENTIFIER);
-    if (this.idIsValid(savedId)) {
+    this.hasIdentifier = this.idIsValid(savedId);
+    if (this.hasIdentifier) {
+      this.identifier = savedId;
       this._sensorService.identifier = savedId;
       // start continuous data collection / sending
       setTimeout(this.periodicDataSend.bind(this), 500);
       this.startDataCollection();
       Log.D('Data collection starting for', savedId);
     } else {
-      // ask user for ID
-      prompt({
-        title: 'Enter Code',
-        message: 'Enter Data Collection Code',
-        okButtonText: 'OK',
-        cancelButtonText: 'Cancel'
-      })
-        .then((r: any) => {
-          const id = r.text;
-          const didEnterId = r.result;
-          if (didEnterId && this.idIsValid(id)) {
-            // save the id in the app settings
-            appSettings.setString(DataKeys.USER_IDENTIFIER, id);
-            // set the sensor service to use this user identifier
-            this._sensorService.identifier = id;
-            // start continuous data collection / sending
-            setTimeout(this.periodicDataSend.bind(this), 500);
-            this.startDataCollection();
-            Log.D('Data collection starting for', id);
-          } else {
-            Log.D('Invalid ID passed:', id);
-          }
-        })
-        .catch(err => {
-          Log.E('Error getting ID:', err);
-        });
+      setTimeout(this.onSettingsTap.bind(this), 1000);
     }
   }
 
@@ -298,9 +293,32 @@ export class MainViewModel extends Observable {
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
       Log.D('dimissedEvent', args.object);
       // hide the offscreen layout when dismissed
-      hideOffScreenLayout(args.object as SwipeDismissLayout, { x: 500, y: 0 });
+      hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
       this.isSettingsLayoutEnabled = false;
     });
+  }
+
+  onUpdateIdentifier() {
+    Log.D('Validating identifier:', this.idInputText);
+    this.hasIdentifier = this.idIsValid(this.idInputText);
+    if (this.hasIdentifier) {
+      // save the id in the app settings
+      appSettings.setString(DataKeys.USER_IDENTIFIER, this.idInputText);
+      // set the sensor service to use this user identifier
+      this.identifier = this.idInputText;
+      this._sensorService.identifier = this.idInputText;
+      // start continuous data collection / sending
+      setTimeout(this.periodicDataSend.bind(this), 500);
+      this.startDataCollection();
+      Log.D('Data collection starting for', this.idInputText);
+    } else {
+      Log.D('Invalid identifier', this.idInputText);
+    }
+  }
+
+  hideSettings(args) {
+    hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
+    this.isSettingsLayoutEnabled = false;
   }
 
   onSettingsTap() {
