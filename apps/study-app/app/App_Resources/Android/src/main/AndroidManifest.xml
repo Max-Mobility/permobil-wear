@@ -43,5 +43,7 @@
 		</activity>
 		<activity android:name="com.tns.ErrorReportActivity"/>
 
+		<service android:name="com.github.maxmobility.SensorService" android:enabled="true" android:exported="true" />
+
 	</application>
 </manifest>
