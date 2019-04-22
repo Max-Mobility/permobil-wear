@@ -18,7 +18,6 @@ import com.kinvey.android.callback.KinveyPingCallback;
 import com.kinvey.android.store.DataStore;
 import com.kinvey.java.store.StoreType;
 
-
 public class SensorService extends Service {
 
     private static final String TAG = "PermobilSensorService";
@@ -37,9 +36,7 @@ public class SensorService extends Service {
     private Sensor mProximity;
     private Sensor mOffBodyDetect;
 
-
     SensorEventListener mSensorListener = new SensorListener();
-
 
     public SensorService() {
     }
@@ -50,7 +47,6 @@ public class SensorService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -60,7 +56,8 @@ public class SensorService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         int sensorDelay;
         int maxReportingLatency;
-        // the intent that starts the service can pass the sensor delay and Max Reporting Latency
+        // the intent that starts the service can pass the sensor delay and Max
+        // Reporting Latency
         Bundle extras = intent.getExtras();
         if (extras != null) {
             // check for sensor delay from intent
@@ -84,7 +81,8 @@ public class SensorService extends Service {
         boolean didRegisterSensors = this._registerDeviceSensors(sensorDelay, maxReportingLatency);
         Log.d(TAG, "Did register Sensors: " + didRegisterSensors);
 
-        return START_STICKY; // START_STICKY is used for services that are explicitly started and stopped as needed
+        return START_STICKY; // START_STICKY is used for services that are explicitly started and stopped as
+                             // needed
     }
 
     @Override
@@ -99,7 +97,7 @@ public class SensorService extends Service {
         public void onSensorChanged(SensorEvent event) {
             // TODO Auto-generated method stub
             if (event.sensor.getType() == Sensor.TYPE_GAME_ROTATION_VECTOR) {
-                Log.d("FUCK ME", "TYPE_GAME_ROTATION_VECTOR data: " + event.values[0]);
+                Log.d("F ME", "TYPE_GAME_ROTATION_VECTOR data: " + event.values[0]);
             }
         }
 
@@ -133,30 +131,24 @@ public class SensorService extends Service {
 
             public void onSuccess(Boolean b) {
                 Log.d(TAG, "Kinvey Ping Success: " + b.toString());
-              /*  try {
-                    UserStore.login("bradwaynemartin@gmail.com", "testtest", mKinveyClient, new KinveyClientCallback<User>() {
-                        @Override
-                        public void onSuccess(User user) {
-                            Log.d(TAG, "Kinvey login SUCCESS!!!");
-                        }
-
-                        @Override
-                        public void onFailure(Throwable throwable) {
-                            Log.d(TAG, "Kinvey Login FAILED!!!!");
-
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
+                /*
+                 * try { UserStore.login("bradwaynemartin@gmail.com", "testtest", mKinveyClient,
+                 * new KinveyClientCallback<User>() {
+                 * 
+                 * @Override public void onSuccess(User user) { Log.d(TAG,
+                 * "Kinvey login SUCCESS!!!"); }
+                 * 
+                 * @Override public void onFailure(Throwable throwable) { Log.d(TAG,
+                 * "Kinvey Login FAILED!!!!");
+                 * 
+                 * } }); } catch (IOException e) { e.printStackTrace(); }
+                 */
             }
         });
     }
 
-
     private boolean _registerDeviceSensors(int delay, int reportingLatency) {
-        mSensorManager = (SensorManager) getApplicationContext()
-                .getSystemService(SENSOR_SERVICE);
+        mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
         // make sure we have the sensor manager for the device
         if (mSensorManager != null) {
             Log.d(TAG, "Sensor Manager: " + mSensorManager.toString());
@@ -199,7 +191,4 @@ public class SensorService extends Service {
         return true;
     }
 
-
 }
-
-
