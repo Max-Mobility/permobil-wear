@@ -10,6 +10,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -19,13 +20,13 @@ import android.util.Log;
 import com.kinvey.android.Client;
 import com.kinvey.android.callback.KinveyPingCallback;
 import com.kinvey.android.store.DataStore;
-import com.kinvey.java.KinveyException;
-import com.kinvey.java.core.KinveyClientCallback;
 import com.kinvey.java.store.StoreType;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 
 public class SensorService extends Service {
 
@@ -33,12 +34,16 @@ public class SensorService extends Service {
 
     private Client mKinveyClient;
     private WakeLock mWakeLock;
-    private SensorManager mSensorManager;
     private DataStore<SensorServiceData> watchDataStore;
     private Handler mHandler;
-
     private String userIdentifier;
+    private SensorManager mSensorManager;
+    private SensorEventListener mListener;
+    private FileWriter writer;
 
+    private String sdCardPath = Environment.getExternalStorageDirectory().getPath();
+    private String dataFileName = sdCardPath + "/permobil_sensor_data.txt";
+    private File dataFile = new File(dataFileName);
 
     private Sensor mLinearAcceleration;
     private Sensor mGravity;
@@ -51,10 +56,6 @@ public class SensorService extends Service {
 
     public static ArrayList<SensorServiceData> sensorServiceDataList;
 
-
-    SensorEventListener mListener = new SensorListener();
-
-
     public SensorService() {
     }
 
@@ -63,7 +64,6 @@ public class SensorService extends Service {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
-
 
     @Override
     public void onCreate() {
@@ -74,7 +74,8 @@ public class SensorService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         int sensorDelay;
         int maxReportingLatency;
-        // the intent that starts the service can pass the sensor delay and Max Reporting Latency
+        // the intent that starts the service can pass the sensor delay and Max
+        // Reporting Latency
         Bundle extras = intent.getExtras();
         if (extras != null) {
             // check for sensor delay from intent
@@ -92,6 +93,16 @@ public class SensorService extends Service {
             userIdentifier = null;
         }
 
+        SensorService.sensorServiceDataList = new ArrayList<>();
+        Log.d(TAG, "Device SD Card Path: " + sdCardPath);
+
+        try {
+            writer = new FileWriter(new File(sdCardPath, "permobil_sensors_" + System.currentTimeMillis() + ".txt"));
+            Log.d(TAG, "New FileWriter: " + writer.toString());
+        } catch (IOException e) {
+            Log.e(TAG, "Error creating new FileWriter: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         // Handle wake_lock so data collection can continue even when screen turns off
         // without wake_lock the service will stop bc the CPU gives up
@@ -105,7 +116,10 @@ public class SensorService extends Service {
 
         mHandler = new Handler();
 
-        return START_STICKY; // START_STICKY is used for services that are explicitly started and stopped as needed
+        /* periodicUpdate.run(); */
+
+        return START_STICKY; // START_STICKY is used for services that are explicitly started and stopped as
+                             // needed
     }
 
     private Runnable periodicUpdate = new Runnable() {
@@ -121,23 +135,37 @@ public class SensorService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        this.mWakeLock.release();
+        if (this.mWakeLock != null) {
+            this.mWakeLock.release();
+        }
+        if (writer != null) {
+            try {
+                Log.d(TAG, "Closing the file writer...");
+                writer.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error closing FileWriter: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 
     public class SensorListener implements SensorEventListener {
-
 
         @Override
         public void onSensorChanged(SensorEvent event) {
             if (mListener != null) {
                 HashMap<String, Float> sensorData = new HashMap<>();
+                /*
+                 * switch(event.sensor.getType()) { case Sensor.TYPE_ACCELEROMETER:
+                 * writer.write(String.format("%d; ACC; %f; %f; %f; %f; %f; %f\n",
+                 * evt.timestamp, evt.values[0], evt.values[1], evt.values[2], 0.f, 0.f, 0.f));
+                 * break; case Sensor.TYPE_GRAVITY }
+                 */
 
                 int sensorType = event.sensor.getType();
                 // depending on the the sensor type set the result to return in the listener
-                if (sensorType == Sensor.TYPE_ACCELEROMETER
-                        || sensorType == Sensor.TYPE_LINEAR_ACCELERATION
-                        || sensorType == Sensor.TYPE_GRAVITY
-                        || sensorType == Sensor.TYPE_GYROSCOPE
+                if (sensorType == Sensor.TYPE_ACCELEROMETER || sensorType == Sensor.TYPE_LINEAR_ACCELERATION
+                        || sensorType == Sensor.TYPE_GRAVITY || sensorType == Sensor.TYPE_GYROSCOPE
                         || sensorType == Sensor.TYPE_MAGNETIC_FIELD) {
                     sensorData.put("x", event.values[0]);
                     sensorData.put("y", event.values[1]);
@@ -169,6 +197,14 @@ public class SensorService extends Service {
                 data.d = sensorData;
 
                 SensorService.sensorServiceDataList.add(data);
+
+                try {
+                    writer.write(String.valueOf(SensorService.sensorServiceDataList));
+
+                    Log.d(TAG, "Wrote the sensor data to file.");
+                } catch (IOException e) {
+                    System.out.println("Exception");
+                }
 
             }
         }
@@ -203,33 +239,31 @@ public class SensorService extends Service {
 
             public void onSuccess(Boolean b) {
                 Log.d(TAG, "Kinvey Ping Success: " + b.toString());
-              /*  try {
-                    UserStore.login("bradwaynemartin@gmail.com", "testtest", mKinveyClient, new KinveyClientCallback<User>() {
-                        @Override
-                        public void onSuccess(User user) {
-                            Log.d(TAG, "Kinvey login SUCCESS!!!");
-                        }
-
-                        @Override
-                        public void onFailure(Throwable throwable) {
-                            Log.d(TAG, "Kinvey Login FAILED!!!!");
-
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
+                /*
+                 * try { UserStore.login("bradwaynemartin@gmail.com", "testtest", mKinveyClient,
+                 * new KinveyClientCallback<User>() {
+                 * 
+                 * @Override public void onSuccess(User user) { Log.d(TAG,
+                 * "Kinvey login SUCCESS!!!"); }
+                 * 
+                 * @Override public void onFailure(Throwable throwable) { Log.d(TAG,
+                 * "Kinvey Login FAILED!!!!");
+                 * 
+                 * } }); } catch (IOException e) { e.printStackTrace(); }
+                 */
             }
         });
     }
 
-
     private boolean _registerDeviceSensors(int delay, int reportingLatency) {
-        mSensorManager = (SensorManager) getApplicationContext()
-                .getSystemService(SENSOR_SERVICE);
+        mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
         // make sure we have the sensor manager for the device
         if (mSensorManager != null) {
             Log.d(TAG, "Sensor Manager: " + mSensorManager.toString());
+
+            Log.d(TAG, "Creating sensor listener...");
+            mListener = new SensorListener();
+
             // register all the sensors we want to track data for
             mLinearAcceleration = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
             if (mLinearAcceleration != null)
@@ -269,7 +303,6 @@ public class SensorService extends Service {
         return true;
     }
 
-
     private void _uploadSensorDataToKinvey() {
         Log.d(TAG, SensorService.sensorServiceDataList.toString());
 
@@ -280,36 +313,27 @@ public class SensorService extends Service {
         data.device_sdk_version = Build.VERSION.SDK_INT;
 
         @SuppressLint("HardwareIds")
-        String uuid = android.provider.Settings.Secure.getString(
-                getContentResolver(),
-                android.provider.Settings.Secure.ANDROID_ID
-        );
+        String uuid = android.provider.Settings.Secure.getString(getContentResolver(),
+                android.provider.Settings.Secure.ANDROID_ID);
         data.device_uuid = uuid;
-        data.user_identifier = user
+        data.user_identifier = userIdentifier;
 
+        // need to get the data from the array of saved sensor events
+        // data.sensor_data =
 
-        try {
-            watchDataStore.save(data, new KinveyClientCallback<DataCollectionModel>() {
-                @Override
-                public void onSuccess(DataCollectionModel result) {
-                    // Place your code here
-                    // here we have a Book object with defined unique `_id`
-                    Log.d(TAG, "Data Collection saved to Kinvey successfully.");
-                }
-
-                @Override
-                public void onFailure(Throwable error) {
-                    // Place your code here
-                    Log.e(TAG, "Failed to save to Kinvey: " + error.getMessage());
-                }
-            });
-        } catch (KinveyException ke) {
-            // handle error
-            Log.e(TAG, "Error saving kinvey record for sensor data. " + ke.getReason());
-        }
+        /*
+         * try { watchDataStore.save(data, new
+         * KinveyClientCallback<DataCollectionModel>() {
+         * 
+         * @Override public void onSuccess(DataCollectionModel result) { // Place your
+         * code here // here we have a Book object with defined unique `_id` Log.d(TAG,
+         * "Data Collection saved to Kinvey successfully."); }
+         * 
+         * @Override public void onFailure(Throwable error) { // Place your code here
+         * Log.e(TAG, "Failed to save to Kinvey: " + error.getMessage()); } }); } catch
+         * (KinveyException ke) { // handle error Log.e(TAG,
+         * "Error saving kinvey record for sensor data. " + ke.getReason()); }
+         */
     }
 
-
 }
-
-
