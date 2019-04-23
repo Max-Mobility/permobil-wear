@@ -16,30 +16,6 @@ module.exports = env => {
   const appComponents = [
     'tns-core-modules/ui/frame',
     'tns-core-modules/ui/frame/activity',
-    resolve(
-      __dirname,
-      'node_modules/nativescript-bluetooth/android/TNS_AdvertiseCallback.js'
-    ),
-    resolve(
-      __dirname,
-      'node_modules/nativescript-bluetooth/android/TNS_BluetoothGattCallback.js'
-    ),
-    resolve(
-      __dirname,
-      'node_modules/nativescript-bluetooth/android/TNS_BluetoothGattServerCallback.js'
-    ),
-    resolve(
-      __dirname,
-      'node_modules/nativescript-bluetooth/android/TNS_BroadcastReceiver.js'
-    ),
-    resolve(
-      __dirname,
-      'node_modules/nativescript-bluetooth/android/TNS_LeScanCallback.js'
-    ),
-    resolve(
-      __dirname,
-      'node_modules/nativescript-bluetooth/android/TNS_ScanCallback.js'
-    ),
     resolve(__dirname, 'app/main-activity.js')
   ];
 

@@ -24,8 +24,6 @@
     "lodash": "../../node_modules/lodash",
     "nativescript-android-sensors": "file:../../node_modules/nativescript-android-sensors",
     "nativescript-animated-circle": "file:../../node_modules/nativescript-animated-circle",
-    "nativescript-bluetooth": "file:../../nativescript-bluetooth",
-    "nativescript-geolocation": "file:../../node_modules/nativescript-geolocation",
     "nativescript-gif": "../../node_modules/nativescript-gif",
     "nativescript-localstorage": "^2.0.0",
     "nativescript-lottie": "../../node_modules/nativescript-lottie",
