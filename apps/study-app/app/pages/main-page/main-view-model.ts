@@ -8,9 +8,9 @@ import {
   SensorChangedEventData,
   AccuracyChangedEventData
 } from '@permobil/core';
-//import { padStart } from 'lodash';
-//import { addSeconds, differenceInSeconds } from 'date-fns';
-//import * as permissions from 'nativescript-permissions';
+// import { padStart } from 'lodash';
+// import { addSeconds, differenceInSeconds } from 'date-fns';
+import * as permissions from 'nativescript-permissions';
 import * as LS from 'nativescript-localstorage';
 import { Vibrate } from 'nativescript-vibrate';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
@@ -27,6 +27,7 @@ import {
 import { device } from 'tns-core-modules/platform';
 import { injector, currentSystemTime } from '../../app';
 import { hideOffScreenLayout, showOffScreenLayout } from '../../utils';
+import { ad as androidUtils } from 'tns-core-modules/utils/utils';
 import { setInterval, clearInterval } from 'tns-core-modules/timer';
 import { SensorDelay } from 'nativescript-android-sensors';
 
@@ -167,7 +168,7 @@ export class MainViewModel extends Observable {
   idIsValid(id: string): boolean {
     const regex = /PSDS[0-9]+/gi;
     const testID = 'xxr&dxx';
-    return testID == id || regex.test(id);
+    return testID === id || regex.test(id);
   }
 
   disableDeviceSensors() {
@@ -208,21 +209,82 @@ export class MainViewModel extends Observable {
   }
 
   onUpdateIdentifier() {
-    Log.D('Validating identifier:', this.idInputText);
-    this.hasIdentifier = this.idIsValid(this.idInputText);
-    if (this.hasIdentifier) {
-      // save the id in the app settings
-      appSettings.setString(DataKeys.USER_IDENTIFIER, this.idInputText);
-      // set the sensor service to use this user identifier
-      this.identifier = this.idInputText;
-      this._sensorService.identifier = this.idInputText;
-      // start continuous data collection / sending
-      setTimeout(this.periodicDataSend.bind(this), 500);
-      this.startDataCollection();
-      Log.D('Data collection starting for', this.idInputText);
-    } else {
-      Log.D('Invalid identifier', this.idInputText);
-    }
+    console.log('trying to get location...');
+    permissions
+      .requestPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+      .then(() => {
+        try {
+          // Acquire a reference to the system Location Manager
+          const locationManager = androidUtils
+            .getApplicationContext()
+            .getSystemService(
+              android.content.Context.LOCATION_SERVICE
+            ) as android.location.LocationManager;
+
+          console.log('locationManager', locationManager);
+
+          const locationProvider =
+            android.location.LocationManager.NETWORK_PROVIDER;
+          // Or use LocationManager.GPS_PROVIDER
+          const lastKnownLocation = locationManager.getLastKnownLocation(
+            locationProvider
+          );
+
+          console.log('lastKnownLocation', lastKnownLocation);
+
+          // Define a listener that responds to location updates
+          const locationListener = new android.location.LocationListener({
+            onLocationChanged: (location: android.location.Location) => {
+              // Called when a new location is found by the network location provider.
+              console.log('location changed', location);
+            },
+
+            onStatusChanged: (
+              provider: string,
+              status: number,
+              extras: android.os.Bundle
+            ) => {
+              console.log('onStatusChanged', provider, status);
+            },
+
+            onProviderEnabled: provider => {
+              console.log('onProviderEnabled', provider);
+            },
+
+            onProviderDisabled: provider => {
+              console.log('onProviderDisabled', provider);
+            }
+          });
+          console.log('locationListener', locationListener);
+
+          Log.D('Registering for location updates...');
+          // Register the listener with the Location Manager to receive location updates
+          locationManager.requestLocationUpdates(
+            android.location.LocationManager.NETWORK_PROVIDER,
+            0,
+            0,
+            locationListener
+          );
+        } catch (error) {
+          console.log(error);
+        }
+      });
+
+    // Log.D('Validating identifier:', this.idInputText);
+    // this.hasIdentifier = this.idIsValid(this.idInputText);
+    // if (this.hasIdentifier) {
+    //   // save the id in the app settings
+    //   appSettings.setString(DataKeys.USER_IDENTIFIER, this.idInputText);
+    //   // set the sensor service to use this user identifier
+    //   this.identifier = this.idInputText;
+    //   this._sensorService.identifier = this.idInputText;
+    //   // start continuous data collection / sending
+    //   setTimeout(this.periodicDataSend.bind(this), 500);
+    //   this.startDataCollection();
+    //   Log.D('Data collection starting for', this.idInputText);
+    // } else {
+    //   Log.D('Invalid identifier', this.idInputText);
+    // }
   }
 
   hideSettings(args) {
