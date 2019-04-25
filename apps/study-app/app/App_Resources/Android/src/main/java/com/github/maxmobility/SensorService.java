@@ -1,13 +1,17 @@
 package com.github.maxmobility;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -15,11 +19,16 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.kinvey.android.Client;
 import com.kinvey.android.callback.KinveyPingCallback;
+import com.kinvey.android.model.User;
 import com.kinvey.android.store.DataStore;
+import com.kinvey.android.store.UserStore;
+import com.kinvey.java.KinveyException;
+import com.kinvey.java.core.KinveyClientCallback;
 import com.kinvey.java.store.StoreType;
 
 import java.io.File;
@@ -33,9 +42,10 @@ public class SensorService extends Service {
 
     private static final String TAG = "PermobilSensorService";
 
+    private LocationManager mLocationManager;
     private Client mKinveyClient;
     private WakeLock mWakeLock;
-    private DataStore<SensorServiceData> watchDataStore;
+    private DataStore<DataCollectionModel> watchDataStore;
     private Handler mHandler = new Handler();
     private Runnable mHandlerTask;
     private String userIdentifier;
@@ -107,6 +117,10 @@ public class SensorService extends Service {
             Log.e(TAG, "Error creating new FileWriter: " + e.getMessage());
             e.printStackTrace();
         }
+
+        // Get the LocationManager so we can send last known location with the record when saving to Kinvey
+        mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        Log.d(TAG, "Location Manager: " + mLocationManager);
 
 
         // Handle wake_lock so data collection can continue even when screen turns off
@@ -254,7 +268,7 @@ public class SensorService extends Service {
         Log.d(TAG, "Kinvey Client initialized in Sensor Service!");
 
         // Get our Kinvey Data Collection
-        watchDataStore = DataStore.collection("WatchData", SensorServiceData.class, StoreType.SYNC, mKinveyClient);
+        watchDataStore = DataStore.collection("WatchData", DataCollectionModel.class, StoreType.SYNC, mKinveyClient);
         Log.d(TAG, "Kinvey Watch Data Collection: " + watchDataStore.getCollectionName());
 
         mKinveyClient.ping(new KinveyPingCallback() {
@@ -264,7 +278,7 @@ public class SensorService extends Service {
 
             public void onSuccess(Boolean b) {
                 Log.d(TAG, "Kinvey Ping Success: " + b.toString());
-              /*  try {
+                try {
                     UserStore.login("bradwaynemartin@gmail.com", "testtest", mKinveyClient, new KinveyClientCallback<User>() {
                         @Override
                         public void onSuccess(User user) {
@@ -279,7 +293,7 @@ public class SensorService extends Service {
                     });
                 } catch (IOException e) {
                     e.printStackTrace();
-                }*/
+                }
             }
         });
     }
@@ -352,11 +366,19 @@ public class SensorService extends Service {
         data.device_uuid = uuid;
         data.user_identifier = userIdentifier;
 
+        // if we have location permission write the location to record, if not, just print WARNING to LogCat, not sure on best handling for UX right now.
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "Unable to get device location because LOCATION permission has not been granted.");
+        } else {
+            Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            data.location = loc;
+        }
+
         // need to get the data from the array of saved sensor events
         // data.sensor_data =
 
 
-   /*     try {
+        try {
             watchDataStore.save(data, new KinveyClientCallback<DataCollectionModel>() {
                 @Override
                 public void onSuccess(DataCollectionModel result) {
@@ -374,7 +396,7 @@ public class SensorService extends Service {
         } catch (KinveyException ke) {
             // handle error
             Log.e(TAG, "Error saving kinvey record for sensor data. " + ke.getReason());
-        }*/
+        }
     }
 
 
