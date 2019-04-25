@@ -10,7 +10,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,6 +20,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.kinvey.android.Client;
 import com.kinvey.android.callback.KinveyPingCallback;
@@ -137,7 +137,7 @@ public class SensorService extends Service {
             @Override
             public void run() {
                 _writeAndUpload();
-                mHandler.postDelayed(mHandlerTask, 60 * 1000);
+                mHandler.postDelayed(mHandlerTask, 20 * 1000);
             }
         };
 
@@ -231,20 +231,6 @@ public class SensorService extends Service {
 
                 SensorService.sensorServiceDataList.add(data);
 
-
-             /*   AsyncTask.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            writer.write(String.valueOf(SensorService.sensorServiceDataList));
-                            Log.d(TAG, "Wrote the sensor data to file.");
-                        } catch (IOException e) {
-                            System.out.println("Exception");
-                        }
-                    }
-                });
-*/
-
             }
         }
 
@@ -271,6 +257,7 @@ public class SensorService extends Service {
         watchDataStore = DataStore.collection("WatchData", DataCollectionModel.class, StoreType.SYNC, mKinveyClient);
         Log.d(TAG, "Kinvey Watch Data Collection: " + watchDataStore.getCollectionName());
 
+
         mKinveyClient.ping(new KinveyPingCallback() {
             public void onFailure(Throwable t) {
                 Log.e(TAG, "Kinvey Ping Failed", t);
@@ -278,22 +265,38 @@ public class SensorService extends Service {
 
             public void onSuccess(Boolean b) {
                 Log.d(TAG, "Kinvey Ping Success: " + b.toString());
-                try {
-                    UserStore.login("bradwaynemartin@gmail.com", "testtest", mKinveyClient, new KinveyClientCallback<User>() {
-                        @Override
-                        public void onSuccess(User user) {
-                            Log.d(TAG, "Kinvey login SUCCESS!!!");
-                        }
+                UserStore.logout(mKinveyClient, new KinveyClientCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(getApplicationContext(), "Logout Successful.", Toast.LENGTH_LONG).show();
 
-                        @Override
-                        public void onFailure(Throwable throwable) {
-                            Log.d(TAG, "Kinvey Login FAILED!!!!");
+                        try {
 
+
+                            UserStore.login("bradwaynemartin@gmail.com", "testtest", mKinveyClient, new KinveyClientCallback<User>() {
+                                @Override
+                                public void onSuccess(User user) {
+                                    Log.d(TAG, "Kinvey login SUCCESS!!!");
+                                }
+
+                                @Override
+                                public void onFailure(Throwable throwable) {
+                                    Log.d(TAG, "Kinvey Login FAILED!!!!");
+
+                                }
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        Toast.makeText(getApplicationContext(), "Logout Failure.", Toast.LENGTH_LONG).show();
+                    }
+                });
+
+
             }
         });
     }
@@ -353,45 +356,68 @@ public class SensorService extends Service {
         Log.d(TAG, SensorService.sensorServiceDataList.toString());
 
         DataCollectionModel data = new DataCollectionModel();
+        data.sensor_list = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+//        data.set("sensor_list", mSensorManager.getSensorList(Sensor.TYPE_ALL));
         data.device_manufacturer = Build.MANUFACTURER;
-        data.device_os_version = Build.VERSION.RELEASE;
+//        data.set("device_manufacturer", Build.MANUFACTURER);
         data.device_model = Build.MODEL;
+
+//        data.set("device_model", Build.MODEL);
+        data.device_os_version = Build.VERSION.RELEASE;
+//        data.set("device_os_version", Build.VERSION.RELEASE);
         data.device_sdk_version = Build.VERSION.SDK_INT;
+//        data.set("device_sdk_version", Build.VERSION.SDK_INT);
 
         @SuppressLint("HardwareIds")
         String uuid = android.provider.Settings.Secure.getString(
                 getContentResolver(),
                 android.provider.Settings.Secure.ANDROID_ID
         );
+
         data.device_uuid = uuid;
-        data.user_identifier = userIdentifier;
+//        data.set("device_uuid", uuid);
+        data.user_identifier = "BradTest18229";
+//        data.set("user_identifier", "BradTest18229");
 
         // if we have location permission write the location to record, if not, just print WARNING to LogCat, not sure on best handling for UX right now.
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.w(TAG, "Unable to get device location because LOCATION permission has not been granted.");
+            // data.location = null;
+            data.set("location", null);
         } else {
-            Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            data.location = loc;
+            // data.location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            data.set("location", mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
         }
 
         // need to get the data from the array of saved sensor events
-        // data.sensor_data =
+        data.sensor_data = SensorService.sensorServiceDataList;
+//        data.set("sensor_data", SensorService.sensorServiceDataList);
 
+        Log.d(TAG, "new DataCollectionModel: " + data.toString());
+        Log.d(TAG, data.values().toString());
+        Log.d(TAG, data.device_manufacturer);
+        Log.d(TAG, data.device_model);
+        Log.d(TAG, data.device_os_version);
+        Log.d(TAG, String.valueOf(data.device_sdk_version));
+        Log.d(TAG, data.user_identifier);
+        Log.d(TAG, data.device_uuid);
+        /*       Log.d(TAG, String.valueOf(data.location));*/
+        Log.d(TAG, String.valueOf(data.sensor_list));
+        Log.d(TAG, String.valueOf(data.sensor_data));
 
         try {
             watchDataStore.save(data, new KinveyClientCallback<DataCollectionModel>() {
                 @Override
                 public void onSuccess(DataCollectionModel result) {
-                    // Place your code here
-                    // here we have a Book object with defined unique `_id`
                     Log.d(TAG, "Data Collection saved to Kinvey successfully.");
+                    Log.d(TAG, "Kinvey entity: " + result);
                 }
 
                 @Override
                 public void onFailure(Throwable error) {
-                    // Place your code here
+                    System.out.println(error);
                     Log.e(TAG, "Failed to save to Kinvey: " + error.getMessage());
-                }
+                } 
             });
         } catch (KinveyException ke) {
             // handle error
