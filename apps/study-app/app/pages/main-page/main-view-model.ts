@@ -223,20 +223,47 @@ export class MainViewModel extends Observable {
 
           console.log('locationManager', locationManager);
 
-          const locationProvider =
-            android.location.LocationManager.NETWORK_PROVIDER;
           // Or use LocationManager.GPS_PROVIDER
-          const lastKnownLocation = locationManager.getLastKnownLocation(
-            locationProvider
+          const lastKnownGPSLocation = locationManager.getLastKnownLocation(
+            android.location.LocationManager.GPS_PROVIDER
+          );
+          console.log('lastKnownGPSLocation', lastKnownGPSLocation);
+          if (lastKnownGPSLocation) {
+            showSuccess(
+              'Found last known GPS location latitude: ' +
+                lastKnownGPSLocation.getLatitude().toString(),
+              3
+            );
+          } else {
+            showFailure('no last known GPS location found...', 2);
+          }
+
+          // NETWORK ATTEMPT
+          const lastKnownNetworkLocation = locationManager.getLastKnownLocation(
+            android.location.LocationManager.NETWORK_PROVIDER
           );
 
-          console.log('lastKnownLocation', lastKnownLocation);
+          console.log('lastKnownNetworkLocation', lastKnownNetworkLocation);
+          if (lastKnownNetworkLocation) {
+            showSuccess(
+              'Found last known NETWORK location latitude: ' +
+                lastKnownNetworkLocation.getLatitude().toString(),
+              3
+            );
+          } else {
+            showFailure('no last known NETWORK location found...', 2);
+          }
 
           // Define a listener that responds to location updates
           const locationListener = new android.location.LocationListener({
             onLocationChanged: (location: android.location.Location) => {
               // Called when a new location is found by the network location provider.
               console.log('location changed', location);
+              showSuccess(
+                'location changed... latitude: ' +
+                  location.getLatitude().toString(),
+                2
+              );
             },
 
             onStatusChanged: (
@@ -245,6 +272,12 @@ export class MainViewModel extends Observable {
               extras: android.os.Bundle
             ) => {
               console.log('onStatusChanged', provider, status);
+              alert(
+                'location listener onStatusChanged: ' +
+                  provider +
+                  ' --- ' +
+                  status
+              );
             },
 
             onProviderEnabled: provider => {
@@ -260,13 +293,14 @@ export class MainViewModel extends Observable {
           Log.D('Registering for location updates...');
           // Register the listener with the Location Manager to receive location updates
           locationManager.requestLocationUpdates(
-            android.location.LocationManager.NETWORK_PROVIDER,
+            android.location.LocationManager.GPS_PROVIDER,
             0,
             0,
             locationListener
           );
         } catch (error) {
           console.log(error);
+          alert('OH CRAP, MAJOR ERROR WITH LOCATION API USAGE: ' + error);
         }
       });
 
