@@ -9,8 +9,11 @@ import { ReflectiveInjector } from 'injection-js';
 import { Kinvey } from 'kinvey-nativescript-sdk';
 import { Sentry } from 'nativescript-sentry';
 import * as application from 'tns-core-modules/application';
+import { ad as androidUtils } from 'tns-core-modules/utils/utils';
 import './utils/async-await';
 import * as themes from 'nativescript-themes';
+
+declare const com: any;
 
 Log.D('Setting the default theme for the app styles');
 // apply our default theme for the app
@@ -39,6 +42,14 @@ Sentry.init(
 Log.D('Creating the injectable services...');
 export const injector = ReflectiveInjector.resolveAndCreate([...SERVICES]);
 const sentryService: SentryService = injector.get(SentryService);
+
+// Create the Sensor Service to collect data
+const sensorServiceIntent = new android.content.Intent(
+  androidUtils.getApplicationContext(),
+  com.github.maxmobility.SensorService.class
+);
+this.startService(sensorServiceIntent);
+Log.D('native SensorService created...', com.github.maxmobility.SensorService);
 
 // handle ambient mode callbacks
 application.on('enterAmbient', args => {
