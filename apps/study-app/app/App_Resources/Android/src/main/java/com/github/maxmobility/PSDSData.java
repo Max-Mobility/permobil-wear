@@ -9,16 +9,7 @@ import com.google.api.client.util.Key;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataCollectionModel extends GenericJson {
-
-/*
-    @Key("_id")
-    public String id;
-    @Key("_kmd")
-    private KinveyMetaData meta; // Kinvey metadata, OPTIONAL
-    @Key("_acl")
-    private KinveyMetaData.AccessControlList acl; //Kinvey access control, OPTIONAL
-*/
+public class PSDSData extends GenericJson {
 
     @Key
     public ArrayList<SensorServiceData> sensor_data;
@@ -47,7 +38,6 @@ public class DataCollectionModel extends GenericJson {
     @Key
     public Location location;
 
-    public DataCollectionModel() {
-
+    public PSDSData() {
     }
 }
