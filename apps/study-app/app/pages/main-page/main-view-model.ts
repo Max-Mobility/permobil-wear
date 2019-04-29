@@ -257,6 +257,7 @@ export class MainViewModel extends Observable {
   }
 
   periodicDataSend() {
+    this._updateDataCollectionButtonText();
     if (!LS.length) {
       // set timeout for later since we're done collecting data
       setTimeout(this.periodicDataSend.bind(this), 60000);
@@ -291,14 +292,14 @@ export class MainViewModel extends Observable {
     }
     // stop collecting data
     this._isCollectingData = false;
-    // update display
-    this._updateDataCollectionButtonText(`Start Data Collection`);
     // disable sensors
     this.disableDeviceSensors();
     // clear out the interval
     clearInterval(sensorInterval);
     // make sure all data is stored
     this.periodicDataStore();
+    // update display
+    this._updateDataCollectionButtonText(`Start Data Collection`);
   }
 
   async startDataCollection() {
@@ -313,6 +314,7 @@ export class MainViewModel extends Observable {
       this.enableDeviceSensors();
       // start collecting data
       this._isCollectingData = true;
+      // update display
       this._updateDataCollectionButtonText('Stop Data Collection');
       // set interval
       sensorInterval = setInterval(this.periodicDataStore.bind(this), 60000);
@@ -321,9 +323,17 @@ export class MainViewModel extends Observable {
     }
   }
 
-  private _updateDataCollectionButtonText(newText: string) {
+  private _updateDataCollectionButtonText(newText?: string) {
     const item = this.items.getItem(this._dataCollectionButtonIndex);
+    if (!newText) {
+      if (this._isCollectingData) {
+        newText = 'Stop Data Collection';
+      } else {
+        newText = 'Start Data Collection';
+      }
+    }
     item.text = newText;
+    item.text += `\nData Length: ${LS.length}`;
     this.items.setItem(this._dataCollectionButtonIndex, item);
   }
 }
