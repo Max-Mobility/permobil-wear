@@ -3,6 +3,7 @@
   xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
   xmlns:lv="nativescript-wear-os/packages/listview" 
   xmlns:pager="nativescript-pager" 
+  xmlns:chart="nativescript-ui-chart" 
   xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" navigatingTo="navigatingTo" actionBarHidden="true">
   <GridLayout rows="*, *" columns="*">
 
@@ -20,10 +21,19 @@
       // SmartDrive Battery Usage Chat
       <pager:PagerItem>
         <wol:WearOsLayout height="100%" width="100%">
-          <GridLayout rows="*, *, *, *" columns="*, *, *, *, *, *, auto, *">
+          <GridLayout height="100%" rows="auto, auto, *, auto" columns="*, *, *, *, *, *, auto, *">
             <Label row="0" colSpan="8" text="Daily SmartDrive Battery Usage" class="text-center chart-title h3" textWrap="true" />
             <Label text="" row="1" col="0" colSpan="7" class="hr-blue" textWrap="true" />
-            <Label text="100" row="1" col="8" textWrap="false" />
+            <Label text="100" row="1" col="7" textWrap="false" />
+            <GridLayout row="2" colSpan="8" rows="*" height="100" columns="*,*,*,*,*,*,*">
+              <Label col="0" text="" width="5" backgroundColor="#228B22" height="50" textWrap="true" verticalAlignment="bottom" />
+              <Label text="" col="1" width="5" backgroundColor="#228B22" height="33" textWrap="true" verticalAlignment="bottom" />
+              <Label text="" col="2" width="5" backgroundColor="#228B22" height="58" textWrap="true" verticalAlignment="bottom" />
+              <Label text="" col="3" width="5" backgroundColor="#228B22" height="12" textWrap="true" verticalAlignment="bottom" />
+              <Label text="" col="4" width="5" backgroundColor="#228B22" height="78" textWrap="true" verticalAlignment="bottom" />
+              <Label text="" col="5" width="5" backgroundColor="#228B22" height="93" textWrap="true" verticalAlignment="bottom" />
+              <Label text="" col="6" width="5" backgroundColor="#228B22" height="5" textWrap="true" verticalAlignment="bottom" />
+            </GridLayout>
           </GridLayout>
 
 
@@ -54,7 +64,7 @@
     </pager:Pager>
 
     // Main Home Page Layout
-                                                                                                                                                                                                            <!-- <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
+                                                                                                                                                                                                                                                                                                        <!-- <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
       <lv:WearOsListView.itemTemplates>
         <template key="banner">
           <StackLayout>
