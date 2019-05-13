@@ -2,11 +2,59 @@
   xmlns:Lottie="nativescript-lottie" 
   xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
   xmlns:lv="nativescript-wear-os/packages/listview" 
+  xmlns:pager="nativescript-pager" 
   xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" navigatingTo="navigatingTo" actionBarHidden="true">
   <GridLayout rows="*, *" columns="*">
 
+    <pager:Pager orientation="vertical" height="100%" width="100%" col="0" row="0" rowSpan="2" id="pager" spacing="2%" peaking="10%" transformer="none" pagesCount="10" showNativePageIndicator="false">
+      // Activate Power Assist Screen
+      <pager:PagerItem>
+        <wol:WearOsLayout height="100%" width="100%">
+          <GridLayout rows="*, *" columns="*">
+            <Button text="ACTIVATE POWER ASSIST" tap="{{ activatePowerAssistTap }}" />
+          </GridLayout>
+        </wol:WearOsLayout>
+
+      </pager:PagerItem>
+      
+      // SmartDrive Battery Usage Chat
+      <pager:PagerItem>
+        <wol:WearOsLayout height="100%" width="100%">
+          <GridLayout rows="*, *, *, *" columns="*, *, *, *, *, *, auto, *">
+            <Label row="0" colSpan="8" text="Daily SmartDrive Battery Usage" class="text-center chart-title h3" textWrap="true" />
+            <Label text="" row="1" col="0" colSpan="7" class="hr-blue" textWrap="true" />
+            <Label text="100" row="1" col="8" textWrap="false" />
+          </GridLayout>
+
+
+        </wol:WearOsLayout>
+
+      </pager:PagerItem>
+      <pager:PagerItem >
+
+        <chart:RadCartesianChart id="cartesianChart" height="100%" width="100%">
+          <chart:RadCartesianChart.horizontalAxis>
+            <chart:CategoricalAxis/>
+          </chart:RadCartesianChart.horizontalAxis>
+          <chart:RadCartesianChart.verticalAxis>
+            <chart:LinearAxis id="verBarAxis"/>
+          </chart:RadCartesianChart.verticalAxis>
+
+          <chart:RadCartesianChart.series>
+            <chart:BarSeries items="{{ categoricalSource }}" categoryProperty="Days" valueProperty="BatteryUsage"></chart:BarSeries>
+          </chart:RadCartesianChart.series>
+
+          <chart:RadCartesianChart.annotations>
+            <chart:ChartPlotBandAnnotation axisId="verBarAxis" minValue="0" maxValue="4" zPosition="AboveSeries" strokeWidth="1" fillColor="#228B22" strokeColor="Red" strokeDashPattern="3,3,5,5">
+            </chart:ChartPlotBandAnnotation>
+          </chart:RadCartesianChart.annotations>
+        </chart:RadCartesianChart>
+
+      </pager:PagerItem>
+    </pager:Pager>
+
     // Main Home Page Layout
-    <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
+                                                                                                                                                                                                            <!-- <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
       <lv:WearOsListView.itemTemplates>
         <template key="banner">
           <StackLayout>
@@ -20,7 +68,7 @@
           </GridLayout>
         </template>
       </lv:WearOsListView.itemTemplates>
-    </lv:WearOsListView>
+    </lv:WearOsListView> -->
 
     // Settings Layout "Page"
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
