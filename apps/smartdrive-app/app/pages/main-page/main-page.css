@@ -43,3 +43,8 @@
   font-size: 13;
   color: #fff;
 }
+
+.chart-title {
+  horizontal-align: center;
+  text-align: center;
+}

@@ -97,6 +97,17 @@ export class MainViewModel extends Observable {
   @Prop()
   public connected = false;
 
+  @Prop()
+  public categoricalSource = [
+    { Days: 'S', BatteryUsage: 15, SecondVal: 14, ThirdVal: 24 },
+    { Days: 'M', Amount: 13, SecondVal: 23, ThirdVal: 25 },
+    { Days: 'Tu', Amount: 75, SecondVal: 17, ThirdVal: 23 },
+    { Days: 'W', Amount: 11, SecondVal: 19, ThirdVal: 24 },
+    { Days: 'Th', Amount: 20, SecondVal: 8, ThirdVal: 21 },
+    { Days: 'F', Amount: 18, SecondVal: 8, ThirdVal: 21 },
+    { Days: 'S', Amount: 18, SecondVal: 8, ThirdVal: 21 }
+  ];
+
   /**
    * Boolean to track if the SmartDrive motor is on.
    */
@@ -289,6 +300,10 @@ export class MainViewModel extends Observable {
       'Device Language: ' + device.language,
       'UUID: ' + device.uuid
     );
+  }
+
+  activatePowerAssistTap() {
+    console.log('activate power assist has been tapped!');
   }
 
   disableDeviceSensors() {

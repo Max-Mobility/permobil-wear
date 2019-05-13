@@ -43,3 +43,9 @@ label {
 .permobil-orange {
   background-color: #ff671f;
 }
+
+.hr-blue {
+  background-color: #336699;
+  width: 100%;
+  height: 2;
+}
