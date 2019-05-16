@@ -3,7 +3,6 @@
   xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
   xmlns:lv="nativescript-wear-os/packages/listview" 
   xmlns:pager="nativescript-pager" 
-  xmlns:chart="nativescript-ui-chart" 
   xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" navigatingTo="navigatingTo" actionBarHidden="true">
   <GridLayout rows="*, *" columns="*">
 
@@ -28,13 +27,13 @@
             // Bars
             <GridLayout row="2" colSpan="8" rows="*, auto" height="100" columns="*,*,*,*,*,*,*">
               // Bar Lines (need to make height dynamic, possibly use repeater to databind to a local array with battery data)
-              <Label row="0" col="0" class="line" height="50" textWrap="true" />
-              <Label row="0" col="1" class="line" height="33" textWrap="true" />
-              <Label row="0" col="2" class="line" height="58" textWrap="true" />
-              <Label row="0" col="3" class="line" height="12" textWrap="true" />
-              <Label row="0" col="4" class="line" height="78" textWrap="true" />
-              <Label row="0" col="5" class="line" height="93" textWrap="true" />
-              <Label row="0" col="6" class="line" height="5" textWrap="true" />
+              <Label row="0" col="0" class="battery-line" height="50" textWrap="true" />
+              <Label row="0" col="1" class="battery-line" height="33" textWrap="true" />
+              <Label row="0" col="2" class="battery-line" height="58" textWrap="true" />
+              <Label row="0" col="3" class="battery-line" height="12" textWrap="true" />
+              <Label row="0" col="4" class="battery-line" height="78" textWrap="true" />
+              <Label row="0" col="5" class="battery-line" height="93" textWrap="true" />
+              <Label row="0" col="6" class="battery-line" height="5" textWrap="true" />
                // Bar Titles (need to make text part of the repeater layout to databind it to the local battery data)
               <Label row="1" col="0" text="T" class="line-label" />
               <Label row="1" col="1" text="W" class="line-label" />
@@ -49,10 +48,10 @@
           </GridLayout>
 
         </wol:WearOsLayout>
-
       </pager:PagerItem>
-      <pager:PagerItem >
 
+      // SmartDrive Distance Traveled Chart
+      <pager:PagerItem>
         <wol:WearOsLayout height="100%" width="100%">
           <GridLayout height="100%" rows="auto, auto, *" columns="*, auto">
             // Chart Title
@@ -63,13 +62,13 @@
             // Bars
             <GridLayout row="2" colSpan="8" rows="*, auto" height="90" columns="*,*,*,*,*,*,*">
               // Bar Lines (need to make height dynamic, possibly use repeater to databind to a local array with battery data)
-              <Label row="0" col="0" class="line" height="20" textWrap="true" />
-              <Label row="0" col="1" class="line" height="70" textWrap="true" />
-              <Label row="0" col="2" class="line" height="10" textWrap="true" />
-              <Label row="0" col="3" class="line" height="85" textWrap="true" />
-              <Label row="0" col="4" class="line" height="4" textWrap="true" />
-              <Label row="0" col="5" class="line" height="74" textWrap="true" />
-              <Label row="0" col="6" class="line" height="53" textWrap="true" />
+              <Label row="0" col="0" class="distance-line" height="20" textWrap="true" />
+              <Label row="0" col="1" class="distance-line" height="70" textWrap="true" />
+              <Label row="0" col="2" class="distance-line" height="10" textWrap="true" />
+              <Label row="0" col="3" class="distance-line" height="85" textWrap="true" />
+              <Label row="0" col="4" class="distance-line" height="4" textWrap="true" />
+              <Label row="0" col="5" class="distance-line" height="74" textWrap="true" />
+              <Label row="0" col="6" class="distance-line" height="53" textWrap="true" />
                // Bar Titles (need to make text part of the repeater layout to databind it to the local battery data)
               <Label row="1" col="0" text="T" class="line-label" />
               <Label row="1" col="1" text="W" class="line-label" />
@@ -90,7 +89,7 @@
     </pager:Pager>
 
     // Main Home Page Layout
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <!-- <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <!-- <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
       <lv:WearOsListView.itemTemplates>
         <template key="banner">
           <StackLayout>

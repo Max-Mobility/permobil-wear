@@ -51,10 +51,17 @@ label {
 }
 
 /** Label Line Chart Styles **/
-.line {
+.battery-line {
   vertical-align: bottom;
   horizontal-align: center;
   background-color: #228b22;
+  width: 5;
+}
+
+.distance-line {
+  vertical-align: bottom;
+  horizontal-align: center;
+  background-color: #de5f10;
   width: 5;
 }
 
