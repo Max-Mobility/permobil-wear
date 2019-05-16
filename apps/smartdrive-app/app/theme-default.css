@@ -71,3 +71,9 @@ label {
   vertical-align: top;
   color: #fff;
 }
+
+/** Settings List on Main-Page **/
+.settings-label {
+  font-size: 18;
+  color: #fff;
+}

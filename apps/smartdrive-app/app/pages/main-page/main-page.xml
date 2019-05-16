@@ -86,10 +86,28 @@
 
 
       </pager:PagerItem>
+
+      <pager:PagerItem>
+        <wol:WearOsLayout height="100%" width="100%">
+          <StackLayout horizontalAlignment="center">
+            <Label text="Settings" class="settings-label" textWrap="true" />
+            <Label text="LED Settings" class="settings-label" textWrap="true" />
+            <Label text="Updates" class="settings-label" textWrap="true" />
+            <Label text="Training" class="settings-label" textWrap="true" />
+          </StackLayout>
+          <!-- <lv:WearOsListView useScalingScroll="false" height="100%" items="{{ settingsItems }}">
+            <lv:WearOsListView.itemTemplate>
+              <GridLayout rows="*" columns="*">
+                <Label text="{{ title }}" row="0" col="0" />
+              </GridLayout>
+            </lv:WearOsListView.itemTemplate>
+          </lv:WearOsListView> -->
+        </wol:WearOsLayout>
+      </pager:PagerItem>
     </pager:Pager>
 
     // Main Home Page Layout
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <!-- <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <!-- <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
       <lv:WearOsListView.itemTemplates>
         <template key="banner">
           <StackLayout>

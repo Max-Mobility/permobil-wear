@@ -54,14 +54,14 @@ label {
 .battery-line {
   vertical-align: bottom;
   horizontal-align: center;
-  background-color: #ddd;
+  background-color: #ccc;
   width: 5;
 }
 
 .distance-line {
   vertical-align: bottom;
   horizontal-align: center;
-  background-color: #ddd;
+  background-color: #ccc;
   width: 5;
 }
 
@@ -69,5 +69,11 @@ label {
   text-align: center;
   horizontal-align: center;
   vertical-align: top;
-  color: #ddd;
+  color: #ccc;
+}
+
+/** Settings List on Main-Page **/
+.settings-label {
+  font-size: 18;
+  color: #ccc;
 }

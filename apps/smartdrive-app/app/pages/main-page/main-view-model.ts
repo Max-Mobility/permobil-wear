@@ -1,42 +1,34 @@
 import {
+  AccuracyChangedEventData,
   BluetoothService,
   DataKeys,
-  LoggingCategory,
-  Prop,
-  SentryService,
-  SmartDrive,
   Log,
-  SensorService,
+  Prop,
   SensorChangedEventData,
-  AccuracyChangedEventData
+  SensorService,
+  SentryService,
+  SmartDrive
 } from '@permobil/core';
-import { padStart } from 'lodash';
-import { addSeconds, differenceInSeconds } from 'date-fns';
+import { SensorDelay } from 'nativescript-android-sensors';
 import * as permissions from 'nativescript-permissions';
-import * as LS from 'nativescript-localstorage';
-import { Vibrate } from 'nativescript-vibrate';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
+import { Vibrate } from 'nativescript-vibrate';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
 import {
-  showSuccess,
-  showFailure
+  showFailure,
+  showSuccess
 } from 'nativescript-wear-os/packages/dialogs';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
-import {
-  ObservableArray,
-  ChangedData
-} from 'tns-core-modules/data/observable-array';
+import { ObservableArray } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
-import { injector, currentSystemTime } from '../../app';
+import { injector } from '../../app';
 import {
   hideOffScreenLayout,
   promptUserForSpeech,
   showOffScreenLayout
 } from '../../utils';
-import { setInterval, clearInterval } from 'tns-core-modules/timer';
-import { SensorDelay } from 'nativescript-android-sensors';
 
 let sensorInterval = null;
 let sensorData = [];
@@ -106,6 +98,14 @@ export class MainViewModel extends Observable {
     { Days: 'Th', Amount: 20, SecondVal: 8, ThirdVal: 21 },
     { Days: 'F', Amount: 18, SecondVal: 8, ThirdVal: 21 },
     { Days: 'S', Amount: 18, SecondVal: 8, ThirdVal: 21 }
+  ];
+
+  @Prop()
+  public settingsItems = [
+    { title: 'Settings' },
+    { title: 'LED Settings' },
+    { title: 'Updates' },
+    { title: 'Training' }
   ];
 
   /**

@@ -1,9 +1,0 @@
-<Page xmlns:Lottie="nativescript-lottie" backgroundColor="green" showingModally="onShowingModally" loaded="onLoaded">
-    <StackLayout backgroundColor="lightGreen">
-        <Button text="START HEART RATE" tap="startHeartRate"/>
-
-        <Lottie:LottieView src="pulse.json" height="{{ halfScreenHeight }}" loop="true" autoPlay="true" loaded="yourLoadedEvent" />
-
-
-    </StackLayout>
-</Page>
