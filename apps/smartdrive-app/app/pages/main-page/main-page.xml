@@ -134,11 +134,36 @@
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
       <wol:WearOsLayout height="100%" width="100%">
         <StackLayout>
-          <Label text="&#xf21b; Max Speed" tap="{{ onMaxSpeedTap }}" class="settings-label" textWrap="true" />
-          <Label text="&#xf21b; Acceleration" tap="{{ onAccelerationTap }}" class="settings-label" textWrap="true" />
-          <Label text="&#xf21b; Tap Sensitivity" tap="{{ onTapSensitivityTap }}" class="settings-label" textWrap="true" />
-          <Label text="&#xf21b; Mode" tap="{{ onModeTap }}" class="settings-label" textWrap="true" />
-          <Label text="&#xf21b; Units" tap="{{ onUnitsTap }}" class="settings-label" textWrap="true" />
+          <Label text="&#xf21b;" tap="{{ onMaxSpeedTap }}" class="settings-label" textWrap="true">
+            <FormattedString>
+              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
+              <Span text="Max Speed"></Span>
+            </FormattedString>
+          </Label>
+          <Label text="&#xf21b;" tap="{{ onAccelerationTap }}" class="settings-label" textWrap="true">
+            <FormattedString>
+              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
+              <Span text="Acceleration"></Span>
+            </FormattedString>
+          </Label>
+          <Label text="&#xf21b;" tap="{{ onTapSensitivityTap }}" class="settings-label" textWrap="true">
+            <FormattedString>
+              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
+              <Span text="Tap Sensitivity"></Span>
+            </FormattedString>
+          </Label>
+          <Label text="&#xf21b;" tap="{{ onModeTap }}" class="settings-label" textWrap="true">
+            <FormattedString>
+              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
+              <Span text="Mode"></Span>
+            </FormattedString>
+          </Label>
+          <Label text="&#xf21b;" tap="{{ onUnitsTap }}" class="settings-label" textWrap="true">
+            <FormattedString>
+              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
+              <Span text="Units"></Span>
+            </FormattedString>
+          </Label>
         </StackLayout>
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
