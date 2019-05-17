@@ -1,3 +1,8 @@
+/** FONTS **/
+.ionicon {
+  font-family: ionicons, 'ionicons', Ionicons, 'Ionicons';
+}
+
 Page {
   background-color: #333;
 }
@@ -51,6 +56,11 @@ label {
 }
 
 /** Label Line Chart Styles **/
+.chart-title {
+  horizontal-align: center;
+  text-align: center;
+}
+
 .battery-line {
   vertical-align: bottom;
   horizontal-align: center;
@@ -73,7 +83,16 @@ label {
 }
 
 /** Settings List on Main-Page **/
+.bullet-list-icon {
+  font-size: 8;
+  font-family: ionicons, 'ionicons', Ionicons, 'Ionicons';
+  vertical-align: center;
+  horizonta-align: center;
+}
+
 .settings-label {
-  font-size: 18;
+  font-size: 20;
   color: #fff;
+  margin: 0 0 0 8;
+  padding: 4;
 }

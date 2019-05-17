@@ -10,6 +10,7 @@ import {
   SmartDrive
 } from '@permobil/core';
 import { SensorDelay } from 'nativescript-android-sensors';
+import * as permissions from 'nativescript-permissions';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { Vibrate } from 'nativescript-vibrate';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
@@ -22,7 +23,11 @@ import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
 import { injector } from '../../app';
-import { hideOffScreenLayout, showOffScreenLayout } from '../../utils';
+import {
+  hideOffScreenLayout,
+  promptUserForSpeech,
+  showOffScreenLayout
+} from '../../utils';
 
 export class MainViewModel extends Observable {
   /**
@@ -80,6 +85,18 @@ export class MainViewModel extends Observable {
   @Prop()
   public connected = false;
 
+  // Dummy test data for charts
+  @Prop()
+  public categoricalSource = [
+    { Days: 'S', BatteryUsage: 15, SecondVal: 14, ThirdVal: 24 },
+    { Days: 'M', Amount: 13, SecondVal: 23, ThirdVal: 25 },
+    { Days: 'Tu', Amount: 75, SecondVal: 17, ThirdVal: 23 },
+    { Days: 'W', Amount: 11, SecondVal: 19, ThirdVal: 24 },
+    { Days: 'Th', Amount: 20, SecondVal: 8, ThirdVal: 21 },
+    { Days: 'F', Amount: 18, SecondVal: 8, ThirdVal: 21 },
+    { Days: 'S', Amount: 18, SecondVal: 8, ThirdVal: 21 }
+  ];
+
   /**
    * Array of Settings PagerItem list items
    */
@@ -98,6 +115,12 @@ export class MainViewModel extends Observable {
   public motorOn = false;
 
   /**
+   * Index values into the menu
+   */
+  private _powerAssistButtonIndex = 1;
+  private _heartRateButtonIndex = 3;
+
+  /**
    * State Management for Sensor Monitoring / Data Collection
    */
   private _isListeningDeviceSensors = false;
@@ -113,6 +136,7 @@ export class MainViewModel extends Observable {
    * User interaction objects
    */
   private _settingsLayout: SwipeDismissLayout;
+  private _heartRateSensor: android.hardware.Sensor; // HR sensor so we can start/stop it individually from the other sensors
   private _vibrator: Vibrate = new Vibrate();
 
   constructor(
@@ -127,10 +151,17 @@ export class MainViewModel extends Observable {
     this._sensorService.on(
       SensorService.AccuracyChanged,
       (args: AccuracyChangedEventData) => {
+        Log.D(
+          'SensorService.AccuracyChanged',
+          args.data.sensor,
+          args.data.accuracy
+        );
         const sensor = args.data.sensor;
         const accuracy = args.data.accuracy;
+
         if (sensor.getType() === android.hardware.Sensor.TYPE_HEART_RATE) {
           this.heartRateAccuracy = accuracy;
+          this.updateHeartRateButtonText();
           // save the heart rate
           appSettings.setNumber(
             DataKeys.HEART_RATE,
@@ -143,6 +174,8 @@ export class MainViewModel extends Observable {
     this._sensorService.on(
       SensorService.SensorChanged,
       (args: SensorChangedEventData) => {
+        // Log.D('SensorService.SensorChanged', args.data);
+
         // if we're using litedata for android sensor plugin option
         // the data structure is simplified to reduce redundant data
         const parsedData = args.data;
@@ -153,8 +186,11 @@ export class MainViewModel extends Observable {
           this.heartRate = parsedData.d.heart_rate.toString().split('.')[0];
           // add accuracy for heart rate data from sensors
           parsedData.d.accuracy = this.heartRateAccuracy;
+          // update the HR text for UI
+          this.updateHeartRateButtonText();
         }
 
+        // Log.D('onAccelerometerData');
         // only showing linear acceleration data for now
         if (parsedData.s === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
           const z = (parsedData.d as any).z;
@@ -246,6 +282,87 @@ export class MainViewModel extends Observable {
     }
   }
 
+  /**
+   * Heart Rate Handlers
+   */
+  async toggleHeartRate() {
+    if (this.isGettingHeartRate) {
+      this.stopHeartRate();
+    } else {
+      this.startHeartRate();
+    }
+  }
+
+  async stopHeartRate() {
+    if (!this.isGettingHeartRate) {
+      return;
+    }
+    this._sensorService.androidSensorClass.stopSensor(this._heartRateSensor);
+    this.isGettingHeartRate = false;
+    this.updateHeartRateButtonText('Read Heart Rate');
+  }
+
+  async startHeartRate() {
+    if (this.isGettingHeartRate) {
+      return;
+    }
+
+    try {
+      // make sure we have permisson for body sensors
+      const hasPermission = permissions.hasPermission(
+        android.Manifest.permission.BODY_SENSORS
+      );
+      if (!hasPermission) {
+        await permissions
+          .requestPermission(android.Manifest.permission.BODY_SENSORS)
+          .catch(error => {
+            Log.E(error);
+            return;
+          });
+      }
+
+      // start the heart rate sensor
+      this._heartRateSensor = this._sensorService.androidSensorClass.startSensor(
+        android.hardware.Sensor.TYPE_HEART_RATE,
+        SensorDelay.UI
+      );
+
+      this.isGettingHeartRate = true;
+      this.updateHeartRateButtonText('Reading Heart Rate');
+    } catch (error) {
+      Log.E({ error });
+    }
+  }
+
+  updateHeartRateButtonText(newText?: string) {
+    const item = this.items.getItem(this._heartRateButtonIndex);
+    if (newText) {
+      item.text = newText;
+    } else {
+      let accStr = 'Unknown';
+      switch (this.heartRateAccuracy) {
+        case android.hardware.SensorManager.SENSOR_STATUS_UNRELIABLE:
+          accStr = 'Unreliable';
+          break;
+        case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_LOW:
+          accStr = 'Low';
+          break;
+        case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
+          accStr = 'Medium';
+          break;
+        case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
+          accStr = 'High';
+          break;
+        case 0xffffffff:
+        case android.hardware.SensorManager.SENSOR_STATUS_NO_CONTACT:
+          accStr = 'No Contact';
+          break;
+      }
+      item.text = `HR: ${this.heartRate}, ACC: ${accStr}`;
+    }
+    this.items.setItem(this._heartRateButtonIndex, item);
+  }
+
   onUpdatesTap() {
     showSuccess('No updates available.', 4);
   }
@@ -267,6 +384,16 @@ export class MainViewModel extends Observable {
   onSettingsTap() {
     showOffScreenLayout(this._settingsLayout);
     this.isSettingsLayoutEnabled = true;
+  }
+
+  onVoiceInputTap() {
+    promptUserForSpeech()
+      .then(result => {
+        Log.D('result from speech', result);
+      })
+      .catch(error => {
+        Log.E('speech error', error);
+      });
   }
 
   /**
@@ -295,9 +422,9 @@ export class MainViewModel extends Observable {
   }
 
   updatePowerAssistButtonText(newText: string) {
-    // const item = this.items.getItem(this._powerAssistButtonIndex);
-    // item.text = newText;
-    // this.items.setItem(this._powerAssistButtonIndex, item);
+    const item = this.items.getItem(this._powerAssistButtonIndex);
+    item.text = newText;
+    this.items.setItem(this._powerAssistButtonIndex, item);
   }
 
   togglePowerAssist() {

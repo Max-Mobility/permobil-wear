@@ -89,12 +89,36 @@
 
       <pager:PagerItem>
         <wol:WearOsLayout height="100%" width="100%">
-          <StackLayout horizontalAlignment="center">
-            <Label text="Settings" class="settings-label" textWrap="true" />
-            <Label text="LED Settings" class="settings-label" textWrap="true" />
-            <Label text="Updates" class="settings-label" textWrap="true" />
-            <Label text="Training" class="settings-label" textWrap="true" />
+          <StackLayout>
+            <Label text="&#xf21b;" tap="{{ onSettingsTap }}" class="settings-label" textWrap="true">
+              <FormattedString>
+                <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
+                <Span text="Settings"></Span>
+              </FormattedString>
+            </Label>
+            <Label text="&#xf21b;" tap="{{ onLedSettingsTap }}" class="settings-label" textWrap="true">
+              <FormattedString>
+                <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
+                <Span text="LED Settings"></Span>
+              </FormattedString>
+            </Label>
+            <Label text="&#xf21b;" tap="{{ onUpdatesTap }}" class="settings-label" textWrap="true">
+              <FormattedString>
+                <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
+                <Span text="Updates"></Span>
+              </FormattedString>
+            </Label>
+            <Label text="&#xf21b;" tap="{{ onTrainingTap }}" class="settings-label" textWrap="true">
+              <FormattedString>
+                <Span text="&#xf21b;  " fontSize="8" class="bullet-list-icon"></Span>
+                <Span text="Training"></Span>
+              </FormattedString>
+            </Label>
+            <!-- <Label text="&#xf21b; LED Settings" tap="{{ onLedSettingsTap }}" class="settings-label" textWrap="true" />
+            <Label text="&#xf21b; Updates" tap="{{ onUpdatesTap }}" class="settings-label" textWrap="true" />
+            <Label text="&#xf21b; Training" tap="{{ onTrainingTap }}" class="settings-label" textWrap="true" /> -->
           </StackLayout>
+
           <!-- <lv:WearOsListView useScalingScroll="false" height="100%" items="{{ settingsItems }}">
             <lv:WearOsListView.itemTemplate>
               <GridLayout rows="*" columns="*">
@@ -104,35 +128,18 @@
           </lv:WearOsListView> -->
         </wol:WearOsLayout>
       </pager:PagerItem>
-    </pager:Pager>
+    </pager:Pager>                                      
 
-    // Main Home Page Layout
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <!-- <lv:WearOsListView loaded="{{ onMainLayoutLoaded }}" useScalingScroll="true" class="permobil-hero" height="100%" width="100%" row="0" rowSpan="2" col="0" items="{{ items }}" itemTemplateSelector="type">
-      <lv:WearOsListView.itemTemplates>
-        <template key="banner">
-          <StackLayout>
-            <Image src="{{ image }}" class="{{ class }}" stretch="aspectFit" />
-          </StackLayout>
-        </template>
-        <template key="button">
-          <GridLayout rows="*" columns="auto, *" tap="{{ func }}">
-            <Image src="{{ image }}" class="{{ class }}" stretch="aspectFit" row="0" col="0" />
-            <Label text="{{ text }}" class="label" textWrap="true" row="0" col="1" />
-          </GridLayout>
-        </template>
-      </lv:WearOsListView.itemTemplates>
-    </lv:WearOsListView> -->
-
-    // Settings Layout "Page"
+    // Settings Layout "Page" -- need to wrap this in a component
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
-      <wol:WearOsLayout>
-        <Label text="SmartDrive Settings" color="white" fontSize="25" textWrap="true" />
-        <Label text="{{ tapSensitivityText }}" color="white" fontSize="15" textWrap="true" />
-        <StackLayout orientation="horizontal">
-          <Button width="50%" text="-" tap="{{ onDecreaseTapSensitivityTap }}" fontSize="10"/>
-          <Button width="50%" text="+" tap="{{ onIncreaseTapSensitivityTap }}" fontSize="10"/>
+      <wol:WearOsLayout height="100%" width="100%">
+        <StackLayout>
+          <Label text="&#xf21b; Max Speed" tap="{{ onMaxSpeedTap }}" class="settings-label" textWrap="true" />
+          <Label text="&#xf21b; Acceleration" tap="{{ onAccelerationTap }}" class="settings-label" textWrap="true" />
+          <Label text="&#xf21b; Tap Sensitivity" tap="{{ onTapSensitivityTap }}" class="settings-label" textWrap="true" />
+          <Label text="&#xf21b; Mode" tap="{{ onModeTap }}" class="settings-label" textWrap="true" />
+          <Label text="&#xf21b; Units" tap="{{ onUnitsTap }}" class="settings-label" textWrap="true" />
         </StackLayout>
-        <Button text="Speech Test" tap="{{ onVoiceInputTap }}" class="btn btn-primary" />
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
 
