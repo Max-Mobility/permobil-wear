@@ -178,7 +178,7 @@
           <Label text="{{ changeSettingKeyString }}" class="changeSettingsTitle" textWrap="true" />
           <Label text="{{ changeSettingKeyValue }}" class="changeSettingsValue" textWrap="true" />
         </StackLayout>
-        <Button row="1" col="2" text="&#xf3fd;" fontSize="40" class="confirm-btn" tap="{{ onConfirmChangesTap }}" />
+        <Button row="1" col="2" text="&#xf3fd;" class="confirm-btn" tap="{{ onConfirmChangesTap }}" />
         <Button row="2" col="1" text="&#xf123;" class="decrease-btn" tap="{{ onDecreaseSettingsTap }}" />
       </GridLayout>
     </sdl:SwipeDismissLayout>
