@@ -1,0 +1,20 @@
+@import 'variables';
+
+/** Fonts **/
+.ionicon {
+  font-family: $ionicon;
+}
+
+/** Buttons **/
+.btn-transparent {
+  background-color: transparent;
+  border-color: transparent;
+  border-width: 1;
+  z-index: 0; /* need this in NS 5.4 */
+}
+
+/** Label Line Chart Styles **/
+.chart-title {
+  horizontal-align: center;
+  text-align: center;
+}

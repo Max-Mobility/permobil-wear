@@ -49,6 +49,14 @@ export class MainViewModel extends Observable {
   @Prop()
   public isSettingsLayoutEnabled = false;
 
+  @Prop()
+  public isChangeSettingsLayoutEnabled = false;
+
+  @Prop()
+  public changeSettingKeyString = '';
+  @Prop()
+  public changeSettingKeyValue;
+
   /**
    *
    * SmartDrive Related Data
@@ -113,6 +121,7 @@ export class MainViewModel extends Observable {
    * User interaction objects
    */
   private _settingsLayout: SwipeDismissLayout;
+  public _changeSettingsLayout: SwipeDismissLayout;
   private _vibrator: Vibrate = new Vibrate();
 
   constructor(
@@ -255,7 +264,6 @@ export class MainViewModel extends Observable {
    */
   onSettingsLayoutLoaded(args) {
     this._settingsLayout = args.object as SwipeDismissLayout;
-
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
       Log.D('dimissedEvent', args.object);
       // hide the offscreen layout when dismissed
@@ -267,6 +275,49 @@ export class MainViewModel extends Observable {
   onSettingsTap() {
     showOffScreenLayout(this._settingsLayout);
     this.isSettingsLayoutEnabled = true;
+  }
+
+  onChangeSettingsItemTap(args) {
+    Log.D('id: ' + args.object.id);
+    const tappedId = args.object.id as string;
+    switch (tappedId.toLowerCase()) {
+      case 'maxspeed':
+        this.changeSettingKeyString = 'Max Speed';
+        // need to get the current stored max speed setting
+        this.changeSettingKeyValue = '70%';
+        break;
+      case 'acceleration':
+        this.changeSettingKeyString = 'Acceleration';
+        // need to get current stored acceleration setting
+        this.changeSettingKeyValue = '50%';
+        break;
+      case 'tapsensitivity':
+        this.changeSettingKeyString = 'Tap Sensitivity';
+        // need to get current stored tap sensitivity setting
+        this.changeSettingKeyValue = '20%';
+        break;
+      default:
+        break;
+    }
+    if (args.object.id) {
+    }
+    showOffScreenLayout(this._changeSettingsLayout);
+    this.isChangeSettingsLayoutEnabled = true;
+  }
+
+  onCancelChangesTap() {
+    hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
+    this.isChangeSettingsLayoutEnabled = false;
+  }
+
+  onChangeSettingsLayoutLoaded(args) {
+    this._changeSettingsLayout = args.object as SwipeDismissLayout;
+    this._changeSettingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
+      Log.D('dimissedEvent', args.object);
+      // hide the offscreen layout when dismissed
+      hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
+      this.isChangeSettingsLayoutEnabled = false;
+    });
   }
 
   /**

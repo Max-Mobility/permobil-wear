@@ -41,10 +41,11 @@
     "tns-core-modules": "../../node_modules/tns-core-modules"
   },
   "devDependencies": {
+    "awesome-typescript-loader": "~5.2.1",
     "husky": "../../node_modules/husky",
     "lint-staged": "../../node_modules/lint-staged",
     "mkdirp": "../../node_modules/mkdirp",
-    "awesome-typescript-loader": "~5.2.1",
+    "nativescript-dev-sass": "^1.7.0",
     "nativescript-dev-typescript": "~0.9.0",
     "nativescript-dev-webpack": "~0.22.0",
     "nativescript-hook": "~0.2.5",

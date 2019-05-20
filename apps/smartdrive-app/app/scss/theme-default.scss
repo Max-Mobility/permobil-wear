@@ -1,0 +1,37 @@
+@import 'variables';
+@import 'common';
+@import 'charts-default';
+@import 'change-settings-default';
+
+Page {
+  background-color: $light-black;
+}
+
+.page {
+  background-color: $light-black;
+}
+
+label {
+  color: $white;
+}
+
+.hr-blue {
+  background-color: #336699;
+  width: 100%;
+  height: 2;
+}
+
+/** Settings List on Main-Page **/
+.bullet-list-icon {
+  font-size: 8;
+  font-family: $ionicon;
+  vertical-align: center;
+  horizonta-align: center;
+}
+
+.settings-label {
+  font-size: 20;
+  color: $white;
+  margin: 0 0 0 8;
+  padding: 4;
+}

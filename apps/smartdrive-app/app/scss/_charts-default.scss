@@ -1,0 +1,24 @@
+@import 'variables';
+@import 'common';
+
+/** Label Line Chart Styles **/
+.battery-line {
+  vertical-align: bottom;
+  horizontal-align: center;
+  background-color: #228b22;
+  width: 5;
+}
+
+.distance-line {
+  vertical-align: bottom;
+  horizontal-align: center;
+  background-color: #de5f10;
+  width: 5;
+}
+
+.line-label {
+  text-align: center;
+  horizontal-align: center;
+  vertical-align: top;
+  color: $white;
+}

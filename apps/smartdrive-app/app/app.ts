@@ -1,20 +1,20 @@
 ﻿import {
   APP_KEY,
   APP_SECRET,
+  Log,
   SentryService,
-  SERVICES,
-  Log
+  SERVICES
 } from '@permobil/core';
 import { ReflectiveInjector } from 'injection-js';
 import { Kinvey } from 'kinvey-nativescript-sdk';
 import { Sentry } from 'nativescript-sentry';
+import * as themes from 'nativescript-themes';
 import * as application from 'tns-core-modules/application';
 import './utils/async-await';
-import * as themes from 'nativescript-themes';
 
 Log.D('Setting the default theme for the app styles');
 // apply our default theme for the app
-themes.applyTheme(themes.getAppliedTheme('theme-default.css'));
+themes.applyTheme(themes.getAppliedTheme('./scss/theme-default.css'));
 
 /**
  * Exposing the system time from app.ts so we can use it throughout the app if needed.
@@ -43,13 +43,13 @@ const sentryService: SentryService = injector.get(SentryService);
 // handle ambient mode callbacks
 application.on('enterAmbient', args => {
   Log.D('enterAmbient', args.data, currentSystemTime());
-  themes.applyTheme('theme-ambient.css');
+  themes.applyTheme('./scss/theme-ambient.css');
 });
 
 // handle ambient mode callbacks
 application.on('exitAmbient', args => {
   Log.D('exitAmbient', args.data, currentSystemTime());
-  themes.applyTheme('theme-default.css');
+  themes.applyTheme('./scss/theme-default.css');
 });
 
 // handle ambient mode callbacks
@@ -74,7 +74,7 @@ application.on(
 
 application.on(application.launchEvent, args => {
   Log.D('App launch event...');
-  themes.applyTheme('theme-default.css');
+  themes.applyTheme('./scss/theme-default.css');
 });
 
 application.on(application.displayedEvent, args => {

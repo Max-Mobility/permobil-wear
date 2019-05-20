@@ -134,19 +134,19 @@
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
       <wol:WearOsLayout height="100%" width="100%">
         <StackLayout>
-          <Label text="&#xf21b;" tap="{{ onMaxSpeedTap }}" class="settings-label" textWrap="true">
+          <Label id="maxSpeed" text="&#xf21b;" tap="{{ onChangeSettingsItemTap }}" class="settings-label" textWrap="true">
             <FormattedString>
               <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
               <Span text="Max Speed"></Span>
             </FormattedString>
           </Label>
-          <Label text="&#xf21b;" tap="{{ onAccelerationTap }}" class="settings-label" textWrap="true">
+          <Label id="acceleration" text="&#xf21b;" tap="{{ onChangeSettingsItemTap }}" class="settings-label" textWrap="true">
             <FormattedString>
               <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
               <Span text="Acceleration"></Span>
             </FormattedString>
           </Label>
-          <Label text="&#xf21b;" tap="{{ onTapSensitivityTap }}" class="settings-label" textWrap="true">
+          <Label id="tapSensitivity" text="&#xf21b;" tap="{{ onChangeSettingsItemTap }}" class="settings-label" textWrap="true">
             <FormattedString>
               <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
               <Span text="Tap Sensitivity"></Span>
@@ -166,6 +166,21 @@
           </Label>
         </StackLayout>
       </wol:WearOsLayout>
+    </sdl:SwipeDismissLayout>
+
+
+       // Settings Layout "Page" -- need to wrap this in a component
+    <sdl:SwipeDismissLayout id="changeSettingsPage" row="0" rowSpan="2" col="0" loaded="{{ onChangeSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isChangeSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
+      <GridLayout rows="65, *, 65" columns="60, *, 60" width="100%" height="100%">
+        <Button row="0" col="1" text="&#xf126;" class="increase-btn" tap="{{ onIncreaseSettingsTap }}" />
+        <Button row="1" col="0" text="&#xf12a;" class="cancel-btn" tap="{{ onCancelChangesTap }}" />
+        <StackLayout row="1" col="1" class="value-circle">
+          <Label text="{{ changeSettingKeyString }}" class="changeSettingsTitle" textWrap="true" />
+          <Label text="{{ changeSettingKeyValue }}" class="changeSettingsValue" textWrap="true" />
+        </StackLayout>
+        <Button row="1" col="2" text="&#xf3fd;" fontSize="40" class="confirm-btn" tap="{{ onConfirmChangesTap }}" />
+        <Button row="2" col="1" text="&#xf123;" class="decrease-btn" tap="{{ onDecreaseSettingsTap }}" />
+      </GridLayout>
     </sdl:SwipeDismissLayout>
 
   </GridLayout>
