@@ -13,7 +13,8 @@
     "// Brad Section": "*****************************************************************************************************",
     "brad.debug.wifi": "adb tcpip 5555 && adb connect 192.168.1.65",
     "// end Brad Section": "************************************************************************************************************",
-    "tslint": "tslint -p tsconfig.json -c tslint.json"
+    "tslint": "tslint -p tsconfig.json -c tslint.json",
+    "scss-b": "node-sass --watch ./app/scss -o ./app/scss"
   },
   "dependencies": {
     "@permobil/core": "file:../../libs/core",

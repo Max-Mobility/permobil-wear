@@ -306,6 +306,7 @@ export class MainViewModel extends Observable {
   }
 
   onCancelChangesTap() {
+    Log.D('Cancelled the changes, do NOT save any changes to config setting.');
     hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
     this.isChangeSettingsLayoutEnabled = false;
   }
@@ -313,12 +314,14 @@ export class MainViewModel extends Observable {
   onConfirmChangesTap() {
     hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
     this.isChangeSettingsLayoutEnabled = false;
+    Log.D('Confirmed the value, need to save config setting.');
     // SAVE THE VALUE to local data for the setting user has selected
   }
 
   onIncreaseSettingsTap() {
     Log.D('increase current settings change key value and save to local data');
   }
+
   onDecreaseSettingsTap(args) {
     Log.D('decrease current settings change key value and save to local data');
   }

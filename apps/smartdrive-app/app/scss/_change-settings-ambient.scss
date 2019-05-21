@@ -3,28 +3,33 @@
 
 /** Change Settings Page **/
 #changeSettingsPage {
+  padding: 5;
+  margin: 5;
+
   .increase-btn {
     @extend .btn-transparent;
+    background-color: transparent;
     color: $ambient-white;
-    font-size: 40;
+    font-size: 35;
     height: 50;
     font-family: $ionicon;
-    vertical-align: center;
+    vertical-align: top;
   }
 
   .decrease-btn {
     @extend .btn-transparent;
+    background-color: transparent;
     color: $ambient-white;
-    font-size: 40;
+    font-size: 35;
     height: 50;
     font-family: $ionicon;
-    vertical-align: center;
+    vertical-align: bottom;
   }
 
   .cancel-btn {
     @extend .btn-transparent;
     color: $ambient-white;
-    font-size: 30;
+    font-size: 25;
     font-family: $ionicon;
     height: 50;
     width: 50;
@@ -36,7 +41,7 @@
   .confirm-btn {
     @extend .btn-transparent;
     color: $ambient-white;
-    font-size: 30;
+    font-size: 25;
     font-family: $ionicon;
     height: 50;
     width: 50;
@@ -63,6 +68,8 @@
 
     .changeSettingsValue {
       color: $ambient-white;
+      font-size: 24;
+      font-weight: bold;
       text-align: center;
       horizontal-align: center;
       vertical-align: center;

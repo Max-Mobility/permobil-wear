@@ -3,28 +3,31 @@
 
 /** Change Settings Page **/
 #changeSettingsPage {
+  padding: 5;
+  margin: 5;
+
   .increase-btn {
     @extend .btn-transparent;
     color: $white;
-    font-size: 40;
+    font-size: 35;
     height: 50;
     font-family: $ionicon;
-    vertical-align: center;
+    vertical-align: top;
   }
 
   .decrease-btn {
     @extend .btn-transparent;
     color: $white;
-    font-size: 40;
+    font-size: 35;
     height: 50;
     font-family: $ionicon;
-    vertical-align: center;
+    vertical-align: bottom;
   }
 
   .cancel-btn {
     background-color: gray;
     color: $white;
-    font-size: 30;
+    font-size: 25;
     font-family: $ionicon;
     height: 50;
     width: 50;
@@ -36,11 +39,12 @@
   .confirm-btn {
     background-color: $permobil-hero;
     color: $white;
-    font-size: 30;
+    font-size: 25;
     font-family: $ionicon;
     height: 50;
     width: 50;
     border-radius: 25;
+    android-elevation: 2;
     horizontal-align: center;
     vertical-align: center;
   }
@@ -63,6 +67,8 @@
 
     .changeSettingsValue {
       color: $white;
+      font-size: 24;
+      font-weight: bold;
       text-align: center;
       horizontal-align: center;
       vertical-align: center;

@@ -171,7 +171,7 @@
 
        // Settings Layout "Page" -- need to wrap this in a component
     <sdl:SwipeDismissLayout id="changeSettingsPage" row="0" rowSpan="2" col="0" loaded="{{ onChangeSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isChangeSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
-      <GridLayout rows="65, *, 65" columns="60, *, 60" width="100%" height="100%">
+      <GridLayout rows="auto, *, auto" columns="auto, *, auto" width="100%" height="100%">
         <Button row="0" col="1" text="&#xf126;" class="increase-btn" tap="{{ onIncreaseSettingsTap }}" />
         <Button row="1" col="0" text="&#xf12a;" class="cancel-btn" tap="{{ onCancelChangesTap }}" />
         <StackLayout row="1" col="1" class="value-circle">

@@ -10,7 +10,8 @@
   background-color: transparent;
   border-color: transparent;
   border-width: 1;
-  z-index: 0; /* need this in NS 5.4 */
+  android-elevation: 0;
+  android-dynamic-elevation-offset: 2;
 }
 
 /** Label Line Chart Styles **/
