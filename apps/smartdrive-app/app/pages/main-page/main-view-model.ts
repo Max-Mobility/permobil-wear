@@ -328,12 +328,14 @@ export class MainViewModel extends Observable {
 
   onChangeSettingsLayoutLoaded(args) {
     this._changeSettingsLayout = args.object as SwipeDismissLayout;
-    this._changeSettingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      Log.D('dimissedEvent', args.object);
-      // hide the offscreen layout when dismissed
-      hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
-      this.isChangeSettingsLayoutEnabled = false;
-    });
+    // disabling swipeable to make it easier to tap the cancel button without starting the swipe behavior
+    (this._changeSettingsLayout as any).swipeable = false;
+    // this._changeSettingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
+    //   Log.D('dimissedEvent', args.object);
+    //   // hide the offscreen layout when dismissed
+    //   hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
+    //   this.isChangeSettingsLayoutEnabled = false;
+    // });
   }
 
   /**
