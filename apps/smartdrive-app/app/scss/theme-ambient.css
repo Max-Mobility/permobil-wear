@@ -84,20 +84,20 @@
 .battery-line {
   vertical-align: bottom;
   horizontal-align: center;
-  background-color: #bbb;
+  background-color: #228b22;
   width: 5; }
 
 .distance-line {
   vertical-align: bottom;
   horizontal-align: center;
-  background-color: #bbb;
+  background-color: #de5f10;
   width: 5; }
 
 .line-label {
   text-align: center;
   horizontal-align: center;
   vertical-align: top;
-  color: #bbb; }
+  color: #fff; }
 
 /** Fonts **/
 /** Fonts **/
@@ -145,20 +145,18 @@
   margin: 4; }
 
 #changeSettingsPage .increase-btn {
-  color: #bbb;
-  background-color: transparent; }
+  color: #fff; }
 
 #changeSettingsPage .decrease-btn {
-  color: #bbb;
-  background-color: transparent; }
+  color: #fff; }
 
 #changeSettingsPage .cancel-btn {
-  color: #bbb;
-  background-color: transparent; }
+  color: #fff;
+  background-color: gray; }
 
 #changeSettingsPage .confirm-btn {
-  color: #bbb;
-  background-color: transparent; }
+  color: #fff;
+  background-color: #004f7e; }
 
 #changeSettingsPage .value-circle {
   height: 100;
@@ -166,17 +164,17 @@
   border-radius: 50;
   horizontal-align: center;
   vertical-align: center;
-  background-color: transparent;
+  background-color: #004f7e;
   color: #fff; }
 
 #changeSettingsPage .value-circle .changeSettingsTitle {
-  color: #bbb;
+  color: #fff;
   text-align: center;
   horizontal-align: center;
   vertical-align: center; }
 
 #changeSettingsPage .value-circle .changeSettingsValue {
-  color: #bbb;
+  color: #fff;
   font-size: 24;
   font-weight: bold;
   text-align: center;
@@ -188,14 +186,17 @@
 .bullet-list-icon {
   font-size: 8;
   font-family: ionicons, "ionicons", Ionicons, "Ionicons";
+  color: #fff;
   vertical-align: center;
-  horizonta-align: center; }
+  horizontal-align: center;
+  margin: 5 5 5 0; }
 
 .settings-label {
-  font-size: 20;
-  color: #bbb;
-  margin: 0 0 0 8;
-  padding: 4; }
+  font-size: 18;
+  font-weight: normal;
+  color: #fff;
+  vertical-align: center;
+  margin: 5 0 5 0; }
 
 Page {
   background-color: #000; }

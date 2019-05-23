@@ -255,8 +255,16 @@ export class MainViewModel extends Observable {
     }
   }
 
+  onLedSettingsTap() {
+    Log.D('LED Settings tapped.');
+  }
+
   onUpdatesTap() {
     showSuccess('No updates available.', 4);
+  }
+
+  onTrainingTap() {
+    Log.D('Trained tapped.');
   }
 
   /**
@@ -296,6 +304,12 @@ export class MainViewModel extends Observable {
         // need to get current stored tap sensitivity setting
         this.changeSettingKeyValue = '20%';
         break;
+      case 'mode':
+        Log.D('figure out what we wanna do with MODE');
+        return;
+      case 'units':
+        Log.D('figure out what we wanna do with MODE');
+        return;
       default:
         break;
     }

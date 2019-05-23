@@ -90,43 +90,32 @@
 
       <pager:PagerItem>
         <wol:WearOsLayout height="100%" width="100%">
-          <StackLayout>
-            <Label text="&#xf21b;" tap="{{ onSettingsTap }}" class="settings-label" textWrap="true">
-              <FormattedString>
-                <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
-                <Span text="Settings"></Span>
-              </FormattedString>
-            </Label>
-            <Label text="&#xf21b;" tap="{{ onLedSettingsTap }}" class="settings-label" textWrap="true">
-              <FormattedString>
-                <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
-                <Span text="LED Settings"></Span>
-              </FormattedString>
-            </Label>
-            <Label text="&#xf21b;" tap="{{ onUpdatesTap }}" class="settings-label" textWrap="true">
-              <FormattedString>
-                <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
-                <Span text="Updates"></Span>
-              </FormattedString>
-            </Label>
-            <Label text="&#xf21b;" tap="{{ onTrainingTap }}" class="settings-label" textWrap="true">
-              <FormattedString>
-                <Span text="&#xf21b;  " fontSize="8" class="bullet-list-icon"></Span>
-                <Span text="Training"></Span>
-              </FormattedString>
-            </Label>
-            <!-- <Label text="&#xf21b; LED Settings" tap="{{ onLedSettingsTap }}" class="settings-label" textWrap="true" />
-            <Label text="&#xf21b; Updates" tap="{{ onUpdatesTap }}" class="settings-label" textWrap="true" />
-            <Label text="&#xf21b; Training" tap="{{ onTrainingTap }}" class="settings-label" textWrap="true" /> -->
-          </StackLayout>
-
-          <!-- <lv:WearOsListView useScalingScroll="false" height="100%" items="{{ settingsItems }}">
-            <lv:WearOsListView.itemTemplate>
-              <GridLayout rows="*" columns="*">
-                <Label text="{{ title }}" row="0" col="0" />
+          <GridLayout rows="*, *, *, *" columns="*">
+            <RL:Ripple row="0" rippleColor="#ddd">
+              <GridLayout rows="*" columns="15, *" tap="{{ onSettingsTap }}">
+                <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                <Label col="1" text="Settings" class="settings-label" textWrap="true" />
               </GridLayout>
-            </lv:WearOsListView.itemTemplate>
-          </lv:WearOsListView> -->
+            </RL:Ripple>
+            <RL:Ripple row="1" rippleColor="#ddd">
+              <GridLayout rows="*" columns="15, *" tap="{{ onLedSettingsTap }}">
+                <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                <Label col="1" text="LED Settings" class="settings-label" textWrap="true" />
+              </GridLayout>
+            </RL:Ripple>
+            <RL:Ripple row="2" rippleColor="#ddd">
+              <GridLayout rows="*" columns="15, *" tap="{{ onUpdatesTap }}">
+                <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                <Label col="1" text="Updates" class="settings-label" textWrap="true" />
+              </GridLayout>
+            </RL:Ripple>
+            <RL:Ripple row="3" rippleColor="#ddd">
+              <GridLayout rows="*" columns="15, *" tap="{{ onTrainingTap }}">
+                <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                <Label col="1" text="Training" class="settings-label" textWrap="true" />
+              </GridLayout>
+            </RL:Ripple>
+          </GridLayout>
         </wol:WearOsLayout>
       </pager:PagerItem>
     </pager:Pager>                                      
@@ -134,41 +123,40 @@
     // Settings Layout "Page" -- need to wrap this in a component
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
       <wol:WearOsLayout height="100%" width="100%">
-        <StackLayout>
-          <Label id="maxSpeed" text="&#xf21b;" tap="{{ onChangeSettingsItemTap }}" class="settings-label" textWrap="true">
-            <FormattedString>
-              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
-              <Span text="Max Speed"></Span>
-            </FormattedString>
-          </Label>
-          <Label id="acceleration" text="&#xf21b;" tap="{{ onChangeSettingsItemTap }}" class="settings-label" textWrap="true">
-            <FormattedString>
-              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
-              <Span text="Acceleration"></Span>
-            </FormattedString>
-          </Label>
-          <Label id="tapSensitivity" text="&#xf21b;" tap="{{ onChangeSettingsItemTap }}" class="settings-label" textWrap="true">
-            <FormattedString>
-              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
-              <Span text="Tap Sensitivity"></Span>
-            </FormattedString>
-          </Label>
-          <Label text="&#xf21b;" tap="{{ onModeTap }}" class="settings-label" textWrap="true">
-            <FormattedString>
-              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
-              <Span text="Mode"></Span>
-            </FormattedString>
-          </Label>
-          <Label text="&#xf21b;" tap="{{ onUnitsTap }}" class="settings-label" textWrap="true">
-            <FormattedString>
-              <Span text="&#xf21b;  " class="bullet-list-icon"></Span>
-              <Span text="Units"></Span>
-            </FormattedString>
-          </Label>
-        </StackLayout>
+        <GridLayout rows="*, *, *, *, *" columns="*">
+          <RL:Ripple row="0" rippleColor="#ddd">
+            <GridLayout rows="*" columns="15, *" id="maxSpeed" tap="{{ onChangeSettingsItemTap }}">
+              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+              <Label row="0" col="1" text="Max Speed" class="settings-label" textWrap="true" />
+            </GridLayout>
+          </RL:Ripple>
+          <RL:Ripple row="1" rippleColor="#ddd">
+            <GridLayout rows="*" columns="15, *" id="acceleration" tap="{{ onChangeSettingsItemTap }}">
+              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+              <Label row="0" col="1" text="Acceleration" class="settings-label" textWrap="true" />
+            </GridLayout>
+          </RL:Ripple>
+          <RL:Ripple row="2" rippleColor="#ddd">
+            <GridLayout rows="*" columns="15, *" id="tapSensitivity" tap="{{ onChangeSettingsItemTap }}">
+              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+              <Label row="0" col="1" text="Tap Sensitivity" class="settings-label" textWrap="true" />
+            </GridLayout>
+          </RL:Ripple>
+          <RL:Ripple row="3" rippleColor="#ddd">
+            <GridLayout rows="*" columns="15, *" id="mode" tap="{{ onChangeSettingsItemTap }}">
+              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+              <Label row="0" col="1" text="Mode" class="settings-label" textWrap="true" />
+            </GridLayout>
+          </RL:Ripple>
+          <RL:Ripple row="4" rippleColor="#ddd">
+            <GridLayout rows="*" columns="15, *" id="units" tap="{{ onChangeSettingsItemTap }}">
+              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+              <Label row="0" col="1" text="Units" class="settings-label" textWrap="true" />
+            </GridLayout>
+          </RL:Ripple>
+        </GridLayout>
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
-
 
     // Settings Layout "Page" -- need to wrap this in a component
     <sdl:SwipeDismissLayout id="changeSettingsPage" row="0" rowSpan="2" col="0" loaded="{{ onChangeSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isChangeSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">

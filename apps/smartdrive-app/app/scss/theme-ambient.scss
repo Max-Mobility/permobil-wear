@@ -1,8 +1,8 @@
-@import 'variables';
-@import 'common';
-@import 'charts-ambient';
-@import 'change-settings-ambient';
-@import 'settings-list-ambient';
+@import 'variables.scss';
+@import 'common.scss';
+@import 'charts-default.scss';
+@import 'change-settings-default.scss';
+@import 'settings-list-default.scss';
 
 Page {
   background-color: $black;

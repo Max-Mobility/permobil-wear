@@ -1,16 +1,19 @@
-@import 'variables';
+@import 'variables.scss';
 
 /** Settings List on Main-Page **/
 .bullet-list-icon {
   font-size: 8;
   font-family: $ionicon;
-  vertical-align: center;
-  horizonta-align: center;
+  color: $white;
+  vertical-align: $center;
+  horizontal-align: $center;
+  margin: 5 5 5 0;
 }
 
 .settings-label {
-  font-size: 20;
+  font-size: 18;
+  font-weight: normal;
   color: $white;
-  margin: 0 0 0 8;
-  padding: 4;
+  vertical-align: $center;
+  margin: 5 0 5 0;
 }
