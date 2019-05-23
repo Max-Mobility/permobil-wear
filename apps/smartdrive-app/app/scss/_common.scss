@@ -14,6 +14,31 @@
   android-dynamic-elevation-offset: 2;
 }
 
+.circle-image-btn {
+  height: 48;
+  width: 48;
+  border-radius: 24;
+  vertical-align: center;
+  horizontal-align: center;
+
+  StackLayout {
+    height: 48;
+    width: 48;
+    border-radius: 24;
+    height: 100%;
+    width: 100%;
+    vertical-align: center;
+    horizontal-align: center;
+
+    label {
+      font-family: $ionicon;
+      font-size: 36;
+      vertical-align: center;
+      horizontal-align: center;
+    }
+  }
+}
+
 /** Label Line Chart Styles **/
 .chart-title {
   horizontal-align: center;

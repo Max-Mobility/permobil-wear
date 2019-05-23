@@ -3,76 +3,55 @@
 
 /** Change Settings Page **/
 #changeSettingsPage {
-  padding: 5;
-  margin: 5;
+  margin: 4;
 
   .increase-btn {
-    @extend .btn-transparent;
-    background-color: transparent;
+    @extend .circle-image-btn;
     color: $ambient-white;
-    font-size: 35;
-    height: 50;
-    font-family: $ionicon;
-    vertical-align: top;
+    background-color: transparent;
   }
 
   .decrease-btn {
-    @extend .btn-transparent;
-    background-color: transparent;
+    @extend .circle-image-btn;
     color: $ambient-white;
-    font-size: 35;
-    height: 50;
-    font-family: $ionicon;
-    vertical-align: bottom;
+    background-color: transparent;
   }
 
   .cancel-btn {
-    @extend .btn-transparent;
+    @extend .circle-image-btn;
     color: $ambient-white;
-    font-size: 25;
-    font-family: $ionicon;
-    height: 50;
-    width: 50;
-    border-radius: 25;
-    horizontal-align: center;
-    vertical-align: center;
+    background-color: transparent;
   }
 
   .confirm-btn {
-    @extend .btn-transparent;
+    @extend .circle-image-btn;
     color: $ambient-white;
-    font-size: 25;
-    font-family: $ionicon;
-    height: 50;
-    width: 50;
-    border-radius: 25;
-    horizontal-align: center;
-    vertical-align: center;
+    background-color: transparent;
   }
 
   .value-circle {
     height: 100;
     width: 100;
     border-radius: 50;
-    horizontal-align: center;
-    vertical-align: center;
+    horizontal-align: $center;
+    vertical-align: $center;
     background-color: transparent;
     color: $white;
 
     .changeSettingsTitle {
       color: $ambient-white;
-      text-align: center;
-      horizontal-align: center;
-      vertical-align: center;
+      text-align: $center;
+      horizontal-align: $center;
+      vertical-align: $center;
     }
 
     .changeSettingsValue {
       color: $ambient-white;
       font-size: 24;
       font-weight: bold;
-      text-align: center;
-      horizontal-align: center;
-      vertical-align: center;
+      text-align: $center;
+      horizontal-align: $center;
+      vertical-align: $center;
     }
   }
 }

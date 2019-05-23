@@ -3,75 +3,53 @@
 
 /** Change Settings Page **/
 #changeSettingsPage {
-  padding: 5;
-  margin: 5;
+  margin: 4;
 
   .increase-btn {
-    @extend .btn-transparent;
+    @extend .circle-image-btn;
     color: $white;
-    font-size: 35;
-    height: 50;
-    font-family: $ionicon;
-    vertical-align: top;
   }
 
   .decrease-btn {
-    @extend .btn-transparent;
+    @extend .circle-image-btn;
     color: $white;
-    font-size: 35;
-    height: 50;
-    font-family: $ionicon;
-    vertical-align: bottom;
   }
 
   .cancel-btn {
-    background-color: gray;
+    @extend .circle-image-btn;
     color: $white;
-    font-size: 25;
-    font-family: $ionicon;
-    height: 50;
-    width: 50;
-    border-radius: 25;
-    horizontal-align: center;
-    vertical-align: center;
+    background-color: gray;
   }
 
   .confirm-btn {
-    background-color: $permobil-hero;
+    @extend .circle-image-btn;
     color: $white;
-    font-size: 25;
-    font-family: $ionicon;
-    height: 50;
-    width: 50;
-    border-radius: 25;
-    android-elevation: 2;
-    horizontal-align: center;
-    vertical-align: center;
+    background-color: $permobil-hero;
   }
 
   .value-circle {
     height: 100;
     width: 100;
     border-radius: 50;
-    horizontal-align: center;
-    vertical-align: center;
+    horizontal-align: $center;
+    vertical-align: $center;
     background-color: $permobil-hero;
     color: $white;
 
     .changeSettingsTitle {
       color: $white;
-      text-align: center;
-      horizontal-align: center;
-      vertical-align: center;
+      text-align: $center;
+      horizontal-align: $center;
+      vertical-align: $center;
     }
 
     .changeSettingsValue {
       color: $white;
       font-size: 24;
       font-weight: bold;
-      text-align: center;
-      horizontal-align: center;
-      vertical-align: center;
+      text-align: $center;
+      horizontal-align: $center;
+      vertical-align: $center;
     }
   }
 }
