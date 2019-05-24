@@ -10,7 +10,7 @@
     "nuki": "npm run nuke && npm run setup",
     "global.installs": "npm i -g rimraf && npm i -g typescript",
     "setup": "npm run global.installs && npm run setup.nonglobal",
-    "setup.nonglobal": "npm run nuke && npm i && npm run setup.ns.bluetooth && npm run setup.libs && npm run setup.smartdrive.app",
+    "setup.nonglobal": "npm run nuke && npm i && npm run setup.ns.bluetooth && npm run setup.ns.animated-circle && npm run setup.libs && npm run setup.smartdrive.app",
     "setup.ns.bluetooth": "cd forked-plugins/nativescript-bluetooth && npm i && tsc",
     "setup.ns.animated-circle": "cd forked-plugins/nativescript-animated-circle && npm i && tsc",
     "setup.smartdrive.app": "cd apps/smartdrive-app && npm i && tsc",
