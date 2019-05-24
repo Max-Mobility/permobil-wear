@@ -122,3 +122,5 @@ package-lock.json
 !sketch_running_on_nrf52_neopixel.js
 
 !ns-themes/**.js
+
+!forked-plugins/nativescript-animated-circle/platforms
