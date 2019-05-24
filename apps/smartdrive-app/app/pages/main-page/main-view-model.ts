@@ -21,8 +21,13 @@ import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
-import { injector, currentSystemTime } from '../../app';
-import { hideOffScreenLayout, showOffScreenLayout } from '../../utils';
+import { injector } from '../../app';
+import {
+  hideOffScreenLayout,
+  showOffScreenLayout,
+  currentSystemTime,
+  currentSystemTimeMeridiem
+} from '../../utils';
 
 export class MainViewModel extends Observable {
   @Prop() smartDriveCurrentBatteryPercentage: number;
@@ -105,8 +110,13 @@ export class MainViewModel extends Observable {
     this.smartDriveCurrentBatteryPercentage = 88;
     this.watchCurrentBatteryPercentage = 63;
 
+    // improve the time tracking with a service or some watcher to actually watch the SYSTEM CLOCK
     this.currentTime = currentSystemTime();
-    this.currentTimeMeridiem = 'AM';
+    setInterval(() => {
+      this.currentTime = currentSystemTime();
+    }, 20000);
+
+    this.currentTimeMeridiem = currentSystemTimeMeridiem();
 
     // this._sensorService.on(
     //   SensorService.AccuracyChanged,

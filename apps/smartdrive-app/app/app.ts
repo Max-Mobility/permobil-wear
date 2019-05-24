@@ -11,21 +11,11 @@ import { Sentry } from 'nativescript-sentry';
 import * as themes from 'nativescript-themes';
 import * as application from 'tns-core-modules/application';
 import './utils/async-await';
+import { currentSystemTime } from './utils';
 
 Log.D('Setting the default theme for the app styles');
 // apply our default theme for the app
 themes.applyTheme(themes.getAppliedTheme('./scss/theme-default.css'));
-
-/**
- * Exposing the system time from app.ts so we can use it throughout the app if needed.
- * Right now, it's only being used here in the ambient mode callbacks. This way we can bind/print
- * the time on the screen during the ambient update callback.
- */
-export const currentSystemTime = () =>
-  new java.text.SimpleDateFormat('h:mm', java.util.Locale.US).format(
-    new java.util.Date()
-  );
-Log.D(`Current system time: ${currentSystemTime()}`);
 
 // initialize Kinvey
 Kinvey.init({ appKey: `${APP_KEY}`, appSecret: `${APP_SECRET}` });
@@ -42,13 +32,11 @@ const sentryService: SentryService = injector.get(SentryService);
 
 // handle ambient mode callbacks
 application.on('enterAmbient', args => {
-  Log.D('enterAmbient', args.data, currentSystemTime());
   themes.applyTheme('./scss/theme-ambient.css');
 });
 
 // handle ambient mode callbacks
 application.on('exitAmbient', args => {
-  Log.D('exitAmbient', args.data, currentSystemTime());
   themes.applyTheme('./scss/theme-default.css');
 });
 
