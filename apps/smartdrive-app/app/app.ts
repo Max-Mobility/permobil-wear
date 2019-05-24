@@ -22,7 +22,7 @@ themes.applyTheme(themes.getAppliedTheme('./scss/theme-default.css'));
  * the time on the screen during the ambient update callback.
  */
 export const currentSystemTime = () =>
-  new java.text.SimpleDateFormat('h:mm a', java.util.Locale.US).format(
+  new java.text.SimpleDateFormat('h:mm', java.util.Locale.US).format(
     new java.util.Date()
   );
 Log.D(`Current system time: ${currentSystemTime()}`);
@@ -84,6 +84,7 @@ application.on(application.displayedEvent, args => {
 
 application.on(application.suspendEvent, args => {
   Log.D('App suspend event...');
+  themes.applyTheme('./scss/theme-ambient.css');
 });
 
 application.on(application.exitEvent, args => {
@@ -97,6 +98,7 @@ application.on(application.lowMemoryEvent, args => {
 application.on(application.resumeEvent, args => {
   const processId = android.os.Process.myPid();
   Log.D(`App resume event -- process ID: ${processId}`);
+  themes.applyTheme('./scss/theme-default.css');
 });
 
 // start the app

@@ -182,6 +182,95 @@
   vertical-align: center; }
 
 /** Fonts **/
+/** Fonts **/
+/** Fonts **/
+.ionicon {
+  font-family: ionicons, "ionicons", Ionicons, "Ionicons"; }
+
+/** Buttons **/
+.btn-transparent {
+  background-color: transparent;
+  border-color: transparent;
+  border-width: 1;
+  android-elevation: 0;
+  android-dynamic-elevation-offset: 2; }
+
+.circle-image-btn, #changeSettingsPage .increase-btn, #changeSettingsPage .decrease-btn, #changeSettingsPage .cancel-btn, #changeSettingsPage .confirm-btn {
+  height: 48;
+  width: 48;
+  border-radius: 24;
+  vertical-align: center;
+  horizontal-align: center; }
+
+.circle-image-btn StackLayout, #changeSettingsPage .increase-btn StackLayout, #changeSettingsPage .decrease-btn StackLayout, #changeSettingsPage .cancel-btn StackLayout, #changeSettingsPage .confirm-btn StackLayout {
+  height: 48;
+  width: 48;
+  border-radius: 24;
+  height: 100%;
+  width: 100%;
+  vertical-align: center;
+  horizontal-align: center; }
+
+.circle-image-btn StackLayout label, #changeSettingsPage .increase-btn StackLayout label, #changeSettingsPage .decrease-btn StackLayout label, #changeSettingsPage .cancel-btn StackLayout label, #changeSettingsPage .confirm-btn StackLayout label {
+  font-family: ionicons, "ionicons", Ionicons, "Ionicons";
+  font-size: 36;
+  vertical-align: center;
+  horizontal-align: center; }
+
+/** Label Line Chart Styles **/
+.chart-title {
+  horizontal-align: center;
+  text-align: center; }
+
+.powerAssistCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 100%;
+  height: 100%; }
+
+.sdBatteryCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 90%;
+  height: 90%; }
+
+.watchBatteryCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 80%;
+  height: 80%; }
+
+.topValue {
+  color: #fff;
+  font-size: 18;
+  horizontal-align: center;
+  vertical-align: top; }
+
+.topValueDescription {
+  color: #fff;
+  font-size: 10;
+  horizontal-align: center;
+  vertical-align: top; }
+
+.powerAssistBtn {
+  background-color: #2fa52f;
+  color: #fff;
+  horizontal-align: center;
+  vertical-align: center; }
+
+.currentTime {
+  color: #fff;
+  font-size: 18;
+  horizontal-align: center;
+  vertical-align: bottom; }
+
+.currentTimeMeridiem {
+  color: #fff;
+  font-size: 10;
+  horizontal-align: center;
+  vertical-align: bottom; }
+
+/** Fonts **/
 /** Settings List on Main-Page **/
 .bullet-list-icon {
   font-size: 8;
@@ -199,10 +288,10 @@
   margin: 5 0 5 0; }
 
 Page {
-  background-color: #333; }
+  background-color: #111; }
 
 .page {
-  background-color: #333; }
+  background-color: #111; }
 
 label {
   color: #fff; }

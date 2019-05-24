@@ -1,4 +1,5 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" 
+  xmlns:nac="nativescript-animated-circle" 
   xmlns:Lottie="nativescript-lottie" 
   xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
   xmlns:lv="nativescript-wear-os/packages/listview" 
@@ -10,12 +11,28 @@
     <pager:Pager orientation="vertical" height="100%" width="100%" col="0" row="0" rowSpan="2" id="pager" spacing="2%" peaking="10%" transformer="none" pagesCount="10" showNativePageIndicator="false">
       // Activate Power Assist Screen
       <pager:PagerItem>
-        <wol:WearOsLayout height="100%" width="100%">
-          <GridLayout rows="*, *" columns="*">
-            <Button text="ACTIVATE POWER ASSIST" tap="{{ activatePowerAssistTap }}" />
-          </GridLayout>
-        </wol:WearOsLayout>
+        <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
+          // Power Assist Circle
+          <nac:AnimatedCircle rowSpan="3" colSpan="3" class="powerAssistCircle" width="100%" height="100%" animated="false" animateFrom="0" rimColor="transparent" barColor="#009ac7" clockwise="true" rimWidth="12" progress="100" />
+         // SmartDrive Battery Circle
+          <nac:AnimatedCircle rowSpan="3" colSpan="3" class="sdBatteryCircle" width="90%" height="90%" animated="true" animateFrom="0" rimColor="transparent" barColor="#fbff22" clockwise="true" rimWidth="7" progress="{{ smartDriveCurrentBatteryPercentage }}">
+          </nac:AnimatedCircle>
+         // Watch Battery Circle
+          <nac:AnimatedCircle rowSpan="3" colSpan="3" class="watchBatteryCircle" width="84%" height="84%" animated="true" animateFrom="0" rimColor="transparent" barColor="#ff671f" clockwise="true" rimWidth="7" progress="{{ watchCurrentBatteryPercentage }}">
+            <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
+              <!-- <wol:WearOsLayout> -->
+              <Label row="1" col="1" class="topValue" horizontalAlignment="center" text="{{ topValue }}" textWrap="true" />
+              <Label row="2" col="1" class="topValueDescription" text="{{ topValueDescription }}" textWrap="true" />
+              <Button row="3" col="1" class="powerAssistBtn" backgroundColor="#2fa52f" text="{{ powerAssistBtnText }}" tap="{{ activatePowerAssistTap }}" />
+              <Label row="4" col="1" class="currentTime" text="{{ currentTime }}" textWrap="true" />
+              <Label row="5" col="1" class="currentTimeMeridiem" text="{{ currentTimeMeridiem }}" textWrap="true" />
+              <!-- </wol:WearOsLayout> -->
+            </GridLayout>
+          </nac:AnimatedCircle>
+          // Battery Icon
+          <Image src="~/assets/images/round_battery_full_green_24.png" rowSpan="1" col="1" height="17" stretch="aspectFit" />
 
+        </GridLayout>
       </pager:PagerItem>
       
       // SmartDrive Battery Usage Chat
@@ -90,32 +107,30 @@
 
       <pager:PagerItem>
         <wol:WearOsLayout height="100%" width="100%">
-          <GridLayout rows="*, *, *, *" columns="*">
-            <RL:Ripple row="0" rippleColor="#ddd">
-              <GridLayout rows="*" columns="15, *" tap="{{ onSettingsTap }}">
-                <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-                <Label col="1" text="Settings" class="settings-label" textWrap="true" />
-              </GridLayout>
-            </RL:Ripple>
-            <RL:Ripple row="1" rippleColor="#ddd">
-              <GridLayout rows="*" columns="15, *" tap="{{ onLedSettingsTap }}">
-                <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-                <Label col="1" text="LED Settings" class="settings-label" textWrap="true" />
-              </GridLayout>
-            </RL:Ripple>
-            <RL:Ripple row="2" rippleColor="#ddd">
-              <GridLayout rows="*" columns="15, *" tap="{{ onUpdatesTap }}">
-                <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-                <Label col="1" text="Updates" class="settings-label" textWrap="true" />
-              </GridLayout>
-            </RL:Ripple>
-            <RL:Ripple row="3" rippleColor="#ddd">
-              <GridLayout rows="*" columns="15, *" tap="{{ onTrainingTap }}">
-                <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-                <Label col="1" text="Training" class="settings-label" textWrap="true" />
-              </GridLayout>
-            </RL:Ripple>
-          </GridLayout>
+          <RL:Ripple row="0" rippleColor="#ddd">
+            <GridLayout rows="*" columns="15, *" tap="{{ onSettingsTap }}">
+              <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+              <Label col="1" text="Settings" class="settings-label" textWrap="true" />
+            </GridLayout>
+          </RL:Ripple>
+          <RL:Ripple row="1" rippleColor="#ddd">
+            <GridLayout rows="*" columns="15, *" tap="{{ onLedSettingsTap }}">
+              <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+              <Label col="1" text="LED Settings" class="settings-label" textWrap="true" />
+            </GridLayout>
+          </RL:Ripple>
+          <RL:Ripple row="2" rippleColor="#ddd">
+            <GridLayout rows="*" columns="15, *" tap="{{ onUpdatesTap }}">
+              <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+              <Label col="1" text="Updates" class="settings-label" textWrap="true" />
+            </GridLayout>
+          </RL:Ripple>
+          <RL:Ripple row="3" rippleColor="#ddd">
+            <GridLayout rows="*" columns="15, *" tap="{{ onTrainingTap }}">
+              <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+              <Label col="1" text="Training" class="settings-label" textWrap="true" />
+            </GridLayout>
+          </RL:Ripple>
         </wol:WearOsLayout>
       </pager:PagerItem>
     </pager:Pager>                                      
@@ -123,38 +138,36 @@
     // Settings Layout "Page" -- need to wrap this in a component
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
       <wol:WearOsLayout height="100%" width="100%">
-        <GridLayout rows="*, *, *, *, *" columns="*">
-          <RL:Ripple row="0" rippleColor="#ddd">
-            <GridLayout rows="*" columns="15, *" id="maxSpeed" tap="{{ onChangeSettingsItemTap }}">
-              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-              <Label row="0" col="1" text="Max Speed" class="settings-label" textWrap="true" />
-            </GridLayout>
-          </RL:Ripple>
-          <RL:Ripple row="1" rippleColor="#ddd">
-            <GridLayout rows="*" columns="15, *" id="acceleration" tap="{{ onChangeSettingsItemTap }}">
-              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-              <Label row="0" col="1" text="Acceleration" class="settings-label" textWrap="true" />
-            </GridLayout>
-          </RL:Ripple>
-          <RL:Ripple row="2" rippleColor="#ddd">
-            <GridLayout rows="*" columns="15, *" id="tapSensitivity" tap="{{ onChangeSettingsItemTap }}">
-              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-              <Label row="0" col="1" text="Tap Sensitivity" class="settings-label" textWrap="true" />
-            </GridLayout>
-          </RL:Ripple>
-          <RL:Ripple row="3" rippleColor="#ddd">
-            <GridLayout rows="*" columns="15, *" id="mode" tap="{{ onChangeSettingsItemTap }}">
-              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-              <Label row="0" col="1" text="Mode" class="settings-label" textWrap="true" />
-            </GridLayout>
-          </RL:Ripple>
-          <RL:Ripple row="4" rippleColor="#ddd">
-            <GridLayout rows="*" columns="15, *" id="units" tap="{{ onChangeSettingsItemTap }}">
-              <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-              <Label row="0" col="1" text="Units" class="settings-label" textWrap="true" />
-            </GridLayout>
-          </RL:Ripple>
-        </GridLayout>
+        <RL:Ripple row="0" rippleColor="#ddd">
+          <GridLayout rows="*" columns="15, *" id="maxSpeed" tap="{{ onChangeSettingsItemTap }}">
+            <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+            <Label row="0" col="1" text="Max Speed" class="settings-label" textWrap="true" />
+          </GridLayout>
+        </RL:Ripple>
+        <RL:Ripple row="1" rippleColor="#ddd">
+          <GridLayout rows="*" columns="15, *" id="acceleration" tap="{{ onChangeSettingsItemTap }}">
+            <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+            <Label row="0" col="1" text="Acceleration" class="settings-label" textWrap="true" />
+          </GridLayout>
+        </RL:Ripple>
+        <RL:Ripple row="2" rippleColor="#ddd">
+          <GridLayout rows="*" columns="15, *" id="tapSensitivity" tap="{{ onChangeSettingsItemTap }}">
+            <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+            <Label row="0" col="1" text="Tap Sensitivity" class="settings-label" textWrap="true" />
+          </GridLayout>
+        </RL:Ripple>
+        <RL:Ripple row="3" rippleColor="#ddd">
+          <GridLayout rows="*" columns="15, *" id="mode" tap="{{ onChangeSettingsItemTap }}">
+            <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+            <Label row="0" col="1" text="Mode" class="settings-label" textWrap="true" />
+          </GridLayout>
+        </RL:Ripple>
+        <RL:Ripple row="4" rippleColor="#ddd">
+          <GridLayout rows="*" columns="15, *" id="units" tap="{{ onChangeSettingsItemTap }}">
+            <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+            <Label row="0" col="1" text="Units" class="settings-label" textWrap="true" />
+          </GridLayout>
+        </RL:Ripple>
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
 

@@ -1,0 +1,58 @@
+@import 'variables';
+@import 'common';
+
+.powerAssistCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 100%;
+  height: 100%;
+}
+
+.sdBatteryCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 90%;
+  height: 90%;
+}
+
+.watchBatteryCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 80%;
+  height: 80%;
+}
+
+.topValue {
+  color: $white;
+  font-size: 18;
+  horizontal-align: $center;
+  vertical-align: top;
+}
+
+.topValueDescription {
+  color: $white;
+  font-size: 10;
+  horizontal-align: $center;
+  vertical-align: top;
+}
+
+.powerAssistBtn {
+  background-color: #2fa52f;
+  color: $white;
+  horizontal-align: $center;
+  vertical-align: center;
+}
+
+.currentTime {
+  color: $white;
+  font-size: 18;
+  horizontal-align: $center;
+  vertical-align: bottom;
+}
+
+.currentTimeMeridiem {
+  color: $white;
+  font-size: 10;
+  horizontal-align: $center;
+  vertical-align: bottom;
+}

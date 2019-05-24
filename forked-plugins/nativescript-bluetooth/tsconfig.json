@@ -15,7 +15,7 @@
   "compileOnSave": false,
   "files": [
     "references.d.ts",
-    "../node_modules/tns-platform-declarations/ios.d.ts",
+    "./node_modules/tns-platform-declarations/ios.d.ts",
     "./node_modules/tns-platform-declarations/android-23.d.ts",
     "common.ts",
     "index.ts",

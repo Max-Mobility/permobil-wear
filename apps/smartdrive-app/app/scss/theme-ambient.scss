@@ -1,8 +1,9 @@
-@import 'variables.scss';
-@import 'common.scss';
-@import 'charts-default.scss';
-@import 'change-settings-default.scss';
-@import 'settings-list-default.scss';
+@import 'variables';
+@import 'common';
+@import 'charts-ambient';
+@import 'change-settings-ambient';
+@import 'power-assist-ambient';
+@import 'settings-list-ambient';
 
 Page {
   background-color: $black;
@@ -10,6 +11,10 @@ Page {
 
 .page {
   background-color: $black;
+}
+
+label {
+  color: $ambient-white;
 }
 
 .hr-blue {

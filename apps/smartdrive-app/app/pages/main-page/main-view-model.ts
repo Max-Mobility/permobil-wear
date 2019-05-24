@@ -21,41 +21,25 @@ import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
-import { injector } from '../../app';
+import { injector, currentSystemTime } from '../../app';
 import { hideOffScreenLayout, showOffScreenLayout } from '../../utils';
 
 export class MainViewModel extends Observable {
-  /**
-   * The heart rate data to render.
-   */
-  @Prop()
-  heartRate: string;
+  @Prop() smartDriveCurrentBatteryPercentage: number;
+  @Prop() watchCurrentBatteryPercentage: number;
+  @Prop() powerAssistBtnText: string = 'Activate Power Assist';
+  @Prop() topValue: string = '8.2';
+  @Prop() topValueDescription: string = 'Estimated Range (MI)';
+  @Prop() currentTime;
 
-  /**
-   * The heart rate accuracy for monitoring.
-   */
-  @Prop()
-  heartRateAccuracy = 0;
-
-  /**
-   * Boolean to track if heart rate is being monitored.
-   */
-  @Prop()
-  public isGettingHeartRate = false;
-
+  @Prop() currentTimeMeridiem;
   /**
    * Boolean to track the settings swipe layout visibility.
    */
-  @Prop()
-  public isSettingsLayoutEnabled = false;
-
-  @Prop()
-  public isChangeSettingsLayoutEnabled = false;
-
-  @Prop()
-  public changeSettingKeyString = '';
-  @Prop()
-  public changeSettingKeyValue;
+  @Prop() isSettingsLayoutEnabled = false;
+  @Prop() isChangeSettingsLayoutEnabled = false;
+  @Prop() changeSettingKeyString = '';
+  @Prop() changeSettingKeyValue;
 
   /**
    *
@@ -65,8 +49,7 @@ export class MainViewModel extends Observable {
   /**
    * The tap sensitivity threshold
    */
-  @Prop()
-  tapSensitivity: number = 0.5;
+  @Prop() tapSensitivity: number = 0.5;
 
   /**
    * The tap sensitivity display
@@ -79,31 +62,17 @@ export class MainViewModel extends Observable {
   /**
    * Boolean to track whether a tap has been performed.
    */
-  @Prop()
-  hasTapped = false;
+  @Prop() hasTapped = false;
 
   /**
    * Boolean to handle logic if we have connected to a SD unit.
    */
-  @Prop()
-  public connected = false;
-
-  /**
-   * Array of Settings PagerItem list items
-   */
-  @Prop()
-  public settingsItems = [
-    { title: 'Settings' },
-    { title: 'LED Settings' },
-    { title: 'Updates' },
-    { title: 'Training' }
-  ];
+  @Prop() public connected = false;
 
   /**
    * Boolean to track if the SmartDrive motor is on.
    */
-  @Prop()
-  public motorOn = false;
+  @Prop() public motorOn = false;
 
   /**
    * State Management for Sensor Monitoring / Data Collection
@@ -133,21 +102,27 @@ export class MainViewModel extends Observable {
   ) {
     super();
 
-    this._sensorService.on(
-      SensorService.AccuracyChanged,
-      (args: AccuracyChangedEventData) => {
-        const sensor = args.data.sensor;
-        const accuracy = args.data.accuracy;
-        if (sensor.getType() === android.hardware.Sensor.TYPE_HEART_RATE) {
-          this.heartRateAccuracy = accuracy;
-          // save the heart rate
-          appSettings.setNumber(
-            DataKeys.HEART_RATE,
-            parseInt(this.heartRate, 10)
-          );
-        }
-      }
-    );
+    this.smartDriveCurrentBatteryPercentage = 88;
+    this.watchCurrentBatteryPercentage = 63;
+
+    this.currentTime = currentSystemTime();
+    this.currentTimeMeridiem = 'AM';
+
+    // this._sensorService.on(
+    //   SensorService.AccuracyChanged,
+    //   (args: AccuracyChangedEventData) => {
+    //     const sensor = args.data.sensor;
+    //     const accuracy = args.data.accuracy;
+    //     if (sensor.getType() === android.hardware.Sensor.TYPE_HEART_RATE) {
+    //       this.heartRateAccuracy = accuracy;
+    //       // save the heart rate
+    //       appSettings.setNumber(
+    //         DataKeys.HEART_RATE,
+    //         parseInt(this.heartRate, 10)
+    //       );
+    //     }
+    //   }
+    // );
 
     this._sensorService.on(
       SensorService.SensorChanged,
@@ -156,13 +131,13 @@ export class MainViewModel extends Observable {
         // the data structure is simplified to reduce redundant data
         const parsedData = args.data;
 
-        // Log.D(event.values[0]);
-        if (parsedData.s === android.hardware.Sensor.TYPE_HEART_RATE) {
-          // save the heart rate for use by the app
-          this.heartRate = parsedData.d.heart_rate.toString().split('.')[0];
-          // add accuracy for heart rate data from sensors
-          parsedData.d.accuracy = this.heartRateAccuracy;
-        }
+        // // Log.D(event.values[0]);
+        // if (parsedData.s === android.hardware.Sensor.TYPE_HEART_RATE) {
+        //   // save the heart rate for use by the app
+        //   this.heartRate = parsedData.d.heart_rate.toString().split('.')[0];
+        //   // add accuracy for heart rate data from sensors
+        //   parsedData.d.accuracy = this.heartRateAccuracy;
+        // }
 
         // only showing linear acceleration data for now
         if (parsedData.s === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {

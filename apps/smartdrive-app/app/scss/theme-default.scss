@@ -1,8 +1,9 @@
-@import 'variables.scss';
-@import 'common.scss';
-@import 'charts-default.scss';
-@import 'change-settings-default.scss';
-@import 'settings-list-default.scss';
+@import 'variables';
+@import 'common';
+@import 'charts-default';
+@import 'change-settings-default';
+@import 'power-assist-default';
+@import 'settings-list-default';
 
 Page {
   background-color: $light-black;
