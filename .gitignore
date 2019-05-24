@@ -124,3 +124,4 @@ package-lock.json
 !ns-themes/**.js
 
 !forked-plugins/nativescript-animated-circle/platforms
+!forked-plugins/nativescript-animated-circle/typings
