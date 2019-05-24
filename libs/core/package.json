@@ -6,7 +6,8 @@
   "dependencies": {
     "tns-core-modules": "../../node_modules/tns-core-modules",
     "smart-eval-kinvey": "../../node_modules/smart-eval-kinvey",
-    "nativescript-sentry": "../../node_modules/nativescript-sentry"
+    "nativescript-sentry": "../../node_modules/nativescript-sentry",
+    "nativescript-bluetooth": "../../forked-plugins/nativescript-bluetooth"
   },
   "devDependencies": {
     "tns-platform-declarations": "../../node_modules/tns-platform-declarations"
