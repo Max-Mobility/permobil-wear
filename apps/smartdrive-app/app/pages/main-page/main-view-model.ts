@@ -9,6 +9,9 @@ import {
   SentryService,
   SmartDrive
 } from '@permobil/core';
+import { Page } from 'tns-core-modules/ui/page';
+import { AnimatedCircle } from 'nativescript-animated-circle';
+import { Pager } from 'nativescript-pager';
 import { Color } from 'tns-core-modules/color';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
@@ -31,15 +34,24 @@ import {
 } from '../../utils';
 
 namespace PowerAssist {
+  export const InactiveRingColor = '#000000';
   export const InactiveButtonColor = new Color('#2fa52f');
   export const InactiveButtonText = 'Activate Power Assist';
 
+  export const ActiveRingColor = '#009ac7';
   export const ActiveButtonColor = new Color('#a52f2f');
   export const ActiveButtonText = 'Deactivate Power Assist';
 
+  export const TrainingRingColor = '#2fa52f';
+  export const TrainingButtonColor = new Color('#2fa52f');
+  export const TrainingButtonText = 'Exit Training Mode';
+
+  export const TappedRingColor = '#a52f2f';
+
   export enum State {
     Inactive,
-    Active
+    Active,
+    Training
   }
 }
 
@@ -48,11 +60,13 @@ export class MainViewModel extends Observable {
   @Prop() watchCurrentBatteryPercentage: number;
   @Prop() powerAssistBtnText: string = PowerAssist.InactiveButtonText;
   @Prop() powerAssistBtnColor: Color = PowerAssist.InactiveButtonColor;
+  @Prop() powerAssistRingColor: string = PowerAssist.InactiveRingColor;
   @Prop() topValue: string = '8.2';
   @Prop() topValueDescription: string = 'Estimated Range (MI)';
   @Prop() currentTime;
   @Prop() currentTimeMeridiem;
   @Prop() powerAssistActive: boolean = false;
+  @Prop() isTraining: boolean = false;
   /**
    * Boolean to track the settings swipe layout visibility.
    */
@@ -104,6 +118,8 @@ export class MainViewModel extends Observable {
   /**
    * User interaction objects
    */
+  private pager: Pager;
+  private powerAssistRing: AnimatedCircle;
   private _settingsLayout: SwipeDismissLayout;
   public _changeSettingsLayout: SwipeDismissLayout;
   private _vibrator: Vibrate = new Vibrate();
@@ -218,6 +234,18 @@ export class MainViewModel extends Observable {
     );
   }
 
+  onPagerLoaded(args: any) {
+    let page = <Page>args.object;
+    this.pager = <Pager>page.getViewById('pager');
+  }
+
+  onPowerAssistBarLoaded(args: any) {
+    let page = <Page>args.object;
+    this.powerAssistRing = <AnimatedCircle>(
+      page.getViewById('powerAssistCircle')
+    );
+  }
+
   handleAccel(acceleration: any) {
     let diff = acceleration.z;
     if (this.motorOn) {
@@ -236,15 +264,21 @@ export class MainViewModel extends Observable {
   handleTap() {
     // block high frequency tapping and ignore tapping if not on
     // the user's wrist
-    if (this.hasTapped || !this.watchBeingWorn) {
+    if (this.hasTapped || (!this.watchBeingWorn && !this.isTraining)) {
       return;
     }
     this.hasTapped = true;
+    this.updatePowerAssistRing(PowerAssist.TappedRingColor);
     setTimeout(() => {
       this.hasTapped = false;
+      this.updatePowerAssistRing();
     }, 300);
     // now send
-    if (this._smartDrive && this._smartDrive.ableToSend) {
+    if (
+      this.powerAssistActive &&
+      this._smartDrive &&
+      this._smartDrive.ableToSend
+    ) {
       if (this.motorOn) {
         Log.D('Vibrating for tap while connected to SD and motor on!');
         this._vibrator.cancel();
@@ -293,6 +327,16 @@ export class MainViewModel extends Observable {
 
   onTrainingTap() {
     Log.D('Trained tapped.');
+    this.isTraining = true;
+    this.updatePowerAssistRing(PowerAssist.TrainingRingColor);
+    if (this.pager) this.pager.selectedIndex = 0;
+    this.enableDeviceSensors();
+  }
+
+  onExitTrainingModeTap() {
+    this.isTraining = false;
+    this.updatePowerAssistRing();
+    this.disableDeviceSensors();
   }
 
   /**
@@ -415,6 +459,22 @@ export class MainViewModel extends Observable {
     );
   }
 
+  updatePowerAssistRing(color?: any) {
+    if (color) {
+      this.powerAssistRingColor = color;
+    } else {
+      if (this.powerAssistActive) {
+        this.powerAssistRingColor = PowerAssist.ActiveRingColor;
+      } else {
+        if (this.isTraining)
+          this.powerAssistRingColor = PowerAssist.TrainingRingColor;
+        else this.powerAssistRingColor = PowerAssist.ActiveRingColor;
+      }
+    }
+    if (this.powerAssistRing)
+      this.powerAssistRing.rimColor = this.powerAssistRingColor;
+  }
+
   updatePowerAssistButton(state: PowerAssist.State) {
     switch (state) {
       case PowerAssist.State.Active:
@@ -431,6 +491,7 @@ export class MainViewModel extends Observable {
   togglePowerAssist() {
     if (this.powerAssistActive) {
       this.powerAssistActive = false;
+      this.updatePowerAssistRing(PowerAssist.InactiveRingColor);
       this.updatePowerAssistButton(PowerAssist.State.Inactive);
       // turn off the motor if SD is connected
       if (this._smartDrive && this._smartDrive.ableToSend) {
@@ -448,6 +509,7 @@ export class MainViewModel extends Observable {
           console.log('connectToSavedSmartdrive: ', didConnect);
           if (didConnect) {
             this.powerAssistActive = true;
+            this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
             this.enableDeviceSensors();
             this.updatePowerAssistButton(PowerAssist.State.Active);
           }

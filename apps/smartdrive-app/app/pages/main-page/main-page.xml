@@ -8,12 +8,12 @@
   xmlns:RL="nativescript-ng-ripple/ripple-view" navigatingTo="navigatingTo" actionBarHidden="true">
   <GridLayout rows="*, *" columns="*">
 
-    <pager:Pager orientation="vertical" height="100%" width="100%" col="0" row="0" rowSpan="2" id="pager" spacing="2%" peaking="10%" transformer="none" pagesCount="10" showNativePageIndicator="false">
+    <pager:Pager loaded="{{ onPagerLoaded }}" orientation="vertical" height="100%" width="100%" col="0" row="0" rowSpan="2" id="pager" spacing="2%" peaking="10%" transformer="none" pagesCount="10" showNativePageIndicator="false" disableSwipe="{{ powerAssistActive || isTraining }}">
       // Activate Power Assist Screen
       <pager:PagerItem>
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
           // Power Assist Circle
-          <nac:AnimatedCircle rowSpan="3" colSpan="3" class="powerAssistCircle" width="100%" height="100%" animated="false" animateFrom="0" rimColor="transparent" barColor="#009ac7" clockwise="true" rimWidth="12" progress="100" visibility="{{ powerAssistActive ? 'visible' : 'collapsed' }}" />
+          <nac:AnimatedCircle id="powerAssistCircle" rowSpan="3" colSpan="3" class="powerAssistCircle" width="100%" height="100%" animated="false" animateFrom="0" rimColor="transparent" barColor="{{ powerAssistRingColor }}" clockwise="true" rimWidth="12" progress="100" visibility="{{ (powerAssistActive || isTraining) ? 'visible' : 'collapsed' }}" loaded="{{ onPowerAssistBarLoaded }}"/>
          // SmartDrive Battery Circle
           <nac:AnimatedCircle rowSpan="3" colSpan="3" class="sdBatteryCircle" width="90%" height="90%" animated="true" animateFrom="0" rimColor="transparent" barColor="#fbff22" clockwise="true" rimWidth="7" progress="{{ smartDriveCurrentBatteryPercentage }}">
           </nac:AnimatedCircle>
@@ -23,7 +23,8 @@
               <!-- <wol:WearOsLayout> -->
               <Label row="1" col="1" class="topValue" horizontalAlignment="center" text="{{ topValue }}" textWrap="true" />
               <Label row="2" col="1" class="topValueDescription" text="{{ topValueDescription }}" textWrap="true" />
-              <Button row="3" col="1" class="powerAssistBtn" backgroundColor="{{ powerAssistBtnColor }}" text="{{ powerAssistBtnText }}" tap="{{ activatePowerAssistTap }}" />
+              <Button row="3" col="1" class="powerAssistBtn" backgroundColor="{{ powerAssistBtnColor }}" text="{{ powerAssistBtnText }}" tap="{{ activatePowerAssistTap }}" visibility="{{ !isTraining ? 'visible' : 'collapsed' }}"/>
+              <Button row="3" col="1" class="powerAssistBtn" backgroundColor="#2fa52f" text="Exit Training Mode" tap="{{ onExitTrainingModeTap }}" visibility="{{ isTraining ? 'visible' : 'collapsed' }}" />
               <Label row="4" col="1" class="currentTime" text="{{ currentTime }}" textWrap="true" />
               <Label row="5" col="1" class="currentTimeMeridiem" text="{{ currentTimeMeridiem }}" textWrap="true" />
               <!-- </wol:WearOsLayout> -->
@@ -36,7 +37,7 @@
 
         </GridLayout>
       </pager:PagerItem>
-      
+
       // SmartDrive Battery Usage Chat
       <pager:PagerItem>
         <wol:WearOsLayout>
@@ -112,7 +113,7 @@
           </RL:Ripple>
         </wol:WearOsLayout>
       </pager:PagerItem>
-    </pager:Pager>                                      
+    </pager:Pager>
 
     // Settings Layout "Page" -- need to wrap this in a component
     <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
@@ -145,6 +146,12 @@
           <GridLayout rows="*" columns="15, *" id="units" tap="{{ onChangeSettingsItemTap }}">
             <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
             <Label row="0" col="1" text="Units" class="settings-label" textWrap="true" />
+          </GridLayout>
+        </RL:Ripple>
+        <RL:Ripple row="5" rippleColor="#ddd">
+          <GridLayout rows="*" columns="15, *" id="pairSmartDrive" tap="{{ saveNewSmartDrive }}">
+            <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+            <Label row="0" col="1" text="Pair SmartDrive" class="settings-label" textWrap="true" />
           </GridLayout>
         </RL:Ripple>
       </wol:WearOsLayout>
