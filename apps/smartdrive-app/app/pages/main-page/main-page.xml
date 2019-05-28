@@ -157,9 +157,9 @@
           </GridLayout>
         </RL:Ripple>
         <RL:Ripple row="3" rippleColor="#ddd">
-          <GridLayout rows="*" columns="15, *" id="mode" tap="{{ onChangeSettingsItemTap }}">
+          <GridLayout rows="*" columns="15, *" id="controlMode" tap="{{ onChangeSettingsItemTap }}">
             <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-            <Label row="0" col="1" text="Mode" class="settings-label" textWrap="true" />
+            <Label row="0" col="1" text="Control Mode" class="settings-label" textWrap="true" />
           </GridLayout>
         </RL:Ripple>
         <RL:Ripple row="4" rippleColor="#ddd">

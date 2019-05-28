@@ -51,18 +51,8 @@ export class MainViewModel extends Observable {
    * SmartDrive Related Data
    *
    */
-  /**
-   * The tap sensitivity threshold
-   */
-  @Prop() tapSensitivity: number = 0.5;
-
-  /**
-   * The tap sensitivity display
-   */
-  @Prop()
-  tapSensitivityText: string = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
-    2
-  )} g`;
+  maxTapSensitivity: number = 2.0;
+  minTapSensitivity: number = 0.1;
 
   /**
    * Boolean to track whether a tap has been performed.
@@ -83,10 +73,13 @@ export class MainViewModel extends Observable {
    * State Management for Sensor Monitoring / Data Collection
    */
   private _isListeningDeviceSensors = false;
+  private watchBeingWorn = false;
 
   /**
    * SmartDrive Data / state management
    */
+  private settings: SmartDrive.Settings = new SmartDrive.Settings();
+  private tempSettings: SmartDrive.Settings = new SmartDrive.Settings();
   private _smartDrive: SmartDrive;
   private _powerAssistActive: boolean = false;
   private _savedSmartDriveAddress: string = null;
@@ -118,22 +111,6 @@ export class MainViewModel extends Observable {
 
     this.currentTimeMeridiem = currentSystemTimeMeridiem();
 
-    // this._sensorService.on(
-    //   SensorService.AccuracyChanged,
-    //   (args: AccuracyChangedEventData) => {
-    //     const sensor = args.data.sensor;
-    //     const accuracy = args.data.accuracy;
-    //     if (sensor.getType() === android.hardware.Sensor.TYPE_HEART_RATE) {
-    //       this.heartRateAccuracy = accuracy;
-    //       // save the heart rate
-    //       appSettings.setNumber(
-    //         DataKeys.HEART_RATE,
-    //         parseInt(this.heartRate, 10)
-    //       );
-    //     }
-    //   }
-    // );
-
     this._sensorService.on(
       SensorService.SensorChanged,
       (args: SensorChangedEventData) => {
@@ -141,44 +118,19 @@ export class MainViewModel extends Observable {
         // the data structure is simplified to reduce redundant data
         const parsedData = args.data;
 
-        // // Log.D(event.values[0]);
-        // if (parsedData.s === android.hardware.Sensor.TYPE_HEART_RATE) {
-        //   // save the heart rate for use by the app
-        //   this.heartRate = parsedData.d.heart_rate.toString().split('.')[0];
-        //   // add accuracy for heart rate data from sensors
-        //   parsedData.d.accuracy = this.heartRateAccuracy;
-        // }
+        if (
+          parsedData.s ===
+          android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT
+        ) {
+          this.watchBeingWorn = (parsedData.d as any).state != 0.0;
+          Log.D('WatchBeingWorn: ' + this.watchBeingWorn);
+          if (!this.watchBeingWorn) {
+            // TODO: we need to disconnect from the smartdrive now!
+          }
+        }
 
-        // only showing linear acceleration data for now
         if (parsedData.s === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
-          const z = (parsedData.d as any).z;
-          let diff = z;
-          if (this.motorOn) {
-            diff = Math.abs(z);
-          }
-
-          // Log.D('checking', this.tapSensitivity, 'against', diff);
-
-          if (diff > this.tapSensitivity && !this.hasTapped) {
-            // Log.D('Motion detected!', { diff });
-            // register motion detected and block out futher motion detection
-            this.hasTapped = true;
-            setTimeout(() => {
-              this.hasTapped = false;
-            }, 300);
-            // now send
-            if (this._smartDrive && this._smartDrive.ableToSend) {
-              if (this.motorOn) {
-                Log.D('Vibrating for tap while connected to SD and motor on!');
-                this._vibrator.cancel();
-                this._vibrator.vibrate(250); // vibrate for 250 ms
-              }
-              Log.D('Sending tap!');
-              this._smartDrive
-                .sendTap()
-                .catch(err => Log.E('could not send tap', err));
-            }
-          }
+          this.handleAccel(parsedData.d);
         }
       }
     );
@@ -194,10 +146,7 @@ export class MainViewModel extends Observable {
       DataKeys.SD_TAP_SENSITIVITY
     );
     if (savedTapSensitivity) {
-      this.tapSensitivity = savedTapSensitivity;
-      this.tapSensitivityText = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
-        2
-      )} g`;
+      this.settings.tapSensitivity = savedTapSensitivity;
     }
 
     Log.D(
@@ -211,6 +160,43 @@ export class MainViewModel extends Observable {
       'Device Language: ' + device.language,
       'UUID: ' + device.uuid
     );
+  }
+
+  handleAccel(acceleration: any) {
+    let diff = acceleration.z;
+    if (this.motorOn) {
+      diff = Math.abs(diff);
+    }
+    const threshold =
+      this.maxTapSensitivity -
+      (this.maxTapSensitivity - this.minTapSensitivity) *
+        (this.settings.tapSensitivity / 100.0);
+    if (diff > threshold) {
+      // user has met threshold for tapping
+      this.handleTap();
+    }
+  }
+
+  handleTap() {
+    // block high frequency tapping and ignore tapping if not on
+    // the user's wrist
+    if (this.hasTapped || !this.watchBeingWorn) {
+      return;
+    }
+    this.hasTapped = true;
+    setTimeout(() => {
+      this.hasTapped = false;
+    }, 300);
+    // now send
+    if (this._smartDrive && this._smartDrive.ableToSend) {
+      if (this.motorOn) {
+        Log.D('Vibrating for tap while connected to SD and motor on!');
+        this._vibrator.cancel();
+        this._vibrator.vibrate(250); // vibrate for 250 ms
+      }
+      Log.D('Sending tap!');
+      this._smartDrive.sendTap().catch(err => Log.E('could not send tap', err));
+    }
   }
 
   activatePowerAssistTap() {
@@ -271,37 +257,56 @@ export class MainViewModel extends Observable {
   }
 
   onChangeSettingsItemTap(args) {
+    // copy the current settings into temporary store
+    this.tempSettings.copy(this.settings);
     Log.D('id: ' + args.object.id);
     const tappedId = args.object.id as string;
     switch (tappedId.toLowerCase()) {
       case 'maxspeed':
         this.changeSettingKeyString = 'Max Speed';
-        // need to get the current stored max speed setting
-        this.changeSettingKeyValue = '70%';
         break;
       case 'acceleration':
         this.changeSettingKeyString = 'Acceleration';
-        // need to get current stored acceleration setting
-        this.changeSettingKeyValue = '50%';
         break;
       case 'tapsensitivity':
         this.changeSettingKeyString = 'Tap Sensitivity';
-        // need to get current stored tap sensitivity setting
-        this.changeSettingKeyValue = '20%';
         break;
-      case 'mode':
-        Log.D('figure out what we wanna do with MODE');
-        return;
+      case 'controlmode':
+        this.changeSettingKeyString = 'Control Mode';
+        break;
       case 'units':
-        Log.D('figure out what we wanna do with MODE');
-        return;
+        this.changeSettingKeyString = 'Units';
+        break;
       default:
         break;
     }
+    this.updateSettingDisplay();
     if (args.object.id) {
     }
     showOffScreenLayout(this._changeSettingsLayout);
     this.isChangeSettingsLayoutEnabled = true;
+  }
+
+  updateSettingDisplay() {
+    switch (this.changeSettingKeyString) {
+      case 'Max Speed':
+        this.changeSettingKeyValue = `${this.tempSettings.maxSpeed}%`;
+        break;
+      case 'Acceleration':
+        this.changeSettingKeyValue = `${this.tempSettings.acceleration}%`;
+        break;
+      case 'Tap Sensitivity':
+        this.changeSettingKeyValue = `${this.tempSettings.tapSensitivity}%`;
+        break;
+      case 'Control Mode':
+        this.changeSettingKeyValue = `${this.tempSettings.controlMode}`;
+        return;
+      case 'Units':
+        this.changeSettingKeyValue = `${this.tempSettings.units}`;
+        return;
+      default:
+        break;
+    }
   }
 
   onCancelChangesTap() {
@@ -315,14 +320,19 @@ export class MainViewModel extends Observable {
     this.isChangeSettingsLayoutEnabled = false;
     Log.D('Confirmed the value, need to save config setting.');
     // SAVE THE VALUE to local data for the setting user has selected
+    this.settings.copy(this.tempSettings);
   }
 
   onIncreaseSettingsTap() {
     Log.D('increase current settings change key value and save to local data');
+    this.tempSettings.increase(this.changeSettingKeyString);
+    this.updateSettingDisplay();
   }
 
   onDecreaseSettingsTap(args) {
     Log.D('decrease current settings change key value and save to local data');
+    this.tempSettings.decrease(this.changeSettingKeyString);
+    this.updateSettingDisplay();
   }
 
   onChangeSettingsLayoutLoaded(args) {
@@ -340,26 +350,12 @@ export class MainViewModel extends Observable {
   /**
    * Smart Drive Interaction and Data Management
    */
-  onIncreaseTapSensitivityTap() {
-    this.tapSensitivity =
-      this.tapSensitivity < 2.0 ? this.tapSensitivity + 0.05 : 2.0;
-    this.tapSensitivityText = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
-      2
-    )} g`;
-    this.saveTapSensitivity();
-  }
-
-  onDecreaseTapSensitivityTap() {
-    this.tapSensitivity =
-      this.tapSensitivity > 0.1 ? this.tapSensitivity - 0.05 : 0.1;
-    this.tapSensitivityText = `Tap Sensitivity: ${this.tapSensitivity.toFixed(
-      2
-    )} g`;
-    this.saveTapSensitivity();
-  }
 
   saveTapSensitivity() {
-    appSettings.setNumber(DataKeys.SD_TAP_SENSITIVITY, this.tapSensitivity);
+    appSettings.setNumber(
+      DataKeys.SD_TAP_SENSITIVITY,
+      this.settings.tapSensitivity
+    );
   }
 
   updatePowerAssistButtonText(newText: string) {
