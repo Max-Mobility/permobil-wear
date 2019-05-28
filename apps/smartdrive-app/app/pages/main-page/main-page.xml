@@ -30,7 +30,9 @@
             </GridLayout>
           </nac:AnimatedCircle>
           // Battery Icon
-          <Image src="~/assets/images/round_battery_full_green_24.png" rowSpan="1" col="1" height="17" stretch="aspectFit" />
+          <StackLayout class="batteryIconStack" rowSpan="1" col="1" height="17">
+            <Image src="~/assets/images/round_battery_full_green_24.png" stretch="aspectFit" />
+          </StackLayout>
 
         </GridLayout>
       </pager:PagerItem>
@@ -38,17 +40,17 @@
       // SmartDrive Battery Usage Chat
       <pager:PagerItem>
         <wol:WearOsLayout>
-          <GridLayout height="100%" rows="auto, auto, *" columns="*, auto">
-            <Label row="0" colSpan="2" text="Daily SmartDrive Battery Usage" class="text-center chart-title h3" textWrap="true" />
+          <GridLayout rows="auto, auto, *" columns="*, auto">
+            <Label row="0" colSpan="2" text="Daily SmartDrive Battery Usage" class="chart-title" textWrap="true" />
             <Label text="" row="1" col="0" class="hr-blue" />
-            <Label text="100" row="1" col="1" />
+            <Label text="100" row="1" col="1" class="chart-max-value" />
             // Battery Usage Bar Chart
-            <Repeater row="2" colSpan="2" verticalAlignment="bottom" items="{{ batteryUsageData }}">
+            <Repeater row="2" colSpan="1" verticalAlignment="bottom" items="{{ batteryUsageData }}">
               <Repeater.itemsLayout>
                 <FlexboxLayout justifyContent="space-between" flexDirection="row" />
               </Repeater.itemsLayout>
               <Repeater.itemTemplate>
-                <StackLayout class="chart-stack" verticalAlignment="bottom">
+                <StackLayout class="chart-stack">
                   <Label height="{{ value }}" class="battery-line" />
                   <Label text="{{ day }}" class="line-label" />
                 </StackLayout>
@@ -61,19 +63,18 @@
       // SmartDrive Distance Traveled Chart
       <pager:PagerItem>
         <wol:WearOsLayout>
-          <GridLayout height="100%" rows="auto, 14, *" columns="*, auto">
+          <GridLayout height="100%" rows="auto, auto, *" columns="*, auto">
             // Chart Title
-            <Label row="0" colSpan="8" text="Daily SmartDrive Distance Traveled (MI)" class="text-center chart-title h3" textWrap="true" />
-            <Label text="" row="1" col="0" class="hr-blue" textWrap="true" />
-            // max value of the bar chart
-            <Label text="12" row="1" col="1" textWrap="false" />
+            <Label row="0" colSpan="8" text="Daily SmartDrive Distance Traveled (MI)" class="chart-title" textWrap="true" />
+            <Label text="" row="1" col="0" class="hr-blue" />
+            <Label text="12" row="1" col="1" class="chart-max-value" />
             // Distance Traveled Bar Chart
-            <Repeater row="2" colSpan="2" verticalAlignment="bottom" marginTop="-14" items="{{ distanceChartData }}">
+            <Repeater row="2" colSpan="2" verticalAlignment="bottom" marginTop="-5" items="{{ distanceChartData }}">
               <Repeater.itemsLayout>
                 <FlexboxLayout justifyContent="space-between" flexDirection="row" />
               </Repeater.itemsLayout>
               <Repeater.itemTemplate>
-                <StackLayout class="chart-stack" verticalAlignment="bottom">
+                <StackLayout class="chart-stack">
                   <Label height="{{ value }}" class="distance-line" />
                   <Label text="{{ day }}" class="line-label" />
                 </StackLayout>
