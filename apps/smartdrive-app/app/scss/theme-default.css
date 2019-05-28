@@ -40,47 +40,11 @@
   text-align: center; }
 
 /** Fonts **/
-/** Fonts **/
-/** Fonts **/
-.ionicon {
-  font-family: ionicons, "ionicons", Ionicons, "Ionicons"; }
-
-/** Buttons **/
-.btn-transparent {
-  background-color: transparent;
-  border-color: transparent;
-  border-width: 1;
-  android-elevation: 0;
-  android-dynamic-elevation-offset: 2; }
-
-.circle-image-btn, #changeSettingsPage .increase-btn, #changeSettingsPage .decrease-btn, #changeSettingsPage .cancel-btn, #changeSettingsPage .confirm-btn {
-  height: 48;
-  width: 48;
-  border-radius: 24;
-  vertical-align: center;
-  horizontal-align: center; }
-
-.circle-image-btn StackLayout, #changeSettingsPage .increase-btn StackLayout, #changeSettingsPage .decrease-btn StackLayout, #changeSettingsPage .cancel-btn StackLayout, #changeSettingsPage .confirm-btn StackLayout {
-  height: 48;
-  width: 48;
-  border-radius: 24;
-  height: 100%;
-  width: 100%;
-  vertical-align: center;
-  horizontal-align: center; }
-
-.circle-image-btn StackLayout label, #changeSettingsPage .increase-btn StackLayout label, #changeSettingsPage .decrease-btn StackLayout label, #changeSettingsPage .cancel-btn StackLayout label, #changeSettingsPage .confirm-btn StackLayout label {
-  font-family: ionicons, "ionicons", Ionicons, "Ionicons";
-  font-size: 36;
-  vertical-align: center;
-  horizontal-align: center; }
-
 /** Label Line Chart Styles **/
-.chart-title {
-  horizontal-align: center;
-  text-align: center; }
+.chart-stack {
+  vertical-align: bottom;
+  horizontal-align: center; }
 
-/** Label Line Chart Styles **/
 .battery-line {
   vertical-align: bottom;
   horizontal-align: center;
@@ -100,46 +64,6 @@
   color: #fff; }
 
 /** Fonts **/
-/** Fonts **/
-/** Fonts **/
-.ionicon {
-  font-family: ionicons, "ionicons", Ionicons, "Ionicons"; }
-
-/** Buttons **/
-.btn-transparent {
-  background-color: transparent;
-  border-color: transparent;
-  border-width: 1;
-  android-elevation: 0;
-  android-dynamic-elevation-offset: 2; }
-
-.circle-image-btn, #changeSettingsPage .increase-btn, #changeSettingsPage .decrease-btn, #changeSettingsPage .cancel-btn, #changeSettingsPage .confirm-btn {
-  height: 48;
-  width: 48;
-  border-radius: 24;
-  vertical-align: center;
-  horizontal-align: center; }
-
-.circle-image-btn StackLayout, #changeSettingsPage .increase-btn StackLayout, #changeSettingsPage .decrease-btn StackLayout, #changeSettingsPage .cancel-btn StackLayout, #changeSettingsPage .confirm-btn StackLayout {
-  height: 48;
-  width: 48;
-  border-radius: 24;
-  height: 100%;
-  width: 100%;
-  vertical-align: center;
-  horizontal-align: center; }
-
-.circle-image-btn StackLayout label, #changeSettingsPage .increase-btn StackLayout label, #changeSettingsPage .decrease-btn StackLayout label, #changeSettingsPage .cancel-btn StackLayout label, #changeSettingsPage .confirm-btn StackLayout label {
-  font-family: ionicons, "ionicons", Ionicons, "Ionicons";
-  font-size: 36;
-  vertical-align: center;
-  horizontal-align: center; }
-
-/** Label Line Chart Styles **/
-.chart-title {
-  horizontal-align: center;
-  text-align: center; }
-
 /** Change Settings Page **/
 #changeSettingsPage {
   margin: 4; }
@@ -182,46 +106,6 @@
   vertical-align: center; }
 
 /** Fonts **/
-/** Fonts **/
-/** Fonts **/
-.ionicon {
-  font-family: ionicons, "ionicons", Ionicons, "Ionicons"; }
-
-/** Buttons **/
-.btn-transparent {
-  background-color: transparent;
-  border-color: transparent;
-  border-width: 1;
-  android-elevation: 0;
-  android-dynamic-elevation-offset: 2; }
-
-.circle-image-btn, #changeSettingsPage .increase-btn, #changeSettingsPage .decrease-btn, #changeSettingsPage .cancel-btn, #changeSettingsPage .confirm-btn {
-  height: 48;
-  width: 48;
-  border-radius: 24;
-  vertical-align: center;
-  horizontal-align: center; }
-
-.circle-image-btn StackLayout, #changeSettingsPage .increase-btn StackLayout, #changeSettingsPage .decrease-btn StackLayout, #changeSettingsPage .cancel-btn StackLayout, #changeSettingsPage .confirm-btn StackLayout {
-  height: 48;
-  width: 48;
-  border-radius: 24;
-  height: 100%;
-  width: 100%;
-  vertical-align: center;
-  horizontal-align: center; }
-
-.circle-image-btn StackLayout label, #changeSettingsPage .increase-btn StackLayout label, #changeSettingsPage .decrease-btn StackLayout label, #changeSettingsPage .cancel-btn StackLayout label, #changeSettingsPage .confirm-btn StackLayout label {
-  font-family: ionicons, "ionicons", Ionicons, "Ionicons";
-  font-size: 36;
-  vertical-align: center;
-  horizontal-align: center; }
-
-/** Label Line Chart Styles **/
-.chart-title {
-  horizontal-align: center;
-  text-align: center; }
-
 .powerAssistCircle {
   background-color: transparent;
   fill-color: transparent;

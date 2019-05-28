@@ -37,34 +37,24 @@
       
       // SmartDrive Battery Usage Chat
       <pager:PagerItem>
-        <wol:WearOsLayout height="100%" width="100%">
-          <GridLayout height="100%" rows="auto, auto, *" columns="*, auto">
-            <Label row="0" colSpan="8" text="Daily SmartDrive Battery Usage" class="text-center chart-title h3" textWrap="true" />
-            <Label text="" row="1" col="0" class="hr-blue" textWrap="true" />
-            <Label text="100" row="1" col="1" textWrap="false" />
-            // Bars
-            <GridLayout row="2" colSpan="8" rows="*, auto" height="100" columns="*,*,*,*,*,*,*">
-              // Bar Lines (need to make height dynamic, possibly use repeater to databind to a local array with battery data)
-              <Label row="0" col="0" class="battery-line" height="50" textWrap="true" />
-              <Label row="0" col="1" class="battery-line" height="33" textWrap="true" />
-              <Label row="0" col="2" class="battery-line" height="58" textWrap="true" />
-              <Label row="0" col="3" class="battery-line" height="12" textWrap="true" />
-              <Label row="0" col="4" class="battery-line" height="78" textWrap="true" />
-              <Label row="0" col="5" class="battery-line" height="93" textWrap="true" />
-              <Label row="0" col="6" class="battery-line" height="5" textWrap="true" />
-               // Bar Titles (need to make text part of the repeater layout to databind it to the local battery data)
-              <Label row="1" col="0" text="T" class="line-label" />
-              <Label row="1" col="1" text="W" class="line-label" />
-              <Label row="1" col="2" text="Th" class="line-label" />
-              <Label row="1" col="3" text="F" class="line-label" />
-              <Label row="1" col="4" text="S" class="line-label" />
-              <Label row="1" col="5" text="Su" class="line-label" />
-              <Label row="1" col="6" text="M" class="line-label" />
-
-            </GridLayout>
-
+        <wol:WearOsLayout>
+          <GridLayout height="100%" rows="auto, *" columns="*, auto">
+            <Label row="0" colSpan="2" text="Daily SmartDrive Battery Usage" class="text-center chart-title h3" textWrap="true" />
+            <Label text="" row="1" col="0" class="hr-blue" verticalAlignment="top" />
+            <Label text="100" row="1" col="1" verticalAlignment="top" />
+            // Battery Usage Bar Chart
+            <Repeater row="1" colSpan="2" verticalAlignment="bottom" items="{{ batteryUsageData }}">
+              <Repeater.itemsLayout>
+                <FlexboxLayout justifyContent="space-between" flexDirection="row" />
+              </Repeater.itemsLayout>
+              <Repeater.itemTemplate>
+                <StackLayout class="chart-stack" verticalAlignment="bottom">
+                  <Label height="{{ value }}" class="battery-line" />
+                  <Label text="{{ day }}" class="line-label" />
+                </StackLayout>
+              </Repeater.itemTemplate>
+            </Repeater>
           </GridLayout>
-
         </wol:WearOsLayout>
       </pager:PagerItem>
 

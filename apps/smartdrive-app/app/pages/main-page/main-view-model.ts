@@ -36,7 +36,6 @@ export class MainViewModel extends Observable {
   @Prop() topValue: string = '8.2';
   @Prop() topValueDescription: string = 'Estimated Range (MI)';
   @Prop() currentTime;
-
   @Prop() currentTimeMeridiem;
   /**
    * Boolean to track the settings swipe layout visibility.
@@ -79,6 +78,8 @@ export class MainViewModel extends Observable {
    */
   @Prop() public motorOn = false;
 
+  @Prop() public batteryUsageData;
+
   /**
    * State Management for Sensor Monitoring / Data Collection
    */
@@ -117,6 +118,19 @@ export class MainViewModel extends Observable {
     }, 20000);
 
     this.currentTimeMeridiem = currentSystemTimeMeridiem();
+
+    // setup some static data for charts for now
+    // need to be storing these locally (local-storage or application-settings)
+    // then grabbing the most recent 7 from the data set, possibly include a service call that runs at some point to clear out really old data
+    this.batteryUsageData = [
+      { day: 'Th', value: '40' },
+      { day: 'F', value: '88' },
+      { day: 'S', value: '37' },
+      { day: 'Su', value: '100' },
+      { day: 'M', value: '78' },
+      { day: 'T', value: '43' },
+      { day: 'W', value: '65' }
+    ];
 
     // this._sensorService.on(
     //   SensorService.AccuracyChanged,

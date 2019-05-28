@@ -1,7 +1,11 @@
 @import 'variables';
-@import 'common';
 
 /** Label Line Chart Styles **/
+.chart-stack {
+  vertical-align: bottom;
+  horizontal-align: center;
+}
+
 .battery-line {
   vertical-align: bottom;
   horizontal-align: center;
