@@ -1,14 +1,165 @@
+import { Observable } from 'tns-core-modules/data/observable';
+import { Color } from 'tns-core-modules/color';
 import * as timer from 'tns-core-modules/timer/timer';
 import { BluetoothService } from '../services/bluetooth.service';
 import { DeviceBase } from './device-base';
 import { SD_OTA_State } from '../enums';
 import { ISmartDriveEvents } from '../interfaces';
 import { bindingTypeToString, Packet } from '../packet';
+import { mod } from '../utils';
 
 export class SmartDrive extends DeviceBase {
   // STATIC:
   static readonly OTAState = SD_OTA_State;
   readonly OTAState = SmartDrive.OTAState;
+
+  public static Settings = class extends Observable {
+    // settings classes
+    static ControlMode = class {
+      static Options: string[] = ['MX1', 'MX2', 'MX2+'];
+
+      static Off = 'Off';
+
+      static Beginner = 'MX1';
+      static Intermediate = 'MX2';
+      static Advanced = 'MX2+';
+
+      static MX1 = 'MX1';
+      static MX2 = 'MX2';
+      static MX2plus = 'MX2+';
+
+      static fromSettings(s: any): string {
+        const o = bindingTypeToString('SmartDriveControlMode', s.ControlMode);
+        return SmartDrive.Settings.ControlMode[o];
+      }
+    };
+
+    static Units = class {
+      static Options: string[] = ['English', 'Metric'];
+      static Translations: string[] = [
+        'pushtracker.settings.units.english',
+        'pushtracker.settings.units.metric'
+      ];
+
+      static English = 'English';
+      static Metric = 'Metric';
+
+      static fromSettings(s: any): string {
+        const o = bindingTypeToString('Units', s.Units);
+        return SmartDrive.Settings.Units[o];
+      }
+    };
+
+    // public members
+    controlMode: string = SmartDrive.Settings.ControlMode.MX2plus;
+    ezOn = false;
+    units: string = SmartDrive.Settings.Units.English;
+    acceleration = 30;
+    maxSpeed = 70;
+    tapSensitivity = 100;
+
+    ledColor: Color = new Color('#3c8aba');
+
+    constructor() {
+      super();
+    }
+
+    static getBoolSetting(flags: number, settingBit: number): boolean {
+      return ((flags >> settingBit) & 0x01) > 0;
+    }
+
+    increase(key: string, increment: number = 10): void {
+      let index;
+      switch (key) {
+        case 'Max Speed':
+          this.maxSpeed = Math.min(this.maxSpeed + increment, 100);
+          break;
+        case 'Acceleration':
+          this.acceleration = Math.min(this.acceleration + increment, 100);
+          break;
+        case 'Tap Sensitivity':
+          this.tapSensitivity = Math.min(this.tapSensitivity + increment, 100);
+          break;
+        case 'Control Mode':
+          index = SmartDrive.Settings.ControlMode.Options.indexOf(
+            this.controlMode
+          );
+          index = mod(
+            index + 1,
+            SmartDrive.Settings.ControlMode.Options.length
+          );
+          this.controlMode = SmartDrive.Settings.ControlMode.Options[index];
+          break;
+        case 'Units':
+          index = SmartDrive.Settings.Units.Options.indexOf(this.units);
+          index = mod(index + 1, SmartDrive.Settings.Units.Options.length);
+          this.units = SmartDrive.Settings.Units.Options[index];
+          break;
+      }
+    }
+
+    decrease(key: string, increment: number = 10): void {
+      let index;
+      switch (key) {
+        case 'Max Speed':
+          this.maxSpeed = Math.max(this.maxSpeed - increment, 10);
+          break;
+        case 'Acceleration':
+          this.acceleration = Math.max(this.acceleration - increment, 10);
+          break;
+        case 'Tap Sensitivity':
+          this.tapSensitivity = Math.max(this.tapSensitivity - increment, 10);
+          break;
+        case 'Control Mode':
+          index = SmartDrive.Settings.ControlMode.Options.indexOf(
+            this.controlMode
+          );
+          index = mod(
+            index - 1,
+            SmartDrive.Settings.ControlMode.Options.length
+          );
+          this.controlMode = SmartDrive.Settings.ControlMode.Options[index];
+          break;
+        case 'Units':
+          index = SmartDrive.Settings.Units.Options.indexOf(this.units);
+          index = mod(index - 1, SmartDrive.Settings.Units.Options.length);
+          this.units = SmartDrive.Settings.Units.Options[index];
+          break;
+      }
+    }
+
+    fromSettings(s: any): void {
+      // from c++ settings bound array to c++ class
+      this.controlMode = SmartDrive.Settings.ControlMode.fromSettings(s);
+      this.units = SmartDrive.Settings.Units.fromSettings(s);
+      this.ezOn = SmartDrive.Settings.getBoolSetting(s.Flags, 0);
+      // these floats are [0,1] on pushtracker
+      this.acceleration = Math.round(s.Acceleration * 100.0);
+      this.maxSpeed = Math.round(s.MaxSpeed * 100.0);
+      this.tapSensitivity = Math.round(s.TapSensitivity * 100.0);
+    }
+
+    copy(s: any) {
+      // from a settings class exactly like this
+      this.controlMode = s.controlMode;
+      this.units = s.units;
+      this.ezOn = s.ezOn;
+      this.acceleration = s.acceleration;
+      this.maxSpeed = s.maxSpeed;
+      this.tapSensitivity = s.tapSensitivity;
+    }
+
+    diff(s: any): boolean {
+      return (
+        this.controlMode !== s.controlMode ||
+        this.units !== s.units ||
+        this.ezOn !== s.ezOn ||
+        this.acceleration !== s.acceleration ||
+        this.maxSpeed !== s.maxSpeed ||
+        this.tapSensitivity !== s.tapSensitivity
+      );
+    }
+  };
 
   // bluetooth info
   public static ServiceUUID = '0cd51666-e7cb-469b-8e4d-2742f1ba7723';
@@ -48,6 +199,7 @@ export class SmartDrive extends DeviceBase {
   // public members
   public driveDistance: number = 0; // cumulative total distance the smartDrive has driven
   public coastDistance: number = 0; // cumulative total distance the smartDrive has gone
+  public settings: SmartDrive.Settings = new SmartDrive.Settings();
 
   // not serialized
   public rssi: number = null; // the received signal strength indicator (how close is it?)
