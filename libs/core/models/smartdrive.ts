@@ -855,6 +855,24 @@ export class SmartDrive extends DeviceBase {
     );
   }
 
+  public sendSettingsObject(settings: SmartDrive.Settings): Promise<any> {
+    const _settings = super.sendSettings(
+      settings.controlMode,
+      settings.units,
+      0,
+      settings.tapSensitivity / 100.0,
+      settings.acceleration / 100.0,
+      settings.maxSpeed / 100.0
+    );
+    return this.sendPacket(
+      'Command',
+      'SetSettings',
+      'settings',
+      null,
+      _settings
+    );
+  }
+
   public sendPacket(
     Type: string,
     SubType: string,

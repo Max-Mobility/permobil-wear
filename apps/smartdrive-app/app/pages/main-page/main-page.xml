@@ -13,7 +13,7 @@
       <pager:PagerItem>
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
           // Power Assist Circle
-          <nac:AnimatedCircle rowSpan="3" colSpan="3" class="powerAssistCircle" width="100%" height="100%" animated="false" animateFrom="0" rimColor="transparent" barColor="#009ac7" clockwise="true" rimWidth="12" progress="100" />
+          <nac:AnimatedCircle rowSpan="3" colSpan="3" class="powerAssistCircle" width="100%" height="100%" animated="false" animateFrom="0" rimColor="transparent" barColor="#009ac7" clockwise="true" rimWidth="12" progress="100" visibility="{{ powerAssistActive ? 'visible' : 'collapsed' }}" />
          // SmartDrive Battery Circle
           <nac:AnimatedCircle rowSpan="3" colSpan="3" class="sdBatteryCircle" width="90%" height="90%" animated="true" animateFrom="0" rimColor="transparent" barColor="#fbff22" clockwise="true" rimWidth="7" progress="{{ smartDriveCurrentBatteryPercentage }}">
           </nac:AnimatedCircle>
@@ -23,7 +23,7 @@
               <!-- <wol:WearOsLayout> -->
               <Label row="1" col="1" class="topValue" horizontalAlignment="center" text="{{ topValue }}" textWrap="true" />
               <Label row="2" col="1" class="topValueDescription" text="{{ topValueDescription }}" textWrap="true" />
-              <Button row="3" col="1" class="powerAssistBtn" backgroundColor="#2fa52f" text="{{ powerAssistBtnText }}" tap="{{ activatePowerAssistTap }}" />
+              <Button row="3" col="1" class="powerAssistBtn" backgroundColor="{{ powerAssistBtnColor }}" text="{{ powerAssistBtnText }}" tap="{{ activatePowerAssistTap }}" />
               <Label row="4" col="1" class="currentTime" text="{{ currentTime }}" textWrap="true" />
               <Label row="5" col="1" class="currentTimeMeridiem" text="{{ currentTimeMeridiem }}" textWrap="true" />
               <!-- </wol:WearOsLayout> -->

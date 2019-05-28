@@ -9,6 +9,7 @@ import {
   SentryService,
   SmartDrive
 } from '@permobil/core';
+import { Color } from 'tns-core-modules/color';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { Vibrate } from 'nativescript-vibrate';
@@ -29,14 +30,29 @@ import {
   currentSystemTimeMeridiem
 } from '../../utils';
 
+namespace PowerAssist {
+  export const InactiveButtonColor = new Color('#2fa52f');
+  export const InactiveButtonText = 'Activate Power Assist';
+
+  export const ActiveButtonColor = new Color('#a52f2f');
+  export const ActiveButtonText = 'Deactivate Power Assist';
+
+  export enum State {
+    Inactive,
+    Active
+  }
+}
+
 export class MainViewModel extends Observable {
   @Prop() smartDriveCurrentBatteryPercentage: number;
   @Prop() watchCurrentBatteryPercentage: number;
-  @Prop() powerAssistBtnText: string = 'Activate Power Assist';
+  @Prop() powerAssistBtnText: string = PowerAssist.InactiveButtonText;
+  @Prop() powerAssistBtnColor: Color = PowerAssist.InactiveButtonColor;
   @Prop() topValue: string = '8.2';
   @Prop() topValueDescription: string = 'Estimated Range (MI)';
   @Prop() currentTime;
   @Prop() currentTimeMeridiem;
+  @Prop() powerAssistActive: boolean = false;
   /**
    * Boolean to track the settings swipe layout visibility.
    */
@@ -83,7 +99,6 @@ export class MainViewModel extends Observable {
   private settings = new SmartDrive.Settings();
   private tempSettings = new SmartDrive.Settings();
   private _smartDrive: SmartDrive;
-  private _powerAssistActive: boolean = false;
   private _savedSmartDriveAddress: string = null;
 
   /**
@@ -242,6 +257,7 @@ export class MainViewModel extends Observable {
 
   activatePowerAssistTap() {
     console.log('activate power assist has been tapped!');
+    this.togglePowerAssist();
   }
 
   disableDeviceSensors() {
@@ -399,16 +415,23 @@ export class MainViewModel extends Observable {
     );
   }
 
-  updatePowerAssistButtonText(newText: string) {
-    // const item = this.items.getItem(this._powerAssistButtonIndex);
-    // item.text = newText;
-    // this.items.setItem(this._powerAssistButtonIndex, item);
+  updatePowerAssistButton(state: PowerAssist.State) {
+    switch (state) {
+      case PowerAssist.State.Active:
+        this.powerAssistBtnText = PowerAssist.ActiveButtonText;
+        this.powerAssistBtnColor = PowerAssist.ActiveButtonColor;
+        break;
+      case PowerAssist.State.Inactive:
+        this.powerAssistBtnText = PowerAssist.InactiveButtonText;
+        this.powerAssistBtnColor = PowerAssist.InactiveButtonColor;
+        break;
+    }
   }
 
   togglePowerAssist() {
-    if (this._powerAssistActive) {
-      this._powerAssistActive = false;
-      this.updatePowerAssistButtonText('Power Assist OFF');
+    if (this.powerAssistActive) {
+      this.powerAssistActive = false;
+      this.updatePowerAssistButton(PowerAssist.State.Inactive);
       // turn off the motor if SD is connected
       if (this._smartDrive && this._smartDrive.ableToSend) {
         Log.D('Turning off Motor!');
@@ -420,17 +443,20 @@ export class MainViewModel extends Observable {
       this.disableDeviceSensors();
       this.onDisconnectTap();
     } else {
-      this.connectToSavedSmartDrive().then(didConnect => {
-        if (didConnect) {
-          this._powerAssistActive = true;
-          this.enableDeviceSensors();
-          this.updatePowerAssistButtonText('Power Assist ON');
-        }
-      });
+      this.connectToSavedSmartDrive()
+        .then(didConnect => {
+          console.log('connectToSavedSmartdrive: ', didConnect);
+          if (didConnect) {
+            this.powerAssistActive = true;
+            this.enableDeviceSensors();
+            this.updatePowerAssistButton(PowerAssist.State.Active);
+          }
+        })
+        .catch(err => {});
     }
   }
 
-  saveNewSmartDrive() {
+  saveNewSmartDrive(): Promise<any> {
     Log.D('saveNewSmartDrive()');
 
     new Toasty(
@@ -440,7 +466,7 @@ export class MainViewModel extends Observable {
     ).show();
 
     // scan for smartdrives
-    this._bluetoothService
+    return this._bluetoothService
       .scanForSmartDrives(3)
       .then(() => {
         Log.D('Discovered SmartDrives', BluetoothService.SmartDrives);
@@ -448,7 +474,7 @@ export class MainViewModel extends Observable {
         // make sure we have smartdrives
         if (BluetoothService.SmartDrives.length <= 0) {
           showFailure('No SmartDrives found nearby.');
-          return;
+          return false;
         }
 
         // these are the smartdrives that are pushed into an array on the bluetooth service
@@ -458,7 +484,7 @@ export class MainViewModel extends Observable {
         const addresses = sds.map(sd => `${sd.address}`);
 
         // present action dialog to select which smartdrive to connect to
-        action({
+        return action({
           title: '',
           message: 'Select SmartDrive:',
           actions: addresses,
@@ -473,11 +499,15 @@ export class MainViewModel extends Observable {
             appSettings.setString(DataKeys.SD_SAVED_ADDRESS, result);
 
             showSuccess(`Paired to SmartDrive ${result}`);
+            return true;
+          } else {
+            return false;
           }
         });
       })
       .catch(error => {
         Log.E('could not scan', error);
+        return false;
       });
   }
 
@@ -503,18 +533,23 @@ export class MainViewModel extends Observable {
 
     // now connect to smart drive
     this._smartDrive.connect();
+    // send the current settings to the SD
+    this._smartDrive.sendSettingsObject(this.settings);
     this.connected = true;
     showSuccess(`Connected to ${this._smartDrive.address}`, 2);
   }
 
-  connectToSavedSmartDrive() {
+  connectToSavedSmartDrive(): Promise<any> {
     Log.D('connectToSavedSmartDrive()');
     if (
       this._savedSmartDriveAddress === null ||
       this._savedSmartDriveAddress.length === 0
     ) {
-      showFailure('You must pair to a SmartDrive first.', 3);
-      return Promise.resolve(false);
+      return this.saveNewSmartDrive().then(didSave => {
+        if (didSave) {
+          this.connectToSavedSmartDrive();
+        }
+      });
     }
 
     new Toasty(
