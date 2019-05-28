@@ -63,7 +63,7 @@
       // SmartDrive Distance Traveled Chart
       <pager:PagerItem>
         <wol:WearOsLayout>
-          <GridLayout height="100%" rows="auto, auto, *" columns="*, auto">
+          <GridLayout rows="auto, auto, *" columns="*, auto">
             // Chart Title
             <Label row="0" colSpan="8" text="Daily SmartDrive Distance Traveled (MI)" class="chart-title" textWrap="true" />
             <Label text="" row="1" col="0" class="hr-blue" />
