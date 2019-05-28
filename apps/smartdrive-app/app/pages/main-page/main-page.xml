@@ -67,9 +67,9 @@
             // Chart Title
             <Label row="0" colSpan="8" text="Daily SmartDrive Distance Traveled (MI)" class="chart-title" textWrap="true" />
             <Label text="" row="1" col="0" class="hr-blue" />
-            <Label text="12" row="1" col="1" class="chart-max-value" />
+            <Label text="{{ distanceChartMaxValue }}" row="1" col="1" class="chart-max-value" />
             // Distance Traveled Bar Chart
-            <Repeater row="2" colSpan="2" verticalAlignment="bottom" marginTop="-5" items="{{ distanceChartData }}">
+            <Repeater row="2" colSpan="1" items="{{ distanceChartData }}" loaded="{{ onDistanceChartRepeaterLoaded }}">
               <Repeater.itemsLayout>
                 <FlexboxLayout justifyContent="space-between" flexDirection="row" />
               </Repeater.itemsLayout>
