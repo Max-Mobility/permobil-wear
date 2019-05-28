@@ -69,6 +69,7 @@ export class MainViewModel extends Observable {
   @Prop() public motorOn = false;
 
   @Prop() public batteryUsageData;
+  @Prop() public distanceChartData;
 
   /**
    * State Management for Sensor Monitoring / Data Collection
@@ -79,8 +80,8 @@ export class MainViewModel extends Observable {
   /**
    * SmartDrive Data / state management
    */
-  private settings: SmartDrive.Settings = new SmartDrive.Settings();
-  private tempSettings: SmartDrive.Settings = new SmartDrive.Settings();
+  private settings = new SmartDrive.Settings();
+  private tempSettings = new SmartDrive.Settings();
   private _smartDrive: SmartDrive;
   private _powerAssistActive: boolean = false;
   private _savedSmartDriveAddress: string = null;
@@ -123,6 +124,16 @@ export class MainViewModel extends Observable {
       { day: 'M', value: '78' },
       { day: 'T', value: '43' },
       { day: 'W', value: '65' }
+    ];
+
+    this.distanceChartData = [
+      { day: 'Th', value: '1' },
+      { day: 'F', value: '2' },
+      { day: 'S', value: '5' },
+      { day: 'Su', value: '5' },
+      { day: 'M', value: '9' },
+      { day: 'T', value: '2' },
+      { day: 'W', value: '4' }
     ];
 
     // this._sensorService.on(

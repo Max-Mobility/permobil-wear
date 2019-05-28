@@ -51,7 +51,7 @@ export class SmartDrive extends DeviceBase {
   // public members
   public driveDistance: number = 0; // cumulative total distance the smartDrive has driven
   public coastDistance: number = 0; // cumulative total distance the smartDrive has gone
-  public settings: SmartDrive.Settings = new SmartDrive.Settings();
+  public settings = new SmartDrive.Settings();
 
   // not serialized
   public rssi: number = null; // the received signal strength indicator (how close is it?)
