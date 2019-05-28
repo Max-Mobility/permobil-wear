@@ -25,6 +25,7 @@ import * as appSettings from 'tns-core-modules/application-settings';
 import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
+import { Repeater } from 'tns-core-modules/ui/repeater';
 import { injector } from '../../app';
 import {
   hideOffScreenLayout,
@@ -98,8 +99,18 @@ export class MainViewModel extends Observable {
    */
   @Prop() public motorOn = false;
 
+  /**
+   * Data to bind to the Battery Usage Chart repeater.
+   */
   @Prop() public batteryUsageData;
+  /**
+   * Data to bind to the Distance Chart repeater.
+   */
   @Prop() public distanceChartData;
+  /**
+   * Used to indicate the highest value in the distance chart.
+   */
+  @Prop() distanceChartMaxValue: string;
 
   /**
    * State Management for Sensor Monitoring / Data Collection
@@ -155,16 +166,6 @@ export class MainViewModel extends Observable {
       { day: 'M', value: '78' },
       { day: 'T', value: '43' },
       { day: 'W', value: '65' }
-    ];
-
-    this.distanceChartData = [
-      { day: 'Th', value: '1' },
-      { day: 'F', value: '2' },
-      { day: 'S', value: '5' },
-      { day: 'Su', value: '5' },
-      { day: 'M', value: '9' },
-      { day: 'T', value: '2' },
-      { day: 'W', value: '4' }
     ];
 
     // this._sensorService.on(
@@ -350,6 +351,30 @@ export class MainViewModel extends Observable {
       hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
       this.isSettingsLayoutEnabled = false;
     });
+  }
+
+  onDistanceChartRepeaterLoaded(args) {
+    const rpter = args.object as Repeater;
+    // need to get distance data at here
+    // then handle the data binding and calculating the Max Value for the chart
+    // and some sizing checks
+    const distanceData = [
+      { day: 'Th', value: '1' },
+      { day: 'F', value: '2' },
+      { day: 'S', value: '5' },
+      { day: 'Su', value: '5' },
+      { day: 'M', value: '9' },
+      { day: 'T', value: '2' },
+      { day: 'W', value: '4' }
+    ];
+    const j = distanceData.reduce((max, obj) => {
+      return obj.value > max.value ? obj : max;
+    });
+
+    Log.D('Highest Distance Value:', j.value);
+    this.distanceChartMaxValue = j.value;
+
+    this.distanceChartData = distanceData;
   }
 
   onSettingsTap() {
