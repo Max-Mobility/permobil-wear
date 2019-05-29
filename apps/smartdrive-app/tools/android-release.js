@@ -23,7 +23,7 @@ function askKeystorePassword() {
         }
         if (!result.keystore_password) {
           return console.log(
-            'The keystore password is required to produce a signed release APK for Android.'
+            'The keystore password is required to produce a signed release AAB for Android.'
           );
         }
         keyPassword = result.keystore_password;
@@ -39,8 +39,8 @@ askKeystorePassword().then(result => {
   );
   // execute the android release build cmd with the result as password
   exec(
-    `cd apps/smartdrive-app && tns build android --release --bundle --env.uglify --key-store-path ./tools/smartdrive-wearos.jks --key-store-password ${result} --key-store-alias upload --key-store-alias-password ${result} --aab --copy-to ./tools/smartdrive-app.aab`,
-    // `tns build android --release --bundle --env.uglify --key-store-path ./tools/smartdrive-wearos.jks --key-store-password ${result} --key-store-alias upload --key-store-alias-password ${result} --aab --copy-to ./tools/smartdrive-app.aab`,
+    // `cd apps/smartdrive-app && tns build android --release --bundle --env.uglify --key-store-path ./tools/smartdrive-wearos.jks --key-store-password ${result} --key-store-alias upload --key-store-alias-password ${result} --aab --copy-to ./tools/smartdrive-app.aab`,
+    `tns build android --release --bundle --env.uglify --key-store-path ./smartdrive-wearos.jks --key-store-password ${result} --key-store-alias upload --key-store-alias-password ${result} --aab --copy-to ./smartdrive-app.aab`,
     (err, stdout, stderr) => {
       if (err) {
         console.error('Error executing the android-release command.', err);
