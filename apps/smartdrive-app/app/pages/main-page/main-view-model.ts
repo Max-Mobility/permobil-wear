@@ -1,5 +1,6 @@
 import {
-  AccuracyChangedEventData,
+  APP_KEY,
+  APP_SECRET,
   BluetoothService,
   DataKeys,
   Log,
@@ -7,13 +8,15 @@ import {
   SensorChangedEventData,
   SensorService,
   SentryService,
+  SERVICES,
   SmartDrive
 } from '@permobil/core';
-import { Page } from 'tns-core-modules/ui/page';
+import { ReflectiveInjector } from 'injection-js';
+import { Kinvey } from 'kinvey-nativescript-sdk';
+import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
 import { Pager } from 'nativescript-pager';
-import { Color } from 'tns-core-modules/color';
-import { SensorDelay } from 'nativescript-android-sensors';
+import { Sentry } from 'nativescript-sentry';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { Vibrate } from 'nativescript-vibrate';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
@@ -22,16 +25,18 @@ import {
   showSuccess
 } from 'nativescript-wear-os/packages/dialogs';
 import * as appSettings from 'tns-core-modules/application-settings';
+import { Color } from 'tns-core-modules/color';
 import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
+import { Page } from 'tns-core-modules/ui/page';
 import { Repeater } from 'tns-core-modules/ui/repeater';
-import { injector } from '../../app';
+// import { injector } from '../../app';
 import {
-  hideOffScreenLayout,
-  showOffScreenLayout,
   currentSystemTime,
-  currentSystemTimeMeridiem
+  currentSystemTimeMeridiem,
+  hideOffScreenLayout,
+  showOffScreenLayout
 } from '../../utils';
 
 namespace PowerAssist {
@@ -135,17 +140,37 @@ export class MainViewModel extends Observable {
   public _changeSettingsLayout: SwipeDismissLayout;
   private _vibrator: Vibrate = new Vibrate();
 
-  constructor(
-    private _bluetoothService: BluetoothService = injector.get(
-      BluetoothService
-    ),
-    private _sentryService: SentryService = injector.get(SentryService),
-    private _sensorService: SensorService = injector.get(SensorService)
-  ) {
+  private _sentryService: SentryService;
+  private _bluetoothService: BluetoothService;
+  private _sensorService: SensorService;
+
+  constructor() {
     super();
 
-    this.smartDriveCurrentBatteryPercentage = 88;
-    this.watchCurrentBatteryPercentage = 63;
+    console.time('Kinvey_Init');
+    // initialize Kinvey
+    Kinvey.init({
+      appKey: `${APP_KEY}`,
+      appSecret: `${APP_SECRET}`
+    });
+    console.timeEnd('Kinvey_Init');
+
+    console.time('Sentry_Init');
+    // init sentry - DNS key for permobil-wear Sentry project
+    Sentry.init(
+      'https://234acf21357a45c897c3708fcab7135d:bb45d8ca410c4c2ba2cf1b54ddf8ee3e@sentry.io/1376181'
+    );
+    console.timeEnd('Sentry_Init');
+
+    const injector = ReflectiveInjector.resolveAndCreate([...SERVICES]);
+    this._sentryService = injector.get(SentryService);
+    this._bluetoothService = injector.get(BluetoothService);
+    this._sensorService = injector.get(SensorService);
+
+    this.smartDriveCurrentBatteryPercentage = Math.floor(
+      Math.random() * 100 + 1
+    );
+    this.watchCurrentBatteryPercentage = Math.floor(Math.random() * 100 + 1);
 
     // improve the time tracking with a service or some watcher to actually watch the SYSTEM CLOCK
     this.currentTime = currentSystemTime();
@@ -236,15 +261,15 @@ export class MainViewModel extends Observable {
   }
 
   onPagerLoaded(args: any) {
-    let page = <Page>args.object;
-    this.pager = <Pager>page.getViewById('pager');
+    const page = args.object as Page;
+    this.pager = page.getViewById('pager') as Pager;
   }
 
   onPowerAssistBarLoaded(args: any) {
-    let page = <Page>args.object;
-    this.powerAssistRing = <AnimatedCircle>(
-      page.getViewById('powerAssistCircle')
-    );
+    const page = args.object as Page;
+    this.powerAssistRing = page.getViewById(
+      'powerAssistCircle'
+    ) as AnimatedCircle;
   }
 
   handleAccel(acceleration: any) {
