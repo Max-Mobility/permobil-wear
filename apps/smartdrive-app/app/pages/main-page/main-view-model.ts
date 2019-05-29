@@ -364,7 +364,7 @@ export class MainViewModel extends Observable {
     Log.D('Enable device sensors...');
     try {
       if (!this._isListeningDeviceSensors) {
-        this._sensorService.startDeviceSensors(SensorDelay.GAME, 500000);
+        this._sensorService.startDeviceSensors(SensorDelay.UI, 50000);
         this._isListeningDeviceSensors = true;
       }
     } catch (err) {
