@@ -673,7 +673,10 @@ export class BluetoothService {
     Log.D(`Found SD: ${sd}`);
     if (sd === null || sd === undefined) {
       sd = new SmartDrive(this, { address: device.address });
-      Log.D('pushing new SmartDrive to the service array of smartdrives', sd);
+      Log.D(
+        'pushing new SmartDrive to the service array of smartdrives',
+        sd.address
+      );
       BluetoothService.SmartDrives.push(sd);
     }
     Log.D(`Found or made SD: ${sd}`);

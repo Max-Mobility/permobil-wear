@@ -11,6 +11,7 @@ import {
   SERVICES,
   SmartDrive
 } from '@permobil/core';
+import * as applicationModule from 'tns-core-modules/application';
 import { ReflectiveInjector } from 'injection-js';
 import { Kinvey } from 'kinvey-nativescript-sdk';
 import { SensorDelay } from 'nativescript-android-sensors';
@@ -62,8 +63,8 @@ namespace PowerAssist {
 }
 
 export class MainViewModel extends Observable {
-  @Prop() smartDriveCurrentBatteryPercentage: number;
-  @Prop() watchCurrentBatteryPercentage: number;
+  @Prop() smartDriveCurrentBatteryPercentage: number = 0;
+  @Prop() watchCurrentBatteryPercentage: number = 0;
   @Prop() powerAssistBtnText: string = PowerAssist.InactiveButtonText;
   @Prop() powerAssistBtnColor: Color = PowerAssist.InactiveButtonColor;
   @Prop() powerAssistRingColor: string = PowerAssist.InactiveRingColor;
@@ -167,10 +168,25 @@ export class MainViewModel extends Observable {
     this._bluetoothService = injector.get(BluetoothService);
     this._sensorService = injector.get(SensorService);
 
-    this.smartDriveCurrentBatteryPercentage = Math.floor(
-      Math.random() * 100 + 1
+    // register for watch battery updates
+    // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
+    let receiverCallback = (androidContext, intent) => {
+      const level = intent.getIntExtra(
+        android.os.BatteryManager.EXTRA_LEVEL,
+        -1
+      );
+      const scale = intent.getIntExtra(
+        android.os.BatteryManager.EXTRA_SCALE,
+        -1
+      );
+      const percent = (level / scale) * 100.0;
+      this.watchCurrentBatteryPercentage = percent;
+    };
+
+    applicationModule.android.registerBroadcastReceiver(
+      android.content.Intent.ACTION_BATTERY_CHANGED,
+      receiverCallback
     );
-    this.watchCurrentBatteryPercentage = Math.floor(Math.random() * 100 + 1);
 
     // improve the time tracking with a service or some watcher to actually watch the SYSTEM CLOCK
     this.currentTime = currentSystemTime();
@@ -561,7 +577,6 @@ export class MainViewModel extends Observable {
     } else {
       this.connectToSavedSmartDrive()
         .then(didConnect => {
-          console.log('connectToSavedSmartdrive: ', didConnect);
           if (didConnect) {
             this.powerAssistActive = true;
             this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
@@ -632,6 +647,11 @@ export class MainViewModel extends Observable {
     if (!smartDrive) return;
     this._smartDrive = smartDrive;
     // set the event listeners for mcu_version_event and smartdrive_distance_event
+    this._smartDrive.on(
+      SmartDrive.smartdrive_disconnect_event,
+      this.onSmartDriveDisconnect,
+      this
+    );
     this._smartDrive.on(
       SmartDrive.smartdrive_mcu_version_event,
       this.onSmartDriveVersion,
@@ -723,6 +743,7 @@ export class MainViewModel extends Observable {
       );
       this._smartDrive.disconnect().then(() => {
         this.connected = false;
+        this.motorOn = false;
         new Toasty(`Disconnected from ${this._smartDrive.address}`)
           .setToastPosition(ToastPosition.CENTER)
           .show();
@@ -733,9 +754,20 @@ export class MainViewModel extends Observable {
   /*
    * SMART DRIVE EVENT HANDLERS
    */
+  async onSmartDriveDisconnect(args: any) {
+    this.motorOn = false;
+    this.powerAssistActive = false;
+    this._smartDrive.off(
+      SmartDrive.smartdrive_disconnect_event,
+      this.onSmartDriveDisconnect,
+      this
+    );
+  }
+
   async onMotorInfo(args: any) {
     // Log.D('onMotorInfo event');
 
+    // update motor state
     if (this.motorOn !== this._smartDrive.driving) {
       if (this._smartDrive.driving) {
         Log.D('Vibrating for motor turning on!');
@@ -748,6 +780,8 @@ export class MainViewModel extends Observable {
       }
     }
     this.motorOn = this._smartDrive.driving;
+    // update battery percentage
+    this.smartDriveCurrentBatteryPercentage = this._smartDrive.battery;
   }
 
   async onDistance(args: any) {
