@@ -258,13 +258,8 @@ export class MainViewModel extends Observable {
       this._savedSmartDriveAddress = savedSDAddr;
     }
 
-    // load tapSensitivity from settings / memory
-    const savedTapSensitivity = appSettings.getNumber(
-      DataKeys.SD_TAP_SENSITIVITY
-    );
-    if (savedTapSensitivity) {
-      this.settings.tapSensitivity = savedTapSensitivity;
-    }
+    // load settings from memory
+    this.loadSettings();
 
     Log.D(
       'Device Info: ---',
@@ -501,6 +496,7 @@ export class MainViewModel extends Observable {
     Log.D('Confirmed the value, need to save config setting.');
     // SAVE THE VALUE to local data for the setting user has selected
     this.settings.copy(this.tempSettings);
+    this.saveSettings();
   }
 
   onIncreaseSettingsTap() {
@@ -531,11 +527,26 @@ export class MainViewModel extends Observable {
    * Smart Drive Interaction and Data Management
    */
 
-  saveTapSensitivity() {
+  loadSettings() {
+    this.settings.maxSpeed = appSettings.getNumber(DataKeys.SD_MAX_SPEED) || 70;
+    this.settings.acceleration =
+      appSettings.getNumber(DataKeys.SD_ACCELERATION) || 30;
+    this.settings.tapSensitivity =
+      appSettings.getNumber(DataKeys.SD_TAP_SENSITIVITY) || 100;
+    this.settings.controlMode =
+      appSettings.getString(DataKeys.SD_CONTROL_MODE) || 'MX2+';
+    this.settings.units = appSettings.getString(DataKeys.SD_UNITS) || 'English';
+  }
+
+  saveSettings() {
+    appSettings.setNumber(DataKeys.SD_MAX_SPEED, this.settings.maxSpeed);
+    appSettings.setNumber(DataKeys.SD_ACCELERATION, this.settings.acceleration);
     appSettings.setNumber(
       DataKeys.SD_TAP_SENSITIVITY,
       this.settings.tapSensitivity
     );
+    appSettings.setString(DataKeys.SD_CONTROL_MODE, this.settings.controlMode);
+    appSettings.setString(DataKeys.SD_UNITS, this.settings.units);
   }
 
   updatePowerAssistRing(color?: any) {
@@ -815,6 +826,7 @@ export class MainViewModel extends Observable {
     this.motorOn = this._smartDrive.driving;
     // update battery percentage
     this.smartDriveCurrentBatteryPercentage = this._smartDrive.battery;
+    appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
   }
 
   async onDistance(args: any) {

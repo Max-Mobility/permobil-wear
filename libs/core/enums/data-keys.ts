@@ -7,5 +7,9 @@ export enum DataKeys {
   'SD_VERSION_BLE' = 'sd.version.ble',
   'SD_BATTERY' = 'sd.battery',
   'SD_SAVED_ADDRESS' = 'sd.saved_address',
-  'SD_TAP_SENSITIVITY' = 'sd.tap_sensitivity'
+  'SD_MAX_SPEED' = 'sd.max_speed',
+  'SD_ACCELERATION' = 'sd.acceleration',
+  'SD_TAP_SENSITIVITY' = 'sd.tap_sensitivity',
+  'SD_CONTROL_MODE' = 'sd.control_mode',
+  'SD_UNITS' = 'sd.units'
 }
