@@ -131,6 +131,8 @@ export class MainViewModel extends Observable {
   private tempSettings = new SmartDrive.Settings();
   private _smartDrive: SmartDrive;
   private _savedSmartDriveAddress: string = null;
+  private _ringTimerId = null;
+  private RING_TIMER_INTERVAL_MS = 500;
 
   /**
    * User interaction objects
@@ -238,8 +240,9 @@ export class MainViewModel extends Observable {
         ) {
           this.watchBeingWorn = (parsedData.d as any).state !== 0.0;
           Log.D('WatchBeingWorn: ' + this.watchBeingWorn);
-          if (!this.watchBeingWorn) {
-            // TODO: we need to disconnect from the smartdrive now!
+          if (!this.watchBeingWorn && this.powerAssistActive) {
+            // disable power assist if the watch is taken off!
+            this.disablePowerAssist();
           }
         }
 
@@ -564,27 +567,57 @@ export class MainViewModel extends Observable {
     }
   }
 
+  blinkPowerAssistRing() {
+    if (this.powerAssistActive) {
+      if (this.motorOn) {
+        this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
+      } else {
+        if (this.powerAssistRingColor == PowerAssist.InactiveRingColor) {
+          this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
+        } else {
+          this.updatePowerAssistRing(PowerAssist.InactiveRingColor);
+        }
+      }
+    }
+  }
+
+  enablePowerAssist() {
+    this.connectToSavedSmartDrive()
+      .then(didConnect => {
+        if (didConnect) {
+          this.powerAssistActive = true;
+          this._ringTimerId = setInterval(
+            this.blinkPowerAssistRing.bind(this),
+            this.RING_TIMER_INTERVAL_MS
+          );
+          this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
+          this.enableDeviceSensors();
+          this.updatePowerAssistButton(PowerAssist.State.Active);
+        }
+      })
+      .catch(err => {});
+  }
+
+  disablePowerAssist() {
+    this.powerAssistActive = false;
+    this.motorOn = false;
+    if (this._ringTimerId) {
+      clearInterval(this._ringTimerId);
+    }
+    this.updatePowerAssistRing(PowerAssist.InactiveRingColor);
+    this.updatePowerAssistButton(PowerAssist.State.Inactive);
+    // turn off the smartdrive
+    this.stopSmartDrive();
+    // now disable sensors
+    this.disableDeviceSensors();
+    this.onDisconnectTap();
+  }
+
   togglePowerAssist() {
     if (this.powerAssistActive) {
-      this.powerAssistActive = false;
-      this.updatePowerAssistRing(PowerAssist.InactiveRingColor);
-      this.updatePowerAssistButton(PowerAssist.State.Inactive);
-      // turn off the smartdrive
-      this.stopSmartDrive();
-      // now disable sensors
-      this.disableDeviceSensors();
-      this.onDisconnectTap();
+      this.disablePowerAssist();
     } else {
-      this.connectToSavedSmartDrive()
-        .then(didConnect => {
-          if (didConnect) {
-            this.powerAssistActive = true;
-            this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
-            this.enableDeviceSensors();
-            this.updatePowerAssistButton(PowerAssist.State.Active);
-          }
-        })
-        .catch(err => {});
+      this.enablePowerAssist();
     }
   }
 
