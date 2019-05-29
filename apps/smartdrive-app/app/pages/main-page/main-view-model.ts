@@ -290,6 +290,16 @@ export class MainViewModel extends Observable {
     }
   }
 
+  stopSmartDrive() {
+    // turn off the motor if SD is connected
+    if (this._smartDrive && this._smartDrive.ableToSend) {
+      Log.D('Turning off Motor!');
+      this._smartDrive
+        .stopMotor()
+        .catch(err => Log.E('Could not stop motor', err));
+    }
+  }
+
   activatePowerAssistTap() {
     console.log('activate power assist has been tapped!');
     this.togglePowerAssist();
@@ -497,7 +507,7 @@ export class MainViewModel extends Observable {
       }
     }
     if (this.powerAssistRing)
-      this.powerAssistRing.rimColor = this.powerAssistRingColor;
+      (this.powerAssistRing as any).rimColor = this.powerAssistRingColor;
   }
 
   updatePowerAssistButton(state: PowerAssist.State) {
@@ -518,13 +528,8 @@ export class MainViewModel extends Observable {
       this.powerAssistActive = false;
       this.updatePowerAssistRing(PowerAssist.InactiveRingColor);
       this.updatePowerAssistButton(PowerAssist.State.Inactive);
-      // turn off the motor if SD is connected
-      if (this._smartDrive && this._smartDrive.ableToSend) {
-        Log.D('Turning off Motor!');
-        this._smartDrive
-          .stopMotor()
-          .catch(err => Log.E('Could not stop motor', err));
-      }
+      // turn off the smartdrive
+      this.stopSmartDrive();
       // now disable sensors
       this.disableDeviceSensors();
       this.onDisconnectTap();

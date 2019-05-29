@@ -1149,7 +1149,8 @@ export class SmartDrive extends DeviceBase {
         */
     this.mcu_version = motorInfo.version;
     this.battery = motorInfo.batteryLevel;
-    this.driving = motorInfo.state === 1;
+    const motorOnState = Packet.makeBoundData('MotorState', 'On');
+    this.driving = motorInfo.state === motorOnState;
     // TODO: send version event (for MCU_VERSION) to subscribers
     this.sendEvent(SmartDrive.smartdrive_mcu_version_event, {
       mcu: this.mcu_version
