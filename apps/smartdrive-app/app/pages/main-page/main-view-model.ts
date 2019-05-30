@@ -87,8 +87,8 @@ export class MainViewModel extends Observable {
    * SmartDrive Related Data
    *
    */
-  maxTapSensitivity: number = 2.0;
-  minTapSensitivity: number = 0.1;
+  maxTapSensitivity: number = 3.0;
+  minTapSensitivity: number = 0.5;
 
   /**
    * Boolean to track whether a tap has been performed.
