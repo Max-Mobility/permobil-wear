@@ -251,6 +251,8 @@ export class MainViewModel extends Observable {
         }
       }
     );
+    // now enable the sensors
+    this.enableDeviceSensors();
 
     // load savedSmartDriveAddress from settings / memory
     const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
@@ -302,9 +304,16 @@ export class MainViewModel extends Observable {
   }
 
   handleTap() {
-    // block high frequency tapping and ignore tapping if not on
-    // the user's wrist
-    if (this.hasTapped || (!this.watchBeingWorn && !this.isTraining)) {
+    // ignore tapping if we're not in the right mode
+    if (!this.powerAssistActive && !this.isTraining) {
+      return;
+    }
+    // ignore tapping if we're not on the users wrist
+    if (!this.watchBeingWorn) {
+      return;
+    }
+    // block high frequency tapping
+    if (this.hasTapped) {
       return;
     }
     this.hasTapped = true;
@@ -380,13 +389,11 @@ export class MainViewModel extends Observable {
     this.isTraining = true;
     this.updatePowerAssistRing(PowerAssist.TrainingRingColor);
     if (this.pager) this.pager.selectedIndex = 0;
-    this.enableDeviceSensors();
   }
 
   onExitTrainingModeTap() {
     this.isTraining = false;
     this.updatePowerAssistRing();
-    this.disableDeviceSensors();
   }
 
   /**
@@ -593,6 +600,11 @@ export class MainViewModel extends Observable {
   }
 
   enablePowerAssist() {
+    // only enable power assist if we're on the user's wrist
+    if (!this.watchBeingWorn) {
+      showFailure('You must wear the watch to activate power assist.');
+      return;
+    }
     this.connectToSavedSmartDrive()
       .then(didConnect => {
         if (didConnect) {
@@ -602,7 +614,6 @@ export class MainViewModel extends Observable {
             this.RING_TIMER_INTERVAL_MS
           );
           this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
-          this.enableDeviceSensors();
           this.updatePowerAssistButton(PowerAssist.State.Active);
         }
       })
@@ -619,8 +630,6 @@ export class MainViewModel extends Observable {
     this.updatePowerAssistButton(PowerAssist.State.Inactive);
     // turn off the smartdrive
     this.stopSmartDrive();
-    // now disable sensors
-    this.disableDeviceSensors();
     this.onDisconnectTap();
   }
 
