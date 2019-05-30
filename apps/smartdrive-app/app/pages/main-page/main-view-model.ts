@@ -21,6 +21,7 @@ import {
   showFailure,
   showSuccess
 } from 'nativescript-wear-os/packages/dialogs';
+import * as application from 'tns-core-modules/application';
 import * as applicationModule from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Color } from 'tns-core-modules/color';
@@ -145,6 +146,16 @@ export class MainViewModel extends Observable {
 
   constructor() {
     super();
+
+    application.on(application.exitEvent, args => {
+      Log.D(
+        'App exit event inside main-view-model.ts. Turning off Power Assist and disabling sensors.'
+      );
+      this.disableDeviceSensors();
+      this.stopSmartDrive();
+      this.disablePowerAssist();
+      Log.D('Sensors and PowerAssist should be disabled.');
+    });
 
     console.time('Sentry_Init');
     // init sentry - DNS key for permobil-wear Sentry project
