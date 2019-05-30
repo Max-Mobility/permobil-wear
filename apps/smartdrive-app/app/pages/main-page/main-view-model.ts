@@ -454,13 +454,7 @@ export class MainViewModel extends Observable {
     if (args.object.id) {
     }
 
-    // using the promise to collapse the settings list page to avoid user interaction when it's behind the config change screen.
-    // see - https://github.com/Max-Mobility/permobil-wear/issues/79
-    showOffScreenLayout(this._changeSettingsLayout).then(() => {
-      Log.D('Disabling user interation on settings SDL while this is open.');
-      this._settingsLayout.visibility = 'collapse';
-      this.pager.visibility = 'collapse';
-    });
+    showOffScreenLayout(this._changeSettingsLayout);
     this.isChangeSettingsLayoutEnabled = true;
   }
 
@@ -487,18 +481,16 @@ export class MainViewModel extends Observable {
   }
 
   onCancelChangesTap() {
-    Log.D(
-      'Cancelled the changes, do NOT save any changes to config setting. Toggling back the visibility of the pager and the settings layout.'
-    );
-    // reset the visibility of the settings list screen
-    this._settingsLayout.visibility = 'visible';
-    this.pager.visibility = 'visible';
+    Log.D('Cancelled the changes, do NOT save any changes to config setting.');
     hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
     this.isChangeSettingsLayoutEnabled = false;
   }
 
   onConfirmChangesTap() {
-    hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
+    hideOffScreenLayout(this._changeSettingsLayout, {
+      x: 500,
+      y: 0
+    });
     this.isChangeSettingsLayoutEnabled = false;
     Log.D('Confirmed the value, need to save config setting.');
     // SAVE THE VALUE to local data for the setting user has selected
