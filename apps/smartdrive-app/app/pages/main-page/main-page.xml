@@ -51,19 +51,19 @@
 					 text="{{ topValueDescription }}"
 					 textWrap="true" />
               <Button row="3" col="1" class="powerAssistBtn"
-					  width="70%" height="40%"
+					  width="100%" height="40%" borderRadius="50%"
 					  backgroundColor="{{ powerAssistBtnColor }}"
 					  text="{{ powerAssistBtnText }}"
 					  tap="{{ activatePowerAssistTap }}"
 					  visibility="{{ (!isTraining && !motorOn) ? 'visible' : 'collapsed' }}"/>
               <Button row="3" col="1" class="powerAssistBtn"
-					  width="70%" height="40%"
+					  width="100%" height="40%" borderRadius="50%"
 					  backgroundColor="#a52f2f"
 					  text="STOP"
 					  tap="{{ stopSmartDrive }}"
 					  visibility="{{ motorOn ? 'visible' : 'collapsed' }}"/>
               <Button row="3" col="1" class="powerAssistBtn"
-					  width="70%" height="40%"
+					  width="100%" height="40%" borderRadius="50%"
 					  backgroundColor="#2fa52f"
 					  text="Exit Training Mode"
 					  tap="{{ onExitTrainingModeTap }}"
