@@ -4,29 +4,47 @@ export function hideOffScreenLayout(
   view: View,
   position: { x: number; y: number }
 ) {
-  if (view) {
-    view.visibility = 'collapse';
-    view.animate({
-      target: view,
-      duration: 300,
-      translate: {
-        x: position.x,
-        y: position.y
-      }
-    });
-  }
+  return new Promise((resolve, reject) => {
+    if (view) {
+      view.visibility = 'collapse';
+      view
+        .animate({
+          target: view,
+          duration: 300,
+          translate: {
+            x: position.x,
+            y: position.y
+          }
+        })
+        .then(() => {
+          resolve();
+        })
+        .catch(err => {
+          reject(err);
+        });
+    }
+  });
 }
 
 export function showOffScreenLayout(view: View) {
-  if (view) {
-    view.visibility = 'visible';
-    view.animate({
-      target: view,
-      duration: 300,
-      translate: {
-        x: 0,
-        y: 0
-      }
-    });
-  }
+  return new Promise((resolve, reject) => {
+    if (view) {
+      view.visibility = 'visible';
+      view
+        .animate({
+          target: view,
+          duration: 300,
+          translate: {
+            x: 0,
+            y: 0
+          }
+        })
+        .then(() => {
+          resolve();
+        })
+        .catch(err => {
+          reject(err);
+        });
+    }
+  });
 }
