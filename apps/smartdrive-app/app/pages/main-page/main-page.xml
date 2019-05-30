@@ -44,11 +44,30 @@
 							 progress="{{ watchCurrentBatteryPercentage }}">
             <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
               <!-- <wol:WearOsLayout> -->
-              <Label row="1" col="1" class="topValue" horizontalAlignment="center" text="{{ topValue }}" textWrap="true" />
-              <Label row="2" col="1" class="topValueDescription" text="{{ topValueDescription }}" textWrap="true" />
-              <Button row="3" col="1" class="powerAssistBtn" backgroundColor="{{ powerAssistBtnColor }}" text="{{ powerAssistBtnText }}" tap="{{ activatePowerAssistTap }}" visibility="{{ (!isTraining && !motorOn) ? 'visible' : 'collapsed' }}"/>
-              <Button row="3" col="1" class="powerAssistBtn" backgroundColor="#a52f2f" text="STOP" tap="{{ stopSmartDrive }}" visibility="{{ motorOn ? 'visible' : 'collapsed' }}"/>
-              <Button row="3" col="1" class="powerAssistBtn" backgroundColor="#2fa52f" text="Exit Training Mode" tap="{{ onExitTrainingModeTap }}" visibility="{{ isTraining ? 'visible' : 'collapsed' }}" />
+              <Label row="1" col="1" class="topValue" horizontalAlignment="center"
+					 text="{{ topValue }}"
+					 textWrap="true" />
+              <Label row="2" col="1" class="topValueDescription"
+					 text="{{ topValueDescription }}"
+					 textWrap="true" />
+              <Button row="3" col="1" class="powerAssistBtn"
+					  width="70%" height="40%"
+					  backgroundColor="{{ powerAssistBtnColor }}"
+					  text="{{ powerAssistBtnText }}"
+					  tap="{{ activatePowerAssistTap }}"
+					  visibility="{{ (!isTraining && !motorOn) ? 'visible' : 'collapsed' }}"/>
+              <Button row="3" col="1" class="powerAssistBtn"
+					  width="70%" height="40%"
+					  backgroundColor="#a52f2f"
+					  text="STOP"
+					  tap="{{ stopSmartDrive }}"
+					  visibility="{{ motorOn ? 'visible' : 'collapsed' }}"/>
+              <Button row="3" col="1" class="powerAssistBtn"
+					  width="70%" height="40%"
+					  backgroundColor="#2fa52f"
+					  text="Exit Training Mode"
+					  tap="{{ onExitTrainingModeTap }}"
+					  visibility="{{ isTraining ? 'visible' : 'collapsed' }}" />
               <Label row="4" col="1" class="currentTime" text="{{ currentTime }}" textWrap="true" />
               <Label row="5" col="1" class="currentTimeMeridiem" text="{{ currentTimeMeridiem }}" textWrap="true" />
               <!-- </wol:WearOsLayout> -->
