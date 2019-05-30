@@ -1,14 +1,13 @@
 import { Injectable } from 'injection-js';
-import { Kinvey } from 'kinvey-nativescript-sdk';
-import { device } from 'tns-core-modules/platform';
-import * as app from 'tns-core-modules/application';
-import { Log } from '../utils';
 import {
+  AndroidSensorListener,
   AndroidSensors,
-  SensorDelay,
-  AndroidSensorListener
+  SensorDelay
 } from 'nativescript-android-sensors';
-import { Observable, EventData } from 'tns-core-modules/data/observable';
+import * as app from 'tns-core-modules/application';
+import { EventData, Observable } from 'tns-core-modules/data/observable';
+import { device } from 'tns-core-modules/platform';
+import { Log } from '../utils';
 
 @Injectable()
 export class SensorService extends Observable {
@@ -17,7 +16,6 @@ export class SensorService extends Observable {
   public androidSensorClass: AndroidSensors;
   public androidSensorListener;
   public registeredSensors: android.hardware.Sensor[];
-  private _datastore: Kinvey.CacheStore;
   private _identifier: string = 'XXPERMOBILR&DXX';
 
   constructor() {
@@ -57,7 +55,7 @@ export class SensorService extends Observable {
     // init the registered sensors array
     this.registeredSensors = [];
     // connect to the Kinvey WatchData collection
-    this._datastore = Kinvey.DataStore.collection<any>('WatchData');
+    // this._datastore = Kinvey.DataStore.collection<any>('WatchData');
   }
 
   /**
@@ -223,7 +221,7 @@ export class SensorService extends Observable {
     };
 
     // now save to kinvey data collection
-    return this._datastore.save(dbRecord);
+    // return this._datastore.save(dbRecord);
   }
 
   public flush() {

@@ -1,6 +1,4 @@
 import {
-  APP_KEY,
-  APP_SECRET,
   BluetoothService,
   DataKeys,
   Log,
@@ -11,9 +9,7 @@ import {
   SERVICES,
   SmartDrive
 } from '@permobil/core';
-import * as applicationModule from 'tns-core-modules/application';
 import { ReflectiveInjector } from 'injection-js';
-import { Kinvey } from 'kinvey-nativescript-sdk';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
 import { Pager } from 'nativescript-pager';
@@ -25,6 +21,7 @@ import {
   showFailure,
   showSuccess
 } from 'nativescript-wear-os/packages/dialogs';
+import * as applicationModule from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Color } from 'tns-core-modules/color';
 import { Observable } from 'tns-core-modules/data/observable';
@@ -150,14 +147,6 @@ export class MainViewModel extends Observable {
   constructor() {
     super();
 
-    console.time('Kinvey_Init');
-    // initialize Kinvey
-    Kinvey.init({
-      appKey: `${APP_KEY}`,
-      appSecret: `${APP_SECRET}`
-    });
-    console.timeEnd('Kinvey_Init');
-
     console.time('Sentry_Init');
     // init sentry - DNS key for permobil-wear Sentry project
     Sentry.init(
@@ -172,7 +161,7 @@ export class MainViewModel extends Observable {
 
     // register for watch battery updates
     // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
-    let receiverCallback = (androidContext, intent) => {
+    const receiverCallback = (androidContext, intent) => {
       const level = intent.getIntExtra(
         android.os.BatteryManager.EXTRA_LEVEL,
         -1
@@ -590,7 +579,7 @@ export class MainViewModel extends Observable {
       if (this.motorOn) {
         this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
       } else {
-        if (this.powerAssistRingColor == PowerAssist.InactiveRingColor) {
+        if (this.powerAssistRingColor === PowerAssist.InactiveRingColor) {
           this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
         } else {
           this.updatePowerAssistRing(PowerAssist.InactiveRingColor);

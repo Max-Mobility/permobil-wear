@@ -14,14 +14,14 @@
     "brad.debug.wifi": "adb tcpip 5555 && adb connect 192.168.1.65",
     "// end Brad Section": "************************************************************************************************************",
     "tslint": "tslint -p tsconfig.json -c tslint.json",
-    "scss-b": "node-sass --watch ./app/scss -o ./app/scss"
+    "scss-b": "node-sass --watch ./app/scss -o ./app/scss",
+    "release-build": "cd tools && node android-release.js"
   },
   "dependencies": {
     "@permobil/core": "file:../../libs/core",
     "buffer": "../../node_modules/buffer",
     "date-fns": "../../node_modules/date-fns",
     "injection-js": "../../node_modules/injection-js",
-    "kinvey-nativescript-sdk": "../../node_modules/kinvey-nativescript-sdk",
     "lodash": "../../node_modules/lodash",
     "nativescript-android-sensors": "file:../../node_modules/nativescript-android-sensors",
     "nativescript-animated-circle": "file:../../forked-plugins/nativescript-animated-circle",
