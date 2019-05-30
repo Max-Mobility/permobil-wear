@@ -8,7 +8,7 @@
   xmlns:RL="nativescript-ng-ripple/ripple-view" navigatingTo="navigatingTo" actionBarHidden="true">
   <GridLayout rows="*, *" columns="*">
 
-    <pager:Pager loaded="{{ onPagerLoaded }}" orientation="vertical" height="100%" width="100%" col="0" row="0" rowSpan="2" id="pager" spacing="2%" peaking="10%" transformer="none" pagesCount="10" showNativePageIndicator="false" disableSwipe="{{ powerAssistActive || isTraining }}">
+    <pager:Pager loaded="{{ onPagerLoaded }}" orientation="vertical" height="100%" width="100%" col="0" row="0" rowSpan="2" id="pager" transformer="none" pagesCount="4" showNativePageIndicator="false" disableSwipe="{{ powerAssistActive || isTraining }}">
       // Activate Power Assist Screen
       <pager:PagerItem>
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
