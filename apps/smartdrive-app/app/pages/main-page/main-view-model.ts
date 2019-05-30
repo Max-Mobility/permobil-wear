@@ -139,7 +139,6 @@ export class MainViewModel extends Observable {
   private _settingsLayout: SwipeDismissLayout;
   public _changeSettingsLayout: SwipeDismissLayout;
   private _vibrator: Vibrate = new Vibrate();
-
   private _sentryService: SentryService;
   private _bluetoothService: BluetoothService;
   private _sensorService: SensorService;
@@ -454,7 +453,15 @@ export class MainViewModel extends Observable {
     this.updateSettingDisplay();
     if (args.object.id) {
     }
-    showOffScreenLayout(this._changeSettingsLayout);
+
+    // using the promise to collapse the settings list page to avoid user interaction when it's behind the config change screen.
+    // see - https://github.com/Max-Mobility/permobil-wear/issues/79
+    showOffScreenLayout(this._changeSettingsLayout).then(() => {
+      if (this._settingsLayout) {
+        Log.D('Disabling user interation on settings SDL while this is open.');
+        this._settingsLayout.visibility = 'collapse';
+      }
+    });
     this.isChangeSettingsLayoutEnabled = true;
   }
 
@@ -482,6 +489,8 @@ export class MainViewModel extends Observable {
 
   onCancelChangesTap() {
     Log.D('Cancelled the changes, do NOT save any changes to config setting.');
+    // reset the visibility of the settings list screen
+    this._settingsLayout.visibility = 'visible';
     hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
     this.isChangeSettingsLayoutEnabled = false;
   }
