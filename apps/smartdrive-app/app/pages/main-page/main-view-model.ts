@@ -52,11 +52,13 @@ namespace PowerAssist {
   export const TrainingButtonText = 'Exit Training Mode';
 
   export const TappedRingColor = '#a52f2f';
+  export const ConnectedRingColor = '#009ac7';
   export const DisconnectedRingColor = '#a52f2f';
 
   export enum State {
     Inactive,
-    Active,
+    Disconnected,
+    Connected,
     Training
   }
 }
@@ -88,6 +90,11 @@ export class MainViewModel extends Observable {
    */
   maxTapSensitivity: number = 3.0;
   minTapSensitivity: number = 0.5;
+
+  /**
+   * State tracking for power assist
+   */
+  @Prop() powerAssistState: PowerAssist.State = PowerAssist.State.Inactive;
 
   /**
    * Boolean to track whether a tap has been performed.
@@ -345,7 +352,6 @@ export class MainViewModel extends Observable {
   }
 
   activatePowerAssistTap() {
-    console.log('activate power assist has been tapped!');
     this.togglePowerAssist();
   }
 
@@ -383,12 +389,14 @@ export class MainViewModel extends Observable {
   onTrainingTap() {
     Log.D('Trained tapped.');
     this.isTraining = true;
-    this.updatePowerAssistRing(PowerAssist.TrainingRingColor);
+    this.powerAssistState = PowerAssist.State.Training;
+    this.updatePowerAssistRing();
     if (this.pager) this.pager.selectedIndex = 0;
   }
 
   onExitTrainingModeTap() {
     this.isTraining = false;
+    this.powerAssistState = PowerAssist.State.Inactive;
     this.updatePowerAssistRing();
   }
 
@@ -560,21 +568,29 @@ export class MainViewModel extends Observable {
     if (color) {
       this.powerAssistRingColor = color;
     } else {
-      if (this.powerAssistActive) {
-        this.powerAssistRingColor = PowerAssist.ActiveRingColor;
-      } else {
-        if (this.isTraining)
+      switch (this.powerAssistState) {
+        case PowerAssist.State.Connected:
+          this.powerAssistRingColor = PowerAssist.ConnectedRingColor;
+          break;
+        case PowerAssist.State.Disconnected:
+          this.powerAssistRingColor = PowerAssist.DisconnectedRingColor;
+          break;
+        case PowerAssist.State.Inactive:
+          this.powerAssistRingColor = PowerAssist.InactiveRingColor;
+          break;
+        case PowerAssist.State.Training:
           this.powerAssistRingColor = PowerAssist.TrainingRingColor;
-        else this.powerAssistRingColor = PowerAssist.ActiveRingColor;
+          break;
       }
     }
     if (this.powerAssistRing)
       (this.powerAssistRing as any).rimColor = this.powerAssistRingColor;
   }
 
-  updatePowerAssistButton(state: PowerAssist.State) {
-    switch (state) {
-      case PowerAssist.State.Active:
+  updatePowerAssistButton() {
+    switch (this.powerAssistState) {
+      case PowerAssist.State.Connected:
+      case PowerAssist.State.Disconnected:
         this.powerAssistBtnText = PowerAssist.ActiveButtonText;
         this.powerAssistBtnColor = PowerAssist.ActiveButtonColor;
         break;
@@ -582,17 +598,21 @@ export class MainViewModel extends Observable {
         this.powerAssistBtnText = PowerAssist.InactiveButtonText;
         this.powerAssistBtnColor = PowerAssist.InactiveButtonColor;
         break;
+      case PowerAssist.State.Training:
+        this.powerAssistBtnText = PowerAssist.TrainingButtonText;
+        this.powerAssistBtnColor = PowerAssist.TrainingButtonColor;
+        break;
     }
   }
 
   blinkPowerAssistRing() {
     if (this.powerAssistActive) {
       if (this.motorOn) {
-        this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
+        this.updatePowerAssistRing(PowerAssist.ConnectedRingColor);
       } else {
         if (this.powerAssistRingColor === PowerAssist.InactiveRingColor) {
-          if (this._smartDrive.connected) {
-            this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
+          if (this._smartDrive.ableToSend) {
+            this.updatePowerAssistRing(PowerAssist.ConnectedRingColor);
           } else {
             this.updatePowerAssistRing(PowerAssist.DisconnectedRingColor);
           }
@@ -609,29 +629,41 @@ export class MainViewModel extends Observable {
       showFailure('You must wear the watch to activate power assist.');
       return;
     }
+    this.powerAssistState = PowerAssist.State.Disconnected;
+    this.powerAssistActive = true;
+    this.updatePowerAssistRing();
+    this.updatePowerAssistButton();
     return this.connectToSavedSmartDrive()
       .then(didConnect => {
         if (didConnect) {
-          this.powerAssistActive = true;
           this._ringTimerId = setInterval(
             this.blinkPowerAssistRing.bind(this),
             this.RING_TIMER_INTERVAL_MS
           );
-          this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
-          this.updatePowerAssistButton(PowerAssist.State.Active);
+        } else {
+          this.powerAssistState = PowerAssist.State.Inactive;
+          this.powerAssistActive = false;
+          this.updatePowerAssistRing();
+          this.updatePowerAssistButton();
         }
       })
-      .catch(err => {});
+      .catch(err => {
+        this.powerAssistState = PowerAssist.State.Inactive;
+        this.powerAssistActive = false;
+        this.updatePowerAssistRing();
+        this.updatePowerAssistButton();
+      });
   }
 
   disablePowerAssist() {
+    this.powerAssistState = PowerAssist.State.Inactive;
     this.powerAssistActive = false;
     this.motorOn = false;
     if (this._ringTimerId) {
       clearInterval(this._ringTimerId);
     }
-    this.updatePowerAssistRing(PowerAssist.InactiveRingColor);
-    this.updatePowerAssistButton(PowerAssist.State.Inactive);
+    this.updatePowerAssistRing();
+    this.updatePowerAssistButton();
     // turn off the smartdrive
     return this.stopSmartDrive()
       .then(() => {
@@ -749,9 +781,15 @@ export class MainViewModel extends Observable {
     );
 
     // now connect to smart drive
-    return this._smartDrive.connect().catch(err => {
-      showFailure('Could not connect to ' + smartDrive.address);
-    });
+    return this._smartDrive
+      .connect()
+      .then(() => {
+        return true;
+      })
+      .catch(err => {
+        showFailure('Could not connect to ' + smartDrive.address);
+        return false;
+      });
   }
 
   connectToSavedSmartDrive(): Promise<any> {
@@ -818,7 +856,6 @@ export class MainViewModel extends Observable {
       !this._smartDrive.connected
     ) {
       setTimeout(() => {
-        console.log('retrying smartdrive connection');
         this.connectToSavedSmartDrive();
       }, 5 * 1000);
     }
@@ -828,6 +865,7 @@ export class MainViewModel extends Observable {
    * SMART DRIVE EVENT HANDLERS
    */
   async onSmartDriveConnect(args: any) {
+    this.powerAssistState = PowerAssist.State.Connected;
     // send the current settings to the SD
     this._smartDrive.sendSettingsObject(this.settings);
     new Toasty(
@@ -840,6 +878,7 @@ export class MainViewModel extends Observable {
   async onSmartDriveDisconnect(args: any) {
     this.motorOn = false;
     if (this.powerAssistActive) {
+      this.powerAssistState = PowerAssist.State.Disconnected;
       this.retrySmartDriveConnection();
     }
     this._smartDrive.off(
@@ -870,6 +909,7 @@ export class MainViewModel extends Observable {
     this.motorOn = this._smartDrive.driving;
     // update battery percentage
     this.smartDriveCurrentBatteryPercentage = this._smartDrive.battery;
+    // save the updated smartdrive battery
     appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
   }
 
@@ -890,7 +930,7 @@ export class MainViewModel extends Observable {
   async onSmartDriveVersion(args: any) {
     // Log.D('onSmartDriveVersion event');
 
-    // save the updated SmartDrive data values
+    // save the updated SmartDrive version info
     appSettings.setNumber(
       DataKeys.SD_VERSION_MCU,
       this._smartDrive.mcu_version
@@ -899,6 +939,5 @@ export class MainViewModel extends Observable {
       DataKeys.SD_VERSION_BLE,
       this._smartDrive.ble_version
     );
-    appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
   }
 }
