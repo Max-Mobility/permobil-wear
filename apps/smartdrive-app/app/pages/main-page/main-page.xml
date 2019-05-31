@@ -1,10 +1,10 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" 
   xmlns:nac="nativescript-animated-circle" 
-  xmlns:Lottie="nativescript-lottie" 
   xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
   xmlns:lv="nativescript-wear-os/packages/listview" 
   xmlns:pager="nativescript-pager" 
   xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" 
+  xmlns:box="nativescript-wear-os/packages/box-inset-layout" 
   xmlns:RL="nativescript-ng-ripple/ripple-view" navigatingTo="navigatingTo" actionBarHidden="true">
   <GridLayout rows="*, *" columns="*">
 
@@ -20,7 +20,6 @@
          // Watch Battery Circle
           <nac:AnimatedCircle rowSpan="3" colSpan="3" class="watchBatteryCircle" width="84%" height="84%" animated="true" animateFrom="0" rimColor="{{ watchCurrentBatteryPercentage == 0 ? '#ff671f' : 'transparent' }}" barColor="#ff671f" clockwise="true" rimWidth="{{ watchCurrentBatteryPercentage == 0 ? 3 : 7 }}" progress="{{ watchCurrentBatteryPercentage }}">
             <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
-              <!-- <wol:WearOsLayout> -->
               <Label row="1" col="1" class="topValue" horizontalAlignment="center" text="{{ topValue }}" textWrap="true" />
               <Label row="2" col="1" class="topValueDescription" text="{{ topValueDescription }}" textWrap="true" />
               <Button row="3" col="1" class="powerAssistBtn" width="100%" height="40%" borderRadius="50%" backgroundColor="{{ powerAssistBtnColor }}" text="{{ powerAssistBtnText }}" tap="{{ activatePowerAssistTap }}" visibility="{{ (!isTraining && !motorOn) ? 'visible' : 'collapsed' }}"/>
@@ -28,7 +27,6 @@
               <Button row="3" col="1" class="powerAssistBtn" width="100%" height="40%" borderRadius="50%" backgroundColor="#2fa52f" text="Exit Training Mode" tap="{{ onExitTrainingModeTap }}" visibility="{{ isTraining ? 'visible' : 'collapsed' }}" />
               <Label row="4" col="1" class="currentTime" text="{{ currentTime }}" textWrap="true" />
               <Label row="5" col="1" class="currentTimeMeridiem" text="{{ currentTimeMeridiem }}" textWrap="true" />
-              <!-- </wol:WearOsLayout> -->
             </GridLayout>
           </nac:AnimatedCircle>
           // Battery Icon
@@ -41,7 +39,7 @@
 
       // SmartDrive Battery Usage Chat
       <pager:PagerItem>
-        <wol:WearOsLayout>
+        <box:BoxInsetLayout>
           <GridLayout rows="auto, auto, *" columns="*, auto">
             <Label row="0" colSpan="2" text="Daily SmartDrive Battery Usage" class="chart-title" textWrap="true" />
             <Label text="" row="1" col="0" class="hr-blue" />
@@ -59,12 +57,12 @@
               </Repeater.itemTemplate>
             </Repeater>
           </GridLayout>
-        </wol:WearOsLayout>
+        </box:BoxInsetLayout>
       </pager:PagerItem>
 
       // SmartDrive Distance Traveled Chart
       <pager:PagerItem>
-        <wol:WearOsLayout>
+        <box:BoxInsetLayout>
           <GridLayout rows="auto, auto, *" columns="*, auto">
             // Chart Title
             <Label row="0" colSpan="8" text="Daily SmartDrive Distance Traveled (MI)" class="chart-title" textWrap="true" />
@@ -83,7 +81,7 @@
               </Repeater.itemTemplate>
             </Repeater>
           </GridLayout>
-        </wol:WearOsLayout>
+        </box:BoxInsetLayout>
       </pager:PagerItem>
 
       <pager:PagerItem>
