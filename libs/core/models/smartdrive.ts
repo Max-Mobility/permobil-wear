@@ -1024,21 +1024,32 @@ export class SmartDrive extends DeviceBase {
 
   public connect() {
     console.log(`Connecting to ${this.address}`);
-    try {
-      this._bluetoothService.connect(
-        this.address,
-        this.handleConnect.bind(this),
-        this.handleDisconnect.bind(this)
-      );
-    } catch (err) {
-      console.log(`Couldn't connect to ${this.address}: ${err}`);
-    }
+    return this._bluetoothService.connect(
+      this.address,
+      this.handleConnect.bind(this),
+      this.handleDisconnect.bind(this)
+    );
   }
 
   public disconnect() {
-    return this._bluetoothService.disconnect({
-      UUID: this.address
-    });
+    // TODO: THIS IS A HACK TO FORCE THE BLE CHIP TO REBOOT AND CLOSE THE CONNECTION
+    const data = Uint8Array.from([0x03]); // this is the OTA stop command
+    return this._bluetoothService
+      .write({
+        peripheralUUID: this.address,
+        serviceUUID: SmartDrive.ServiceUUID,
+        characteristicUUID: SmartDrive.BLEOTAControlCharacteristic.toUpperCase(),
+        value: data
+      })
+      .then(() => {
+        console.log('have told it to reboot, now disconnecting!');
+        return this._bluetoothService.disconnect({
+          UUID: this.address
+        });
+      })
+      .catch(err => {
+        console.log('DISCONNECT ERR:', err);
+      });
   }
 
   public handleConnect(data?: any) {

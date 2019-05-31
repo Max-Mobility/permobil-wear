@@ -152,7 +152,6 @@ export class MainViewModel extends Observable {
         'App exit event inside main-view-model.ts. Turning off Power Assist and disabling sensors.'
       );
       this.disableDeviceSensors();
-      this.stopSmartDrive();
       this.disablePowerAssist();
       Log.D('Sensors and PowerAssist should be disabled.');
     });
@@ -341,9 +340,11 @@ export class MainViewModel extends Observable {
     // turn off the motor if SD is connected
     if (this._smartDrive && this._smartDrive.ableToSend) {
       Log.D('Turning off Motor!');
-      this._smartDrive
+      return this._smartDrive
         .stopMotor()
         .catch(err => Log.E('Could not stop motor', err));
+    } else {
+      return Promise.resolve();
     }
   }
 
@@ -632,8 +633,13 @@ export class MainViewModel extends Observable {
     this.updatePowerAssistRing(PowerAssist.InactiveRingColor);
     this.updatePowerAssistButton(PowerAssist.State.Inactive);
     // turn off the smartdrive
-    this.stopSmartDrive();
-    this.disconnectFromSmartDrive();
+    return this.stopSmartDrive()
+      .then(() => {
+        return this.disconnectFromSmartDrive();
+      })
+      .catch(err => {
+        return this.disconnectFromSmartDrive();
+      });
   }
 
   togglePowerAssist() {
@@ -657,7 +663,7 @@ export class MainViewModel extends Observable {
     return this._bluetoothService
       .scanForSmartDrives(3)
       .then(() => {
-        Log.D('Discovered SmartDrives', BluetoothService.SmartDrives);
+        Log.D(`Discovered ${BluetoothService.SmartDrives.length} SmartDrives`);
 
         // make sure we have smartdrives
         if (BluetoothService.SmartDrives.length <= 0) {
@@ -725,16 +731,22 @@ export class MainViewModel extends Observable {
     );
 
     // now connect to smart drive
-    this._smartDrive.connect();
-    // send the current settings to the SD
-    this._smartDrive.sendSettingsObject(this.settings);
-    this.connected = true;
-    //showSuccess(`Connected to ${this._smartDrive.address}`, 2);
-    new Toasty(
-      'Connected to ' + this._savedSmartDriveAddress,
-      ToastDuration.LONG,
-      ToastPosition.CENTER
-    ).show();
+    return this._smartDrive
+      .connect()
+      .then(() => {
+        // send the current settings to the SD
+        this._smartDrive.sendSettingsObject(this.settings);
+        this.connected = true;
+        //showSuccess(`Connected to ${this._smartDrive.address}`, 2);
+        new Toasty(
+          'Connected to ' + this._savedSmartDriveAddress,
+          ToastDuration.LONG,
+          ToastPosition.CENTER
+        ).show();
+      })
+      .catch(err => {
+        showFailure('Could not connect to ' + smartDrive.address);
+      });
   }
 
   connectToSavedSmartDrive(): Promise<any> {
@@ -765,6 +777,11 @@ export class MainViewModel extends Observable {
       this.connectToSmartDrive(sd);
       return Promise.resolve(true);
     } else {
+      let sd = this._bluetoothService.getOrMakeSmartDrive({
+        address: this._savedSmartDriveAddress
+      });
+      return this.connectToSmartDrive(sd);
+      /*
       return this._bluetoothService
         .scanForSmartDrives(3)
         .then(() => {
@@ -783,6 +800,7 @@ export class MainViewModel extends Observable {
         .catch(() => {
           return false;
         });
+		*/
     }
   }
 

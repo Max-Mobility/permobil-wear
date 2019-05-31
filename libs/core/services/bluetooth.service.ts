@@ -650,7 +650,7 @@ export class BluetoothService {
     }
   }
 
-  private getOrMakePushTracker(device: any): PushTracker {
+  public getOrMakePushTracker(device: any): PushTracker {
     let pt = BluetoothService.PushTrackers.filter(
       p => p.address === device.address
     )[0];
@@ -666,7 +666,7 @@ export class BluetoothService {
     return pt;
   }
 
-  private getOrMakeSmartDrive(device: any): SmartDrive {
+  public getOrMakeSmartDrive(device: any): SmartDrive {
     let sd = BluetoothService.SmartDrives.filter(
       (x: SmartDrive) => x.address === device.address
     )[0];
