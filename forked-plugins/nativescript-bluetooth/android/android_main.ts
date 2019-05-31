@@ -518,6 +518,7 @@ export class Bluetooth extends BluetoothCommon {
             onDisconnected: arg.onDisconnected,
             device: gatt // TODO rename device to gatt?
           };
+          resolve();
         }
       } catch (ex) {
         CLog(CLogTypes.error, `Bluetooth.connect ---- error: ${ex}`);
