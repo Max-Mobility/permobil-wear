@@ -238,7 +238,7 @@ export class MainViewModel extends Observable {
           android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT
         ) {
           this.watchBeingWorn = (parsedData.d as any).state !== 0.0;
-          Log.D('WatchBeingWorn: ' + this.watchBeingWorn);
+          // Log.D('WatchBeingWorn: ' + this.watchBeingWorn);
           if (!this.watchBeingWorn && this.powerAssistActive) {
             // disable power assist if the watch is taken off!
             this.disablePowerAssist();
@@ -608,7 +608,7 @@ export class MainViewModel extends Observable {
       showFailure('You must wear the watch to activate power assist.');
       return;
     }
-    this.connectToSavedSmartDrive()
+    return this.connectToSavedSmartDrive()
       .then(didConnect => {
         if (didConnect) {
           this.powerAssistActive = true;
@@ -633,7 +633,7 @@ export class MainViewModel extends Observable {
     this.updatePowerAssistButton(PowerAssist.State.Inactive);
     // turn off the smartdrive
     this.stopSmartDrive();
-    this.onDisconnectTap();
+    this.disconnectFromSmartDrive();
   }
 
   togglePowerAssist() {
@@ -686,7 +686,7 @@ export class MainViewModel extends Observable {
             this._savedSmartDriveAddress = result;
             appSettings.setString(DataKeys.SD_SAVED_ADDRESS, result);
 
-            showSuccess(`Paired to SmartDrive ${result}`);
+            //showSuccess(`Paired to SmartDrive ${result}`);
             return true;
           } else {
             return false;
@@ -729,7 +729,12 @@ export class MainViewModel extends Observable {
     // send the current settings to the SD
     this._smartDrive.sendSettingsObject(this.settings);
     this.connected = true;
-    showSuccess(`Connected to ${this._smartDrive.address}`, 2);
+    //showSuccess(`Connected to ${this._smartDrive.address}`, 2);
+    new Toasty(
+      'Connected to ' + this._savedSmartDriveAddress,
+      ToastDuration.LONG,
+      ToastPosition.CENTER
+    ).show();
   }
 
   connectToSavedSmartDrive(): Promise<any> {
@@ -740,14 +745,15 @@ export class MainViewModel extends Observable {
     ) {
       return this.saveNewSmartDrive().then(didSave => {
         if (didSave) {
-          this.connectToSavedSmartDrive();
+          return this.connectToSavedSmartDrive();
         }
+        return false;
       });
     }
 
     new Toasty(
       'Connecting to ' + this._savedSmartDriveAddress,
-      ToastDuration.LONG,
+      ToastDuration.SHORT,
       ToastPosition.CENTER
     ).show();
 
@@ -780,7 +786,7 @@ export class MainViewModel extends Observable {
     }
   }
 
-  async onDisconnectTap() {
+  async disconnectFromSmartDrive() {
     if (this._smartDrive && this._smartDrive.connected) {
       this._smartDrive.off(
         SmartDrive.smartdrive_mcu_version_event,
@@ -800,9 +806,6 @@ export class MainViewModel extends Observable {
       this._smartDrive.disconnect().then(() => {
         this.connected = false;
         this.motorOn = false;
-        new Toasty(`Disconnected from ${this._smartDrive.address}`)
-          .setToastPosition(ToastPosition.CENTER)
-          .show();
       });
     }
   }
@@ -818,6 +821,9 @@ export class MainViewModel extends Observable {
       this.onSmartDriveDisconnect,
       this
     );
+    new Toasty(`Disconnected from ${this._smartDrive.address}`)
+      .setToastPosition(ToastPosition.CENTER)
+      .show();
   }
 
   async onMotorInfo(args: any) {
