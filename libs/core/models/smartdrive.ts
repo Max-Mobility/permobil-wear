@@ -923,7 +923,7 @@ export class SmartDrive extends DeviceBase {
     if (this.stoppingNotify)
       return Promise.resolve('Already stopping notifying!');
     else this.stoppingNotify = true;
-    console.log(`StopNotifying`);
+    //console.log(`StopNotifying`);
     const retry = (maxRetries, fn) => {
       return fn().catch(err => {
         if (maxRetries <= 0) {
@@ -941,7 +941,7 @@ export class SmartDrive extends DeviceBase {
           return retry(retries, () => {
             return new Promise((resolve, reject) => {
               timer.setTimeout(() => {
-                console.log(`Stop Notifying ${characteristic}`);
+                //console.log(`Stop Notifying ${characteristic}`);
                 this._bluetoothService
                   .stopNotifying({
                     peripheralUUID: this.address,
@@ -973,7 +973,7 @@ export class SmartDrive extends DeviceBase {
     if (this.startingNotify)
       return Promise.reject('Already started notifying!');
     else this.startingNotify = true;
-    console.log(`StartNotifying`);
+    //console.log(`StartNotifying`);
     const retry = (maxRetries, fn) => {
       return fn().catch(err => {
         if (err.includes('peripheral is disconnected')) {
@@ -995,7 +995,7 @@ export class SmartDrive extends DeviceBase {
           return retry(3, () => {
             return new Promise((resolve, reject) => {
               timer.setTimeout(() => {
-                console.log(`Start Notifying ${characteristic}`);
+                //console.log(`Start Notifying ${characteristic}`);
                 this._bluetoothService
                   .startNotifying({
                     peripheralUUID: this.address,
@@ -1023,7 +1023,6 @@ export class SmartDrive extends DeviceBase {
   }
 
   public connect() {
-    console.log(`Connecting to ${this.address}`);
     return this._bluetoothService.connect(
       this.address,
       this.handleConnect.bind(this),
@@ -1042,7 +1041,6 @@ export class SmartDrive extends DeviceBase {
         value: data
       })
       .then(() => {
-        console.log('have told it to reboot, now disconnecting!');
         return this._bluetoothService.disconnect({
           UUID: this.address
         });
@@ -1057,7 +1055,6 @@ export class SmartDrive extends DeviceBase {
     this.connected = true;
     this.notifying = false;
     this.ableToSend = false;
-    console.log(`connected to smartdrive!`);
     // now that we're connected, subscribe to the characteristics
     this.startNotifyCharacteristics(SmartDrive.Characteristics)
       .then(() => {
@@ -1071,7 +1068,6 @@ export class SmartDrive extends DeviceBase {
     this.notifying = false;
     this.connected = false;
     this.ableToSend = false;
-    console.log(`disconnected from smartdrive!`);
     // now that we're disconnected - make sure we unsubscribe to the characteristics
     this.stopNotifyCharacteristics(SmartDrive.Characteristics).then(() => {
       this.sendEvent(SmartDrive.smartdrive_disconnect_event);
