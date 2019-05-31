@@ -40,12 +40,9 @@
     "buffer": "~5.2.0",
     "date-fns": "~1.30.1",
     "injection-js": "~2.2.1",
-    "kinvey-nativescript-sdk": "~3.12.4",
-    "lodash": "~4.17.11",
     "nativescript-android-sensors": "~1.4.2",
     "nativescript-gif": "~4.0.2",
     "nativescript-localstorage": "~2.0.0",
-    "nativescript-lottie": "~3.0.2",
     "nativescript-pager": "~9.5.0",
     "nativescript-permissions": "~1.3.6",
     "nativescript-ng-ripple": "~3.0.0-beta.1",
@@ -57,7 +54,7 @@
     "nativescript-wear-os": "~0.7.0",
     "reflect-metadata": "~0.1.13",
     "smart-eval-kinvey": "git+https://github.com/autochair/SmartEvalKinvey.git#master",
-    "tns-core-modules": "~5.3.0"
+    "tns-core-modules": "~5.4.1"
   },
   "devDependencies": {
     "appium": "1.11.1",
@@ -70,17 +67,20 @@
     "karma-jasmine": "~1.1.0",
     "karma-jasmine-html-reporter": "~1.4.0",
     "nativescript-worker-loader": "~0.9.5",
+    "nativescript-dev-sass": "~1.7.0",
+    "nativescript-dev-typescript": "~0.10.0",
+    "nativescript-dev-webpack": "~0.24.0",
     "node-fetch": "~2.0.0",
-    "node-sass": "^4.11.0",
+    "node-sass": "^4.12.0",
     "prettier": "^1.17.1",
     "protractor": "~5.3.0",
     "husky": "^2.3.0",
     "prompt": "^1.0.0",
     "lint-staged": "^8.1.7",
-    "tns-platform-declarations": "~5.3.0",
+    "tns-platform-declarations": "~5.4.1",
     "ts-node": "~7.0.0",
-    "tslint": "~5.16.0",
-    "typescript": "~3.4.5"
+    "tslint": "~5.17.0",
+    "typescript": "~3.5.1"
   },
   "lint-staged": {
     "*.{ts, js, json, css, scss, md, xml, html}": [

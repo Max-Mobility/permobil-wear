@@ -12,8 +12,7 @@
         "declaration": false,
         "lib": [
             "es6",
-            "dom",
-            "es2015.iterable"
+            "dom"
         ],
         "baseUrl": ".",
         "paths": {
@@ -33,6 +32,8 @@
         "node_modules",
         "platforms",
         "nativescript-bluetooth",
+        "forked-plugins/nativescript-bluetooth",
+        "forked-plugins/nativescript-animated-circle",
         "tools",
         "hooks"
     ]
