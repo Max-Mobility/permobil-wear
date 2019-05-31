@@ -52,6 +52,7 @@ namespace PowerAssist {
   export const TrainingButtonText = 'Exit Training Mode';
 
   export const TappedRingColor = '#a52f2f';
+  export const DisconnectedRingColor = '#a52f2f';
 
   export enum State {
     Inactive,
@@ -92,11 +93,6 @@ export class MainViewModel extends Observable {
    * Boolean to track whether a tap has been performed.
    */
   @Prop() hasTapped = false;
-
-  /**
-   * Boolean to handle logic if we have connected to a SD unit.
-   */
-  @Prop() public connected = false;
 
   /**
    * Boolean to track if the SmartDrive motor is on.
@@ -595,7 +591,11 @@ export class MainViewModel extends Observable {
         this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
       } else {
         if (this.powerAssistRingColor === PowerAssist.InactiveRingColor) {
-          this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
+          if (this._smartDrive.connected) {
+            this.updatePowerAssistRing(PowerAssist.ActiveRingColor);
+          } else {
+            this.updatePowerAssistRing(PowerAssist.DisconnectedRingColor);
+          }
         } else {
           this.updatePowerAssistRing(PowerAssist.InactiveRingColor);
         }
@@ -708,7 +708,25 @@ export class MainViewModel extends Observable {
   connectToSmartDrive(smartDrive) {
     if (!smartDrive) return;
     this._smartDrive = smartDrive;
+
+    new Toasty(
+      'Connecting to ' + this._savedSmartDriveAddress,
+      ToastDuration.SHORT,
+      ToastPosition.CENTER
+    ).show();
+
+    // need to make sure we unregister disconnect event since it may have been registered
+    this._smartDrive.off(
+      SmartDrive.smartdrive_disconnect_event,
+      this.onSmartDriveDisconnect,
+      this
+    );
     // set the event listeners for mcu_version_event and smartdrive_distance_event
+    this._smartDrive.on(
+      SmartDrive.smartdrive_connect_event,
+      this.onSmartDriveConnect,
+      this
+    );
     this._smartDrive.on(
       SmartDrive.smartdrive_disconnect_event,
       this.onSmartDriveDisconnect,
@@ -731,22 +749,9 @@ export class MainViewModel extends Observable {
     );
 
     // now connect to smart drive
-    return this._smartDrive
-      .connect()
-      .then(() => {
-        // send the current settings to the SD
-        this._smartDrive.sendSettingsObject(this.settings);
-        this.connected = true;
-        //showSuccess(`Connected to ${this._smartDrive.address}`, 2);
-        new Toasty(
-          'Connected to ' + this._savedSmartDriveAddress,
-          ToastDuration.LONG,
-          ToastPosition.CENTER
-        ).show();
-      })
-      .catch(err => {
-        showFailure('Could not connect to ' + smartDrive.address);
-      });
+    return this._smartDrive.connect().catch(err => {
+      showFailure('Could not connect to ' + smartDrive.address);
+    });
   }
 
   connectToSavedSmartDrive(): Promise<any> {
@@ -763,49 +768,27 @@ export class MainViewModel extends Observable {
       });
     }
 
-    new Toasty(
-      'Connecting to ' + this._savedSmartDriveAddress,
-      ToastDuration.SHORT,
-      ToastPosition.CENTER
-    ).show();
-
     // try to connect to the SmartDrive
     let sd = BluetoothService.SmartDrives.filter(
       sd => sd.address === this._savedSmartDriveAddress
     )[0];
     if (sd) {
-      this.connectToSmartDrive(sd);
-      return Promise.resolve(true);
+      return this.connectToSmartDrive(sd);
     } else {
       let sd = this._bluetoothService.getOrMakeSmartDrive({
         address: this._savedSmartDriveAddress
       });
       return this.connectToSmartDrive(sd);
-      /*
-      return this._bluetoothService
-        .scanForSmartDrives(3)
-        .then(() => {
-          sd = BluetoothService.SmartDrives.filter(
-            sd => sd.address === this._savedSmartDriveAddress
-          )[0];
-          if (!sd) {
-            showFailure(`Could not find ${this._savedSmartDriveAddress}`);
-
-            return false;
-          } else {
-            this.connectToSmartDrive(sd);
-            return true;
-          }
-        })
-        .catch(() => {
-          return false;
-        });
-		*/
     }
   }
 
   async disconnectFromSmartDrive() {
     if (this._smartDrive && this._smartDrive.connected) {
+      this._smartDrive.off(
+        SmartDrive.smartdrive_connect_event,
+        this.onSmartDriveConnect,
+        this
+      );
       this._smartDrive.off(
         SmartDrive.smartdrive_mcu_version_event,
         this.onSmartDriveVersion,
@@ -822,18 +805,43 @@ export class MainViewModel extends Observable {
         this
       );
       this._smartDrive.disconnect().then(() => {
-        this.connected = false;
         this.motorOn = false;
+        this.powerAssistActive = false;
       });
+    }
+  }
+
+  retrySmartDriveConnection() {
+    if (
+      this.powerAssistActive &&
+      this._smartDrive &&
+      !this._smartDrive.connected
+    ) {
+      setTimeout(() => {
+        console.log('retrying smartdrive connection');
+        this.connectToSavedSmartDrive();
+      }, 5 * 1000);
     }
   }
 
   /*
    * SMART DRIVE EVENT HANDLERS
    */
+  async onSmartDriveConnect(args: any) {
+    // send the current settings to the SD
+    this._smartDrive.sendSettingsObject(this.settings);
+    new Toasty(
+      'Connected to ' + this._savedSmartDriveAddress,
+      ToastDuration.SHORT,
+      ToastPosition.CENTER
+    ).show();
+  }
+
   async onSmartDriveDisconnect(args: any) {
     this.motorOn = false;
-    this.powerAssistActive = false;
+    if (this.powerAssistActive) {
+      this.retrySmartDriveConnection();
+    }
     this._smartDrive.off(
       SmartDrive.smartdrive_disconnect_event,
       this.onSmartDriveDisconnect,
