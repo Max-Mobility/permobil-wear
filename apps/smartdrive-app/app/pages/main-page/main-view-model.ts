@@ -140,6 +140,8 @@ export class MainViewModel extends Observable {
    */
   private pager: Pager;
   private powerAssistRing: AnimatedCircle;
+  private watchBatteryRing: AnimatedCircle;
+  private smartDriveBatteryRing: AnimatedCircle;
   private _settingsLayout: SwipeDismissLayout;
   public _changeSettingsLayout: SwipeDismissLayout;
   private _vibrator: Vibrate = new Vibrate();
@@ -282,11 +284,31 @@ export class MainViewModel extends Observable {
     this.pager = page.getViewById('pager') as Pager;
   }
 
-  onPowerAssistBarLoaded(args: any) {
+  onPowerAssistCircleLoaded(args: any) {
     const page = args.object as Page;
     this.powerAssistRing = page.getViewById(
       'powerAssistCircle'
     ) as AnimatedCircle;
+    (this.powerAssistRing as any).android.setOuterContourSize(0);
+    (this.powerAssistRing as any).android.setInnerContourSize(0);
+  }
+
+  onSmartDriveCircleLoaded(args: any) {
+    const page = args.object as Page;
+    this.smartDriveBatteryRing = page.getViewById(
+      'smartDriveBatteryCircle'
+    ) as AnimatedCircle;
+    (this.smartDriveBatteryRing as any).android.setOuterContourSize(0);
+    (this.smartDriveBatteryRing as any).android.setInnerContourSize(0);
+  }
+
+  onWatchCircleLoaded(args: any) {
+    const page = args.object as Page;
+    this.watchBatteryRing = page.getViewById(
+      'watchBatteryCircle'
+    ) as AnimatedCircle;
+    (this.watchBatteryRing as any).android.setOuterContourSize(0);
+    (this.watchBatteryRing as any).android.setInnerContourSize(0);
   }
 
   handleAccel(acceleration: any) {
@@ -583,8 +605,13 @@ export class MainViewModel extends Observable {
           break;
       }
     }
-    if (this.powerAssistRing)
-      (this.powerAssistRing as any).rimColor = this.powerAssistRingColor;
+    if (this.powerAssistRing) {
+      (this.powerAssistRing as any).barColor = this.powerAssistRingColor;
+      (this.powerAssistRing as any).animate({
+        backgroundColor: this.powerAssistRingColor,
+        duration: 200
+      });
+    }
   }
 
   updatePowerAssistButton() {
