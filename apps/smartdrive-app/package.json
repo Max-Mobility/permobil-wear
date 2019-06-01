@@ -39,22 +39,23 @@
     "nativescript-wear-os": "../../node_modules/nativescript-wear-os",
     "reflect-metadata": "../../node_modules/reflect-metadata",
     "smart-eval-kinvey": "../../node_modules/smart-eval-kinvey",
-    "tns-core-modules": "../../node_modules/tns-core-modules"
+    "tns-core-modules": "~5.4.1"
   },
   "devDependencies": {
     "husky": "../../node_modules/husky",
     "lint-staged": "../../node_modules/lint-staged",
     "mkdirp": "../../node_modules/mkdirp",
-    "nativescript-dev-sass": "../../node_modules/nativescript-dev-sass",
-    "nativescript-dev-typescript": "../../node_modules/nativescript-dev-typescript",
-    "nativescript-dev-webpack": "../../node_modules/nativescript-dev-webpack",
+    "nativescript-dev-sass": "~1.7.0",
+    "nativescript-dev-typescript": "~0.10.0",
+    "nativescript-dev-webpack": "~0.22.0",
     "nativescript-hook": "~0.2.5",
     "prettier": "../../node_modules/prettier",
     "prompt": "../../node_modules/prompt",
     "rimraf": "../../node_modules/rimraf",
     "tns-platform-declarations": "../../node_modules/tns-platform-declarations",
     "tslint": "../../node_modules/tslint",
-    "typescript": "../../node_modules/typescript"
+    "typescript": "../../node_modules/typescript",
+    "webpack": "~4.27.0"
   },
   "lint-staged": {
     "*.{ts, js, json, css, scss, md, html, xml}": [

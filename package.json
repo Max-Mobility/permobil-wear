@@ -69,7 +69,7 @@
     "nativescript-worker-loader": "~0.9.5",
     "nativescript-dev-sass": "~1.7.0",
     "nativescript-dev-typescript": "~0.10.0",
-    "nativescript-dev-webpack": "~0.24.0",
+    "nativescript-dev-webpack": "~0.22.0",
     "node-fetch": "~2.0.0",
     "node-sass": "^4.12.0",
     "prettier": "^1.17.1",
