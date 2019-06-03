@@ -1,0 +1,243 @@
+/** Fonts **/
+/** Fonts **/
+/** Fonts **/
+.ionicon {
+  font-family: ionicons, 'ionicons', Ionicons, 'Ionicons';
+}
+
+Page {
+  background-color: #000;
+}
+
+.page {
+  background-color: #000;
+}
+
+/** Buttons **/
+.btn-transparent {
+  background-color: transparent;
+  border-color: transparent;
+  border-width: 1;
+  android-elevation: 0;
+  android-dynamic-elevation-offset: 2;
+}
+
+.circle-image-btn,
+#changeSettingsPage .increase-btn,
+#changeSettingsPage .decrease-btn,
+#changeSettingsPage .cancel-btn,
+#changeSettingsPage .confirm-btn {
+  height: 48;
+  width: 48;
+  border-radius: 24;
+  vertical-align: center;
+  horizontal-align: center;
+}
+
+.circle-image-btn StackLayout,
+#changeSettingsPage .increase-btn StackLayout,
+#changeSettingsPage .decrease-btn StackLayout,
+#changeSettingsPage .cancel-btn StackLayout,
+#changeSettingsPage .confirm-btn StackLayout {
+  height: 48;
+  width: 48;
+  border-radius: 24;
+  height: 100%;
+  width: 100%;
+  vertical-align: center;
+  horizontal-align: center;
+}
+
+.circle-image-btn StackLayout label,
+#changeSettingsPage .increase-btn StackLayout label,
+#changeSettingsPage .decrease-btn StackLayout label,
+#changeSettingsPage .cancel-btn StackLayout label,
+#changeSettingsPage .confirm-btn StackLayout label {
+  font-family: ionicons, 'ionicons', Ionicons, 'Ionicons';
+  font-size: 36;
+  vertical-align: center;
+  horizontal-align: center;
+}
+
+/** Label Line Chart Styles **/
+.chart-title {
+  horizontal-align: center;
+  text-align: center;
+  font-size: 13;
+}
+
+/** Fonts **/
+/** Label Line Chart Styles **/
+.chart-stack {
+  vertical-align: bottom;
+  horizontal-align: center;
+}
+
+.chart-max-value {
+  font-size: 8;
+  color: #fff;
+  vertical-align: top;
+}
+
+.battery-line {
+  vertical-align: bottom;
+  horizontal-align: center;
+  background-color: #228b22;
+  width: 5;
+}
+
+.distance-line {
+  vertical-align: bottom;
+  horizontal-align: center;
+  background-color: #de5f10;
+  width: 5;
+}
+
+.line-label {
+  text-align: center;
+  horizontal-align: center;
+  vertical-align: top;
+  color: #fff;
+  font-size: 12;
+}
+
+/** Fonts **/
+/** Change Settings Page **/
+#changeSettingsPage {
+  margin: 4;
+}
+
+#changeSettingsPage .increase-btn {
+  color: #fff;
+}
+
+#changeSettingsPage .decrease-btn {
+  color: #fff;
+}
+
+#changeSettingsPage .cancel-btn {
+  color: #fff;
+  background-color: gray;
+}
+
+#changeSettingsPage .confirm-btn {
+  color: #fff;
+  background-color: #004f7e;
+}
+
+#changeSettingsPage .value-circle {
+  height: 100;
+  width: 100;
+  border-radius: 50;
+  horizontal-align: center;
+  vertical-align: center;
+  background-color: #004f7e;
+  color: #fff;
+}
+
+#changeSettingsPage .value-circle .changeSettingsTitle {
+  color: #fff;
+  text-align: center;
+  horizontal-align: center;
+  vertical-align: center;
+}
+
+#changeSettingsPage .value-circle .changeSettingsValue {
+  color: #fff;
+  font-size: 24;
+  font-weight: bold;
+  text-align: center;
+  horizontal-align: center;
+  vertical-align: center;
+}
+
+/** Fonts **/
+.batteryIconStack {
+  background-color: #000;
+}
+
+.powerAssistCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 100%;
+  height: 100%;
+}
+
+.sdBatteryCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 90%;
+  height: 90%;
+}
+
+.watchBatteryCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 80%;
+  height: 80%;
+}
+
+.topValue {
+  color: #fff;
+  font-size: 18;
+  horizontal-align: center;
+  vertical-align: top;
+}
+
+.topValueDescription {
+  color: #fff;
+  font-size: 10;
+  horizontal-align: center;
+  vertical-align: top;
+}
+
+.powerAssistBtn {
+  background-color: #2fa52f;
+  color: #fff;
+  horizontal-align: center;
+  vertical-align: center;
+}
+
+.currentTime {
+  color: #fff;
+  font-size: 18;
+  horizontal-align: center;
+  vertical-align: bottom;
+}
+
+.currentTimeMeridiem {
+  color: #fff;
+  font-size: 10;
+  horizontal-align: center;
+  vertical-align: bottom;
+}
+
+/** Fonts **/
+/** Settings List on Main-Page **/
+.bullet-list-icon {
+  font-size: 8;
+  font-family: ionicons, 'ionicons', Ionicons, 'Ionicons';
+  color: #fff;
+  vertical-align: center;
+  horizontal-align: center;
+  margin: 5 5 5 0;
+}
+
+.settings-label {
+  font-size: 18;
+  font-weight: normal;
+  color: #fff;
+  vertical-align: center;
+  margin: 5 0 5 0;
+}
+
+label {
+  color: #fff;
+}
+
+.hr-blue {
+  background-color: #336699;
+  width: 100%;
+  height: 2;
+  margin: 0;
+}

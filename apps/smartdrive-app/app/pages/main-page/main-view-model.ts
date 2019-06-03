@@ -778,7 +778,7 @@ export class MainViewModel extends Observable {
             this._savedSmartDriveAddress = result;
             appSettings.setString(DataKeys.SD_SAVED_ADDRESS, result);
 
-            //showSuccess(`Paired to SmartDrive ${result}`);
+            // showSuccess(`Paired to SmartDrive ${result}`);
             return true;
           } else {
             return false;
@@ -861,13 +861,13 @@ export class MainViewModel extends Observable {
     }
 
     // try to connect to the SmartDrive
-    let sd = BluetoothService.SmartDrives.filter(
+    const sd = BluetoothService.SmartDrives.filter(
       sd => sd.address === this._savedSmartDriveAddress
     )[0];
     if (sd) {
       return this.connectToSmartDrive(sd);
     } else {
-      let sd = this._bluetoothService.getOrMakeSmartDrive({
+      const sd = this._bluetoothService.getOrMakeSmartDrive({
         address: this._savedSmartDriveAddress
       });
       return this.connectToSmartDrive(sd);
