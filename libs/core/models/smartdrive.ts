@@ -1236,8 +1236,8 @@ export namespace SmartDrive {
     static Units = class {
       static Options: string[] = ['English', 'Metric'];
       static Translations: string[] = [
-        'pushtracker.settings.units.english',
-        'pushtracker.settings.units.metric'
+        'smartdrive.settings.units.english',
+        'smartdrive.settings.units.metric'
       ];
 
       static English = 'English';

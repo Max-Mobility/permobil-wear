@@ -69,8 +69,12 @@ export class MainViewModel extends Observable {
   @Prop() powerAssistBtnText: string = PowerAssist.InactiveButtonText;
   @Prop() powerAssistBtnColor: Color = PowerAssist.InactiveButtonColor;
   @Prop() powerAssistRingColor: string = PowerAssist.InactiveRingColor;
-  @Prop() topValue: string = '8.2';
-  @Prop() topValueDescription: string = 'Estimated Range (MI)';
+  @Prop() estimatedDistance: number = 0.0;
+  @Prop() estimatedDistanceDisplay: string = '0.0';
+  @Prop() estimatedDistanceDescription: string = 'Estimated Range (mi)';
+  @Prop() currentSpeed: number = 0.0;
+  @Prop() currentSpeedDisplay: string = '0.0';
+  @Prop() currentSpeedDescription: string = 'Speed (mph)';
   @Prop() currentTime;
   @Prop() currentTimeMeridiem;
   @Prop() powerAssistActive: boolean = false;
@@ -265,6 +269,7 @@ export class MainViewModel extends Observable {
 
     // load settings from memory
     this.loadSettings();
+    this.updateSettingsDisplay();
 
     Log.D(
       'Device Info: ---',
@@ -488,7 +493,7 @@ export class MainViewModel extends Observable {
       default:
         break;
     }
-    this.updateSettingDisplay();
+    this.updateSettingsChangeDisplay();
     if (args.object.id) {
     }
 
@@ -496,7 +501,7 @@ export class MainViewModel extends Observable {
     this.isChangeSettingsLayoutEnabled = true;
   }
 
-  updateSettingDisplay() {
+  updateSettingsChangeDisplay() {
     switch (this.changeSettingKeyString) {
       case 'Max Speed':
         this.changeSettingKeyValue = `${this.tempSettings.maxSpeed}%`;
@@ -524,6 +529,26 @@ export class MainViewModel extends Observable {
     this.isChangeSettingsLayoutEnabled = false;
   }
 
+  updateSettingsDisplay() {
+    if (this.settings.units == 'English') {
+      // update speed display
+      this.currentSpeedDisplay = this.currentSpeed.toFixed(1);
+      this.currentSpeedDescription = 'Esimated Speed (mph)';
+      // update estimated range display
+      this.estimatedDistanceDisplay = this.estimatedDistance.toFixed(1);
+      this.estimatedDistanceDescription = 'Estimated Range (mi)';
+    } else {
+      // update speed display
+      this.currentSpeedDisplay = (this.currentSpeed * 1.609).toFixed(1);
+      this.currentSpeedDescription = 'Esimated Speed (kph)';
+      // update estimated range display
+      this.estimatedDistanceDisplay = (this.estimatedDistance * 1.609).toFixed(
+        1
+      );
+      this.estimatedDistanceDescription = 'Estimated Range (km)';
+    }
+  }
+
   onConfirmChangesTap() {
     hideOffScreenLayout(this._changeSettingsLayout, {
       x: 500,
@@ -534,18 +559,20 @@ export class MainViewModel extends Observable {
     // SAVE THE VALUE to local data for the setting user has selected
     this.settings.copy(this.tempSettings);
     this.saveSettings();
+    // now update any display that needs settings:
+    this.updateSettingsDisplay();
   }
 
   onIncreaseSettingsTap() {
     Log.D('increase current settings change key value and save to local data');
     this.tempSettings.increase(this.changeSettingKeyString);
-    this.updateSettingDisplay();
+    this.updateSettingsChangeDisplay();
   }
 
   onDecreaseSettingsTap(args) {
     Log.D('decrease current settings change key value and save to local data');
     this.tempSettings.decrease(this.changeSettingKeyString);
-    this.updateSettingDisplay();
+    this.updateSettingsChangeDisplay();
   }
 
   onChangeSettingsLayoutLoaded(args) {
@@ -893,6 +920,7 @@ export class MainViewModel extends Observable {
    */
   async onSmartDriveConnect(args: any) {
     this.powerAssistState = PowerAssist.State.Connected;
+    this.updatePowerAssistRing();
     // send the current settings to the SD
     this._smartDrive.sendSettingsObject(this.settings);
     new Toasty(
@@ -906,6 +934,7 @@ export class MainViewModel extends Observable {
     this.motorOn = false;
     if (this.powerAssistActive) {
       this.powerAssistState = PowerAssist.State.Disconnected;
+      this.updatePowerAssistRing();
       this.retrySmartDriveConnection();
     }
     this._smartDrive.off(
@@ -920,6 +949,7 @@ export class MainViewModel extends Observable {
 
   async onMotorInfo(args: any) {
     // Log.D('onMotorInfo event');
+    const motorInfo = args.data.motorInfo;
 
     // update motor state
     if (this.motorOn !== this._smartDrive.driving) {
@@ -938,10 +968,15 @@ export class MainViewModel extends Observable {
     this.smartDriveCurrentBatteryPercentage = this._smartDrive.battery;
     // save the updated smartdrive battery
     appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
+    // update speed display
+    this.currentSpeed = motorInfo.speed;
+    this.updateSettingsDisplay();
   }
 
   async onDistance(args: any) {
     // Log.D('onDistance event');
+    const coastDistance = args.data.coastDistance;
+    const driveDistance = args.data.driveDistance;
 
     // save the updated distance
     appSettings.setNumber(
@@ -956,6 +991,7 @@ export class MainViewModel extends Observable {
 
   async onSmartDriveVersion(args: any) {
     // Log.D('onSmartDriveVersion event');
+    const mcuVersion = args.data.mcu;
 
     // save the updated SmartDrive version info
     appSettings.setNumber(
