@@ -7,18 +7,14 @@ import './utils/async-await';
 
 console.time('App_Start_Time');
 
-Log.D('Setting the default theme for the app styles');
-// apply our default theme for the app
-themes.applyTheme(themes.getAppliedTheme('./scss/theme-default.css'));
-
 // handle ambient mode callbacks
 application.on('enterAmbient', args => {
-  themes.applyTheme('./scss/theme-ambient.css');
+  themes.applyTheme('ambient.css');
 });
 
 // handle ambient mode callbacks
 application.on('exitAmbient', args => {
-  themes.applyTheme('./scss/theme-default.css');
+  themes.applyTheme('app.css');
 });
 
 // handle ambient mode callbacks
@@ -43,17 +39,10 @@ application.on(
 
 application.on(application.launchEvent, args => {
   Log.D('App launch event...');
-  themes.applyTheme('./scss/theme-default.css');
-});
-
-application.on(application.displayedEvent, args => {
-  // Log.D('app displayed event');
-  // this fires often, especially during swiping to close, just FYI to avoid cluttering logs
 });
 
 application.on(application.suspendEvent, args => {
   Log.D('App suspend event...');
-  themes.applyTheme('./scss/theme-ambient.css');
 });
 
 application.on(application.exitEvent, args => {
@@ -67,7 +56,7 @@ application.on(application.lowMemoryEvent, args => {
 application.on(application.resumeEvent, args => {
   const processId = android.os.Process.myPid();
   Log.D(`App resume event -- process ID: ${processId}`);
-  themes.applyTheme('./scss/theme-default.css');
+  // themes.applyTheme('default.css');
 });
 
 console.timeEnd('App_Start_Time');
