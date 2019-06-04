@@ -25,8 +25,9 @@ export class BluetoothService {
   public static SmartDrives = new ObservableArray<SmartDrive>();
 
   // public members
-  public enabled: boolean;
-  public initialized: boolean;
+  public enabled: boolean = false;
+  public initialized: boolean = false;
+  public advertising: boolean = false;
 
   // private members
   private _bluetooth: Bluetooth;
@@ -38,24 +39,12 @@ export class BluetoothService {
 
     this.enabled = false;
     this.initialized = false;
+    this.advertising = false;
     this._bluetooth = new Bluetooth();
     // enabling `debug` will output console.logs from the bluetooth source code
     this._bluetooth.debug = false;
 
-    this.advertise().catch(err => {
-      const msg = `bluetooth.service::advertise error: ${err}`;
-      dialogsModule
-        .alert({
-          title: 'Bluetooth Service failure',
-          message: msg,
-          okButtonText: 'OK'
-        })
-        .then(() => {
-          Log.D(msg);
-        });
-    });
-
-    this.setEventListeners();
+    this.initialize();
   }
 
   public setEventListeners() {
@@ -183,39 +172,26 @@ export class BluetoothService {
 
     const x = await this._bluetooth
       .requestCoarseLocationPermission()
+      .then(() => {
+        this.enabled = true;
+        this.initialized = true;
+      })
       .catch(error => {
         Log.D('requestCoarseLocationPermission error', error);
       });
-    this.enabled = true;
-
-    this._bluetooth.startGattServer();
-
-    this.addServices();
-
-    this.initialized = true;
-
-    // if (this.enabled === true) {
-    // } else {
-    //   Log.D('Bluetooth is not enabled.');
-    // }
-
-    // return this._bluetooth
-    //   .requestCoarseLocationPermission()
-    //   .then(() => {
-    //     // return this.restart();
-    //   })
-    //   .then(() => {
-    //     if (this.enabled === true) {
-    //       this.addServices();
-    //       this.initialized = true;
-    //     } else {
-    //       Log.D('Bluetooth is not enabled.');
-    //     }
-    //   });
   }
 
   public async advertise(): Promise<any> {
-    await this.initialize();
+    if (!this.enabled || !this.initialized) {
+      return Promise.reject(
+        'You must initialize the bluetooth service before advertising!'
+      );
+    }
+
+    this.advertising = false;
+
+    this._bluetooth.startGattServer();
+    this.addServices();
 
     await this._bluetooth.startAdvertising({
       UUID: BluetoothService.AppServiceUUID,
@@ -229,24 +205,9 @@ export class BluetoothService {
 
     this._bluetooth.addService(this.AppService);
 
-    return Promise.resolve();
+    this.advertising = true;
 
-    // return this.initialize()
-    //   .then(() => {
-    //     return this._bluetooth.startAdvertising({
-    //       UUID: BluetoothService.AppServiceUUID,
-    //       settings: {
-    //         connectable: true
-    //       },
-    //       data: {
-    //         includeDeviceName: true
-    //       }
-    //     });
-    //   })
-    //   .then(() => {
-    //     this._bluetooth.addService(this.AppService);
-    //     Log.D('Advertising Started!');
-    //   });
+    return Promise.resolve();
   }
 
   public scanForSmartDrives(timeout: number = 4) {
