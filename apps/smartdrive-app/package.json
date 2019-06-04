@@ -33,6 +33,7 @@
     "nativescript-permissions": "../../node_modules/nativescript-permissions",
     "nativescript-ng-ripple": "../../node_modules/nativescript-ng-ripple",
     "nativescript-sentry": "../../node_modules/nativescript-sentry",
+    "nativescript-sqlite": "../../node_modules/nativescript-sqlite",
     "nativescript-theme-core": "../../node_modules/nativescript-theme-core",
     "nativescript-themes": "../../node_modules/nativescript-themes",
     "nativescript-toasty": "../../node_modules/nativescript-toasty",

@@ -6,6 +6,7 @@ import {
   SensorChangedEventData,
   SensorService,
   SentryService,
+  SqliteService,
   SERVICES,
   SmartDrive
 } from '@permobil/core';
@@ -152,6 +153,7 @@ export class MainViewModel extends Observable {
   private _sentryService: SentryService;
   private _bluetoothService: BluetoothService;
   private _sensorService: SensorService;
+  private _sqliteService: SqliteService;
 
   constructor() {
     super();
@@ -176,6 +178,7 @@ export class MainViewModel extends Observable {
     this._sentryService = injector.get(SentryService);
     this._bluetoothService = injector.get(BluetoothService);
     this._sensorService = injector.get(SensorService);
+    this._sqliteService = injector.get(SqliteService);
 
     // register for watch battery updates
     // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
