@@ -21,6 +21,7 @@ public:
   enum class ControlMode   : uint8_t;
   enum class Units         : uint8_t;
   enum class AttendantMode : uint8_t;
+  enum class ThrottleMode  : uint8_t;
 
   enum class Error: uint8_t {
     NoError,
@@ -44,14 +45,21 @@ public:
     English,
     Metric
   };
+
   enum class AttendantMode : uint8_t {
     Off,
     Inactive,
     OnePressed,
-    TwoPressed
+	  TwoPressed,
+	  Latching
   };
 
-  // settings flags values are the bit numbers 
+  enum class ThrottleMode : uint8_t {
+    Active,
+    Latching
+  };
+
+  // settings flags values are the bit numbers
   enum class BoolSettingFlag  : uint8_t { EZMODE = 0 };
 
   struct Settings {
@@ -68,6 +76,13 @@ public:
   static bool getBoolSetting  ( const Settings* s, BoolSettingFlag boolSetting ) {
     return (bool)((s->settingsFlags1 >> (uint8_t)boolSetting) & 0x01);
   }
+
+  struct ThrottleSettings {
+    ThrottleMode throttleMode; /** Bitmask of boolean settings.      */
+    uint8_t      padding[3];
+    float        maxSpeed;     /** Slider setting, range: [0.1, 1.0] */
+  };
+  static const int throttleSettingsLength = sizeof(ThrottleSettings);
 };
 
 /*** Packet ***/
@@ -101,13 +116,15 @@ public:
     MotorInfo,
     DeviceInfo,
     Ready,
-    ErrorInfo
+    ErrorInfo,
+    PushSettings
   };
 
   enum class Command : uint8_t {
     SetAcceleration,
     SetMaxSpeed,
-    Tap, DoubleTap,
+    Tap,
+	  DoubleTap,
     SetControlMode,
     SetSettings,
     TurnOffMotor,
@@ -125,7 +142,9 @@ public:
     StopGame,
     ConnectMPGame,
     DisconnectMPGame,
-    SetLEDColor
+    SetPushSettings,
+	  SetLEDColor,
+	  SetThrottleSettings
   };
 
   enum class OTA : uint8_t {
@@ -162,7 +181,14 @@ public:
     uint8_t     smartDrive;          /** Major.Minor version as the MAJOR and MINOR nibbles of the byte. **/
     uint8_t     smartDriveBluetooth; /** Major.Minor version as the MAJOR and MINOR nibbles of the byte. **/
   };
-      
+
+  // Push Settings
+  struct PushSettings {
+	uint8_t     threshold;       /** Push Detection Threshold, [0, 255]                      */
+	uint8_t     timeWindow;      /** Push Detection Time Window, [0, 255]                    */
+	uint8_t     clearCounter;    /** Does the counter clear for data below threshold? [0, 1] */
+  };
+
   // Daily Info
   struct DailyInfo {
     uint16_t    year;
@@ -177,7 +203,7 @@ public:
     uint8_t     ptBattery;       /** Percent, [0, 100].            */
     uint8_t     sdBattery;       /** Percent, [0, 100].            */
   };
-      
+
   // Journey Info
   struct JourneyInfo {
     uint16_t    pushes;          /** Raw integer number of pushes. */
@@ -205,7 +231,7 @@ public:
     uint8_t      minutes;
     uint8_t      seconds;
   };
-      
+
   // Used for just sending device info between devices
   struct DeviceInfo {
     Device     device;     /** Which Device is this about? **/
@@ -228,7 +254,7 @@ public:
     uint8_t	        numOverTemperatureErrors;
     uint8_t		numBLEDisconnectErrors;
   };
-      
+
   // BatteryInfo: Used for keeping track of battery and last time
   // battery was updated between PT and App, so the app knows the
   // PT and SD battery and when the SD battery data was last
@@ -266,6 +292,8 @@ public:
   // The actual data contained in the packet
   union {
     SmartDrive::Settings settings;
+    SmartDrive::ThrottleSettings throttleSettings;
+	PushSettings         pushSettings;
     VersionInfo          versionInfo;
     DailyInfo            dailyInfo;
     JourneyInfo          journeyInfo;
@@ -284,7 +312,7 @@ public:
     OTA          otaDevice;
 
     Game         game;
-      
+
     SmartDrive::ControlMode  controlMode;
     SmartDrive::Units        units;
     Motor::State             motorState;
@@ -308,7 +336,7 @@ public:
   Packet& operator=(const Packet& rhs) {
     if (this == &rhs)
       return *this;
-  
+
     _valid  = rhs._valid;
     type = rhs.type;
 
@@ -371,7 +399,6 @@ public:
     std::vector<uint8_t> output;
     int numBytes = Packet::minSize;
     output.push_back((uint8_t)type);
-    //std::cout << (uint8_t)type << std::endl;
     int dataLen = 0;
     switch (type) {
     case Packet::Type::Data:
@@ -416,6 +443,9 @@ public:
       case Packet::Data::ErrorInfo:
         dataLen = sizeof(errorInfo);
         break;
+      case Packet::Data::PushSettings:
+        dataLen = sizeof(pushSettings);
+        break;
       default:
         break;
       }
@@ -423,20 +453,55 @@ public:
     case Packet::Type::Command:
       output.push_back((uint8_t)command);
       switch (command) {
-      case Packet::Command::StartOTA:
-        dataLen = sizeof(otaDevice);
+      case Packet::Command::SetAcceleration:
+        dataLen = sizeof(acceleration);
         break;
-      case Packet::Command::StopOTA:
-        dataLen = sizeof(otaDevice);
+      case Packet::Command::SetMaxSpeed:
+        dataLen = sizeof(maxSpeed);
+        break;
+      case Packet::Command::Tap:
+        break;
+      case Packet::Command::DoubleTap:
+        break;
+      case Packet::Command::SetControlMode:
+        dataLen = sizeof(controlMode);
         break;
       case Packet::Command::SetSettings:
         dataLen = sizeof(settings);
         break;
       case Packet::Command::TurnOffMotor:
         break;
-      case Packet::Command::Tap:
+      case Packet::Command::StartJourney:
         break;
-      case Packet::Command::DoubleTap:
+      case Packet::Command::StopJourney:
+        break;
+      case Packet::Command::PauseJourney:
+        break;
+      case Packet::Command::SetTime:
+        dataLen = sizeof(timeInfo);
+        break;
+      case Packet::Command::StartOTA:
+        dataLen = sizeof(otaDevice);
+        break;
+      case Packet::Command::StopOTA:
+        dataLen = sizeof(otaDevice);
+        break;
+      case Packet::Command::OTAReady:
+        break;
+      case Packet::Command::CancelOTA:
+        break;
+      case Packet::Command::Wake:
+        break;
+      case Packet::Command::DistanceRequest:
+        break;
+      case Packet::Command::SetPushSettings:
+        dataLen = sizeof(pushSettings);
+        break;
+      case Packet::Command::SetLEDColor:
+		// TODO: need to flesh out this packet def.
+        break;
+      case Packet::Command::SetThrottleSettings:
+        dataLen = sizeof(throttleSettings);
         break;
       default:
         break;
@@ -449,13 +514,9 @@ public:
       break;
     case Packet::Type::OTA:
       output.push_back((uint8_t)ota);
+	  // NOTE: YOU MUST SET THE DATALENGTH BY CALLING:
+	  //   `packet.length = <size of ota data>`
       dataLen = dataLength;
-      /*
-	for (int i=0; i<dataLen; i++) {
-        printf("0x%.2X ", bytes[i]);
-	}
-	printf("\n");
-      */
       break;
     default:
       break;
@@ -489,14 +550,21 @@ public:
   int getMotorDistance() const {
     return (int)distanceInfo.motorDistance;
   }
-    
+
   void setCaseDistance(int d) {
     distanceInfo.caseDistance = (uint64_t)d;
   }
   int getCaseDistance() const {
     return (int)distanceInfo.caseDistance;
   }
-    
+
+  void setErrorId(int e) {
+    errorId = (uint64_t)e;
+  }
+  int getErrorId() const {
+    return (int)errorId;
+  }
+
 private:
   bool              _valid;
 };
@@ -505,13 +573,13 @@ private:
 // BINDING CODE FOR JAVASCRIPT
 EMSCRIPTEN_BINDINGS(packet_bindings) {
   emscripten::register_vector<uint8_t>("VectorInt");
-  
+
   emscripten::enum_<Motor::State>("MotorState")
     .value("Off", Motor::State::Off)
     .value("On", Motor::State::On)
     .value("Error", Motor::State::Error)
     ;
-  
+
   emscripten::enum_<SmartDrive::Units>("Units")
     .value("English", SmartDrive::Units::English)
     .value("Metric",  SmartDrive::Units::Metric)
@@ -524,6 +592,11 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .value("Off", SmartDrive::ControlMode::Off)
     ;
 
+  emscripten::enum_<SmartDrive::ThrottleMode>("ThrottleMode")
+    .value("Active", SmartDrive::ThrottleMode::Latching)
+    .value("Latching", SmartDrive::ThrottleMode::Latching)
+    ;
+
   emscripten::value_object<SmartDrive::Settings>("SmartDriveSettings")
     .field("ControlMode", &SmartDrive::Settings::controlMode)
     .field("Units", &SmartDrive::Settings::units)
@@ -533,7 +606,13 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .field("Acceleration", &SmartDrive::Settings::acceleration)
     .field("MaxSpeed", &SmartDrive::Settings::maxSpeed)
     ;
-  
+
+  emscripten::value_object<SmartDrive::ThrottleSettings>("ThrottleSettings")
+    .field("ThrottleMode", &SmartDrive::ThrottleSettings::throttleMode)
+    .field("Padding", &SmartDrive::ThrottleSettings::padding)
+    .field("MaxSpeed", &SmartDrive::ThrottleSettings::maxSpeed)
+    ;
+
   // PACKET BINDINGS
   emscripten::enum_<Packet::Device>("Device")
     .value("SmartDrive", Packet::Device::SmartDrive)
@@ -561,8 +640,9 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .value("JourneyInfo", Packet::Data::JourneyInfo)
     .value("MotorInfo", Packet::Data::MotorInfo)
     .value("DeviceInfo", Packet::Data::DeviceInfo)
-    .value("ErrorInfo", Packet::Data::ErrorInfo)
     .value("Ready", Packet::Data::Ready)
+    .value("ErrorInfo", Packet::Data::ErrorInfo)
+    .value("PushSettings", Packet::Data::PushSettings)
     ;
 
   emscripten::value_object<Packet::VersionInfo>("VersionInfo")
@@ -570,7 +650,7 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .field("smartDrive", &Packet::VersionInfo::smartDrive)
     .field("smartDriveBluetooth", &Packet::VersionInfo::smartDriveBluetooth)
     ;
-      
+
   emscripten::value_object<Packet::DailyInfo>("DailyInfo")
     .field("year", &Packet::DailyInfo::year)
     .field("month", &Packet::DailyInfo::month)
@@ -583,6 +663,12 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .field("speed", &Packet::DailyInfo::speed)
     .field("ptBattery", &Packet::DailyInfo::ptBattery)
     .field("sdBattery", &Packet::DailyInfo::sdBattery)
+    ;
+
+  emscripten::value_object<Packet::PushSettings>("PushSettings")
+    .field("threshold", &Packet::PushSettings::threshold)
+    .field("timeWindow", &Packet::PushSettings::timeWindow)
+    .field("clearCounter", &Packet::PushSettings::clearCounter)
     ;
 
   emscripten::value_object<Packet::JourneyInfo>("JourneyInfo")
@@ -649,7 +735,9 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .value("StopGame", Packet::Command::StopGame)
     .value("ConnectMPGame", Packet::Command::ConnectMPGame)
     .value("DisconnectMPGame", Packet::Command::DisconnectMPGame)
+    .value("SetPushSettings", Packet::Command::SetPushSettings)
     .value("SetLEDColor", Packet::Command::SetLEDColor)
+    .value("SetThrottleSettings", Packet::Command::SetThrottleSettings)
     ;
 
   emscripten::enum_<Packet::OTA>("PacketOTAType")
@@ -668,7 +756,7 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .value("OTAUnavailable", SmartDrive::Error::OTAUnavailable)
     .value("BLEDisconnect", SmartDrive::Error::BLEDisconnect)
     ;
-    
+
   emscripten::class_<Packet>("Packet")
     .constructor<>()
     .function("valid", &Packet::valid)
@@ -687,9 +775,11 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .property("Command", &Packet::command)
     .property("Error", &Packet::error)
     .property("OTA", &Packet::ota)
-    
+
     // Actual payload info
     .property("settings", &Packet::settings)
+    .property("throttleSettings", &Packet::throttleSettings)
+    .property("pushSettings", &Packet::pushSettings)
     .property("versionInfo", &Packet::versionInfo)
     .property("dailyInfo", &Packet::dailyInfo)
     .property("journeyInfo", &Packet::journeyInfo)
@@ -699,6 +789,8 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     .property("errorInfo", &Packet::errorInfo)
     .property("batteryInfo", &Packet::batteryInfo)
     .property("distanceInfo", &Packet::distanceInfo)
+
+	.property("errorId", &Packet::getErrorId, &Packet::setErrorId)
 
     .property("OTADevice", &Packet::otaDevice)
 
