@@ -95,7 +95,22 @@ namespace SmartDriveData {
     export const IdName = 'id';
     export const TimestampName = 'timestamp';
     export const ErrorCodeName = 'error_code';
-    export const Fields = [TimestampName, ErrorCodeName];
+    export const ErrorIdName = 'error_id';
+    export const Fields = [TimestampName, ErrorCodeName, ErrorIdName];
+
+    export function getTimestamp() {
+      // 'x' is Milliseconds timetsamp format
+      return format(new Date(), 'x');
+    }
+
+    export function newError(errorType: number, errorId: number) {
+      return {
+        [SmartDriveData.Errors
+          .TimestampName]: SmartDriveData.Errors.getTimestamp(),
+        [SmartDriveData.Errors.ErrorCodeName]: errorType,
+        [SmartDriveData.Errors.ErrorIdName]: errorId
+      };
+    }
   }
 }
 
@@ -1020,10 +1035,23 @@ export class MainViewModel extends Observable {
     const errorType = args.data.errorType;
     const errorId = args.data.errorId;
     // if it's a new error, save it with a timestamp
+    // TODO: make sure it's a new error (by the id)
     // TODO: save error into DB here
-    new Toasty(`SmartDrive Error: ${errorType} - ${errorId}`)
-      .setToastPosition(ToastPosition.CENTER)
-      .show();
+    this._sqliteService
+      .insertIntoTable(
+        SmartDriveData.Errors.TableName,
+        SmartDriveData.Errors.newError(errorType, errorId)
+      )
+      .then(res => {
+        new Toasty(`Saved SmartDrive Error: ${errorType} - ${errorId}`)
+          .setToastPosition(ToastPosition.CENTER)
+          .show();
+      })
+      .catch(err => {
+        new Toasty(`Failed Saving SmartDrive Error: ${err}`, ToastDuration.LONG)
+          .setToastPosition(ToastPosition.CENTER)
+          .show();
+      });
   }
 
   async onMotorInfo(args: any) {

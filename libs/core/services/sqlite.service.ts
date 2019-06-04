@@ -29,7 +29,7 @@ export class SqliteService {
 
   public insertIntoTable(tableName: string, obj: any) {
     return this.getDatabase().then(db => {
-      const objKeyNames = obj.keys();
+      const objKeyNames = Object.keys(obj);
       const values = objKeyNames.map(key => obj[key]);
       const objValues = new Array(objKeyNames.length).fill('?');
       const dbInsertString =
@@ -54,7 +54,7 @@ export class SqliteService {
      *   }
      */
     return this.getDatabase().then(db => {
-      const queryStrings = queries.keys();
+      const queryStrings = Object.keys(queries);
       const parameters = queryStrings.map(k => queries[k]);
       const dbUpdateString =
         `UPDATE ${tableName} SET ${setField} = ${setValue} ` +
@@ -80,7 +80,7 @@ export class SqliteService {
       let parameters = null;
       let dbGetString = `SELECT * from ${tableName}`;
       if (queries) {
-        let queryStrings = queries.keys();
+        let queryStrings = Object.keys(queries);
         parameters = queryStrings.map(q => queries[q]);
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
@@ -114,7 +114,7 @@ export class SqliteService {
       let parameters = null;
       let dbGetString = `SELECT * from ${tableName}`;
       if (queries) {
-        let queryStrings = queries.keys();
+        let queryStrings = Object.keys(queries);
         parameters = queryStrings.map(q => queries[q]);
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
