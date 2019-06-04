@@ -891,6 +891,11 @@ export class MainViewModel extends Observable {
       this.onMotorInfo,
       this
     );
+    this._smartDrive.on(
+      SmartDrive.smartdrive_error_event,
+      this.onSmartDriveError,
+      this
+    );
 
     // now connect to smart drive
     return this._smartDrive
@@ -954,6 +959,11 @@ export class MainViewModel extends Observable {
         this.onMotorInfo,
         this
       );
+      this._smartDrive.off(
+        SmartDrive.smartdrive_error_event,
+        this.onSmartDriveError,
+        this
+      );
       this._smartDrive.disconnect().then(() => {
         this.motorOn = false;
         this.powerAssistActive = false;
@@ -1001,6 +1011,17 @@ export class MainViewModel extends Observable {
       this
     );
     new Toasty(`Disconnected from ${this._smartDrive.address}`)
+      .setToastPosition(ToastPosition.CENTER)
+      .show();
+  }
+
+  async onSmartDriveError(args: any) {
+    // Log.D('onSmartDriveError event');
+    const errorType = args.data.errorType;
+    const errorId = args.data.errorId;
+    // if it's a new error, save it with a timestamp
+    // TODO: save error into DB here
+    new Toasty(`SmartDrive Error: ${errorType} - ${errorId}`)
       .setToastPosition(ToastPosition.CENTER)
       .show();
   }
