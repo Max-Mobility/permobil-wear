@@ -40,12 +40,42 @@ export class SqliteService {
     });
   }
 
+  public updateInTable(
+    tableName: string,
+    setField: string,
+    setValue: string,
+    queries: any
+  ) {
+    /**
+     *  expects queries to be an object of the form:
+     *   {
+     *     "columnId=?": <value>,
+     *     ...
+     *   }
+     */
+    return this.getDatabase().then(db => {
+      const queryStrings = queries.keys();
+      const parameters = queryStrings.map(k => queries[k]);
+      const dbUpdateString =
+        `UPDATE ${tableName} SET ${setField} = ${setValue} ` +
+        `WHERE ${queryStrings.join(' and ')}`;
+      return db.execSQL(dbUpdateString, parameters);
+    });
+  }
+
   public getOne(
     tableName: string,
     queries?: any,
     orderBy?: string,
     ascending?: boolean
   ) {
+    /**
+     *  expects queries to be an object of the form:
+     *   {
+     *     "columnId=?": <value>,
+     *     ...
+     *   }
+     */
     return this.getDatabase().then(db => {
       let parameters = null;
       let dbGetString = `SELECT * from ${tableName}`;
@@ -73,6 +103,13 @@ export class SqliteService {
     ascending?: boolean,
     limit?: number
   ) {
+    /**
+     *  expects queries to be an object of the form:
+     *   {
+     *     "columnId=?": <value>,
+     *     ...
+     *   }
+     */
     return this.getDatabase().then(db => {
       let parameters = null;
       let dbGetString = `SELECT * from ${tableName}`;

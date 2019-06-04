@@ -64,6 +64,31 @@ namespace PowerAssist {
   }
 }
 
+namespace SmartDriveData {
+  export namespace Info {
+    export const TableName = 'SmartDriveInfo';
+    export const IdName = 'id';
+    export const DateName = 'date';
+    export const BatteryName = 'battery';
+    export const DriveDistanceName = 'drive_distance';
+    export const CoastDistanceName = 'coast_distance';
+    export const Fields = [
+      DateName,
+      BatteryName,
+      DriveDistanceName,
+      CoastDistanceName
+    ];
+  }
+
+  export namespace Errors {
+    export const TableName = 'SmartDriveErrors';
+    export const IdName = 'id';
+    export const TimestampName = 'timestamp';
+    export const ErrorCodeName = 'error_code';
+    export const Fields = [TimestampName, ErrorCodeName];
+  }
+}
+
 export class MainViewModel extends Observable {
   @Prop() smartDriveCurrentBatteryPercentage: number = 0;
   @Prop() watchCurrentBatteryPercentage: number = 0;
@@ -179,6 +204,26 @@ export class MainViewModel extends Observable {
     this._bluetoothService = injector.get(BluetoothService);
     this._sensorService = injector.get(SensorService);
     this._sqliteService = injector.get(SqliteService);
+
+    // create / load tables for smartdrive data
+    this._sqliteService
+      .makeTable(
+        SmartDriveData.Info.TableName,
+        SmartDriveData.Info.IdName,
+        SmartDriveData.Info.Fields
+      )
+      .catch(err => {
+        Log.E("Couldn't make SmartDriveData.Info table:", err);
+      });
+    this._sqliteService
+      .makeTable(
+        SmartDriveData.Errors.TableName,
+        SmartDriveData.Errors.IdName,
+        SmartDriveData.Errors.Fields
+      )
+      .catch(err => {
+        Log.E("Couldn't make SmartDriveData.Errors table:", err);
+      });
 
     // register for watch battery updates
     // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
