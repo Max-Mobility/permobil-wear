@@ -1,16 +1,15 @@
 /** Fonts **/
-/** Fonts **/
-/** Fonts **/
 .ionicon {
   font-family: ionicons, 'ionicons', Ionicons, 'Ionicons';
 }
 
 Page {
-  background-color: #000;
+  background-color: #e930af;
 }
 
+/** useful on swipe dismiss layouts to avoid transparent backgrounds **/
 .page {
-  background-color: #000;
+  background-color: #e930af;
 }
 
 /** Buttons **/
@@ -120,7 +119,7 @@ Page {
   background-color: gray;
 }
 
-#changeSettingsPage .confirm-btn {
+#something {
   color: #fff;
   background-color: #004f7e;
 }

@@ -14,6 +14,7 @@ import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
 import { Pager } from 'nativescript-pager';
 import { Sentry } from 'nativescript-sentry';
+import * as themes from 'nativescript-themes';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { Vibrate } from 'nativescript-vibrate';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
@@ -149,7 +150,7 @@ export class MainViewModel extends Observable {
   private _bluetoothService: BluetoothService;
   private _sensorService: SensorService;
 
-  constructor() {
+  constructor(page: Page) {
     super();
 
     application.on(application.exitEvent, args => {
@@ -159,6 +160,24 @@ export class MainViewModel extends Observable {
       this.disableDeviceSensors();
       this.disablePowerAssist();
       Log.D('Sensors and PowerAssist should be disabled.');
+    });
+
+    // handle ambient mode callbacks
+    application.on('exitAmbient', args => {
+      Log.D('exitAmbient', args.data, currentSystemTime());
+
+      try {
+        const repeaters = page.getElementsByTagName('Repeater');
+        console.log('repeaters', repeaters);
+      } catch (error) {
+        console.log('error with dom plugin', error);
+      }
+
+      // setTimeout(() => {
+      console.log('applying the default theme');
+      themes.applyTheme('default.css');
+      console.log('default theme should be applied now...');
+      // }, 0);
     });
 
     console.time('Sentry_Init');
