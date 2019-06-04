@@ -38,6 +38,7 @@ import {
   hideOffScreenLayout,
   showOffScreenLayout
 } from '../../utils';
+import { addDays, subDays, eachDay, format } from 'date-fns';
 
 namespace PowerAssist {
   export const InactiveRingColor = '#000000';
@@ -78,6 +79,15 @@ namespace SmartDriveData {
       DriveDistanceName,
       CoastDistanceName
     ];
+
+    export function getDateValue(date: any) {
+      return format(date, 'DD/MM/YYYY');
+    }
+
+    export function getPastDates(numDates: number) {
+      const now = new Date();
+      return eachDay(subDays(now, numDates), now);
+    }
   }
 
   export namespace Errors {
