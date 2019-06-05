@@ -6,16 +6,24 @@ import {
   SensorChangedEventData,
   SensorService,
   SentryService,
-  SqliteService,
   SERVICES,
-  SmartDrive
+  SmartDrive,
+  SqliteService
 } from '@permobil/core';
-import * as _ from 'lodash';
+import {
+  closestIndexTo,
+  eachDay,
+  format,
+  isSameDay,
+  isToday,
+  subDays
+} from 'date-fns';
 import { ReflectiveInjector } from 'injection-js';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
 import { Pager } from 'nativescript-pager';
 import { Sentry } from 'nativescript-sentry';
+import * as themes from 'nativescript-themes';
 import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { Vibrate } from 'nativescript-vibrate';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
@@ -30,7 +38,7 @@ import { Color } from 'tns-core-modules/color';
 import { Observable } from 'tns-core-modules/data/observable';
 import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
-import { Page } from 'tns-core-modules/ui/page';
+import { Page, View } from 'tns-core-modules/ui/page';
 import { Repeater } from 'tns-core-modules/ui/repeater';
 // import { injector } from '../../app';
 import {
@@ -39,15 +47,6 @@ import {
   hideOffScreenLayout,
   showOffScreenLayout
 } from '../../utils';
-import {
-  addDays,
-  subDays,
-  eachDay,
-  format,
-  isToday,
-  isSameDay,
-  closestIndexTo
-} from 'date-fns';
 
 namespace PowerAssist {
   export const InactiveRingColor = '#000000';
@@ -243,6 +242,47 @@ export class MainViewModel extends Observable {
   constructor() {
     super();
 
+    // handle ambient mode callbacks
+    application.on('enterAmbient', args => {
+      Log.D('*** enterAmbient ***');
+      // themes.applyTheme('ambient.css');
+      themes.applyThemeCss(
+        require('../../scss/theme-ambient.css').toString(),
+        '../../scss/theme-ambient.css'
+      );
+
+      if (this.pager) {
+        const children = this.pager._childrenViews;
+        for (let i = 0; i < children.size; i++) {
+          const child = children.get(i);
+          child._onCssStateChange();
+        }
+      }
+    });
+
+    // handle ambient mode callbacks
+    application.on('exitAmbient', args => {
+      Log.D('*** exitAmbient ***');
+      // themes.applyTheme('app.css');
+      themes.applyThemeCss(
+        require('../../scss/theme-default.css').toString(),
+        '../../scss/theme-default.css'
+      );
+
+      if (this.pager) {
+        const children = this.pager._childrenViews;
+        for (let i = 0; i < children.size; i++) {
+          const child = children.get(i) as View;
+          child._onCssStateChange();
+        }
+      }
+    });
+
+    // handle ambient mode callbacks
+    application.on('updateAmbient', args => {
+      Log.D('updateAmbient', args.data, currentSystemTime());
+    });
+
     application.on(application.exitEvent, args => {
       Log.D(
         'App exit event inside main-view-model.ts. Turning off Power Assist and disabling sensors.'
@@ -273,7 +313,7 @@ export class MainViewModel extends Observable {
         SmartDriveData.Info.Fields
       )
       .catch(err => {
-        Log.E("Couldn't make SmartDriveData.Info table:", err);
+        Log.E(`Couldn't make SmartDriveData.Info table:`, err);
       });
     this._sqliteService
       .makeTable(
@@ -282,7 +322,7 @@ export class MainViewModel extends Observable {
         SmartDriveData.Errors.Fields
       )
       .catch(err => {
-        Log.E("Couldn't make SmartDriveData.Errors table:", err);
+        Log.E(`Couldn't make SmartDriveData.Errors table:`, err);
       });
 
     // make throttled save function - not called more than once every 10 seconds
@@ -566,7 +606,7 @@ export class MainViewModel extends Observable {
         // update distance data
         const distanceData = sdData.map(e => {
           let dist = SmartDrive.motorTicksToMiles(e.drive_distance);
-          if (this.settings.units == 'Metric') {
+          if (this.settings.units === 'Metric') {
             dist = dist * 1.609;
           }
           return {
@@ -664,7 +704,7 @@ export class MainViewModel extends Observable {
   }
 
   updateSettingsDisplay() {
-    if (this.settings.units == 'English') {
+    if (this.settings.units === 'English') {
       // update distance units
       this.distanceUnits = 'mi';
       // update speed display
@@ -1182,7 +1222,7 @@ export class MainViewModel extends Observable {
     this._sqliteService
       .getLast(SmartDriveData.Errors.TableName, SmartDriveData.Errors.IdName)
       .then(obj => {
-        //Log.D('From DB: ', obj);
+        // Log.D('From DB: ', obj);
         const lastId = obj && obj[0];
         const lastTimestamp = obj && obj[1];
         const lastErrorCode = obj && obj[2];
@@ -1260,11 +1300,11 @@ export class MainViewModel extends Observable {
     return this._sqliteService
       .getLast(SmartDriveData.Info.TableName, SmartDriveData.Info.IdName)
       .then(e => {
-        let id = e && e[0];
-        let date = new Date((e && e[1]) || null);
-        let battery = e && e[2];
-        let drive = e && e[3];
-        let coast = e && e[4];
+        const id = e && e[0];
+        const date = new Date((e && e[1]) || null);
+        const battery = e && e[2];
+        const drive = e && e[3];
+        const coast = e && e[4];
         if (isToday(date)) {
           return SmartDriveData.Info.newInfo(id, date, battery, drive, coast);
         } else {
@@ -1282,7 +1322,7 @@ export class MainViewModel extends Observable {
     const usageInfo = dates.map(d => {
       return SmartDriveData.Info.newInfo(null, d, 0, 0, 0);
     });
-    //console.log('usage info', usageInfo);
+    // console.log('usage info', usageInfo);
     return this.getRecentInfoFromDatabase(6)
       .then(objs => {
         console.log('get recent info', objs);
