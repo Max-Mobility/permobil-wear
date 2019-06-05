@@ -63,6 +63,14 @@ export class SqliteService {
     });
   }
 
+  public getLast(tableName: string, idName: string) {
+    return this.getDatabase().then(db => {
+      return db.get(
+        `SELECT * FROM ${tableName} ORDER BY ${idName} DESC LIMIT 1`
+      );
+    });
+  }
+
   public getOne(
     tableName: string,
     queries?: any,

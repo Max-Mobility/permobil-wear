@@ -1034,24 +1034,8 @@ export class MainViewModel extends Observable {
     // Log.D('onSmartDriveError event');
     const errorType = args.data.errorType;
     const errorId = args.data.errorId;
-    // if it's a new error, save it with a timestamp
-    // TODO: make sure it's a new error (by the id)
-    // TODO: save error into DB here
-    this._sqliteService
-      .insertIntoTable(
-        SmartDriveData.Errors.TableName,
-        SmartDriveData.Errors.newError(errorType, errorId)
-      )
-      .then(res => {
-        new Toasty(`Saved SmartDrive Error: ${errorType} - ${errorId}`)
-          .setToastPosition(ToastPosition.CENTER)
-          .show();
-      })
-      .catch(err => {
-        new Toasty(`Failed Saving SmartDrive Error: ${err}`, ToastDuration.LONG)
-          .setToastPosition(ToastPosition.CENTER)
-          .show();
-      });
+    // save the error into the database
+    this.saveErrorToDatabase(errorType, errorId);
   }
 
   async onMotorInfo(args: any) {
@@ -1109,5 +1093,47 @@ export class MainViewModel extends Observable {
       DataKeys.SD_VERSION_BLE,
       this._smartDrive.ble_version
     );
+  }
+
+  /*
+   * DATABASE FUNCTIONS
+   */
+
+  saveErrorToDatabase(errorCode: number, errorId: number) {
+    // get the most recent error
+    this._sqliteService
+      .getLast(SmartDriveData.Errors.TableName, SmartDriveData.Errors.IdName)
+      .then(obj => {
+        //Log.D('From DB: ', obj);
+        const lastId = obj && obj[0];
+        const lastTimestamp = obj && obj[1];
+        const lastErrorCode = obj && obj[2];
+        const lastErrorId = obj && obj[3];
+        // make sure this isn't an error we've seen before
+        if (errorId !== lastErrorId) {
+          // now save the error into the table
+          return this._sqliteService
+            .insertIntoTable(
+              SmartDriveData.Errors.TableName,
+              SmartDriveData.Errors.newError(errorCode, errorId)
+            )
+            .catch(err => {
+              new Toasty(
+                `Failed Saving SmartDrive Error: ${err}`,
+                ToastDuration.LONG
+              )
+                .setToastPosition(ToastPosition.CENTER)
+                .show();
+            });
+        }
+      })
+      .catch(err => {
+        new Toasty(
+          `Failed getting SmartDrive Error: ${err}`,
+          ToastDuration.LONG
+        )
+          .setToastPosition(ToastPosition.CENTER)
+          .show();
+      });
   }
 }
