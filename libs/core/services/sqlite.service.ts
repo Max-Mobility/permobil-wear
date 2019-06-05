@@ -40,26 +40,31 @@ export class SqliteService {
     });
   }
 
-  public updateInTable(
-    tableName: string,
-    setField: string,
-    setValue: string,
-    queries: any
-  ) {
+  public updateInTable(tableName: string, sets: any, queries: any) {
     /**
+     *  expects sets to be an object of the form:
+     *   {
+     *     "columnId": <value>,
+     *     ...
+     *   }
+     *  and
      *  expects queries to be an object of the form:
      *   {
-     *     "columnId=?": <value>,
+     *     "columnId": <value>,
      *     ...
      *   }
      */
     return this.getDatabase().then(db => {
-      const queryStrings = Object.keys(queries);
-      const parameters = queryStrings.map(k => queries[k]);
+      const setsStrings = Object.keys(sets);
+      const setValues = setsStrings.map(s => {
+        return `${s}=${sets[s]}`;
+      });
+      const queryStrings = Object.keys(queries).map(q => `${q}=${queries[q]}`);
       const dbUpdateString =
-        `UPDATE ${tableName} SET ${setField} = ${setValue} ` +
+        `UPDATE ${tableName} ` +
+        `SET ${setValues.join(', ')} ` +
         `WHERE ${queryStrings.join(' and ')}`;
-      return db.execSQL(dbUpdateString, parameters);
+      return db.execSQL(dbUpdateString);
     });
   }
 
@@ -71,25 +76,27 @@ export class SqliteService {
     });
   }
 
-  public getOne(
-    tableName: string,
-    queries?: any,
-    orderBy?: string,
-    ascending?: boolean
-  ) {
+  public getOne(args: {
+    tableName: string;
+    queries?: any;
+    orderBy?: string;
+    ascending?: boolean;
+  }) {
     /**
      *  expects queries to be an object of the form:
      *   {
-     *     "columnId=?": <value>,
+     *     "columnId": <value>,
      *     ...
      *   }
      */
     return this.getDatabase().then(db => {
-      let parameters = null;
+      let tableName = args.tableName;
+      let queries = args.queries;
+      let orderBy = args.orderBy;
+      let ascending = args.ascending;
       let dbGetString = `SELECT * from ${tableName}`;
       if (queries) {
-        let queryStrings = Object.keys(queries);
-        parameters = queryStrings.map(q => queries[q]);
+        let queryStrings = Object.keys(queries).map(q => `${q}=${queries[q]}`);
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
       if (orderBy) {
@@ -100,7 +107,7 @@ export class SqliteService {
           dbGetString += ' DESC';
         }
       }
-      return db.get(dbGetString, parameters);
+      return db.get(dbGetString);
     });
   }
 
@@ -114,12 +121,11 @@ export class SqliteService {
     /**
      *  expects queries to be an object of the form:
      *   {
-     *     "columnId=?": <value>,
+     *     "columnId": <value>,
      *     ...
      *   }
      */
     return this.getDatabase().then(db => {
-      let parameters = null;
       let tableName = args.tableName;
       let queries = args.queries;
       let orderBy = args.orderBy;
@@ -127,8 +133,7 @@ export class SqliteService {
       let limit = args.limit;
       let dbGetString = `SELECT * from ${tableName}`;
       if (queries) {
-        let queryStrings = Object.keys(queries);
-        parameters = queryStrings.map(q => queries[q]);
+        let queryStrings = Object.keys(queries).map(q => `${q}=${queries[q]}`);
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
       if (orderBy) {
@@ -142,7 +147,18 @@ export class SqliteService {
       if (limit > 0) {
         dbGetString += ` LIMIT ${limit}`;
       }
-      return db.all(dbGetString, parameters);
+      return db.all(dbGetString);
     });
+  }
+
+  public getSum(tableName: string, columnName: string) {
+    return this.getDatabase()
+      .then(db => {
+        const dbString = `SELECT SUM(${columnName}) as Total FROM ${tableName}`;
+        return db.execSQL(dbString);
+      })
+      .then(row => {
+        return row && row[0];
+      });
   }
 }

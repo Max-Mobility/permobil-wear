@@ -10,6 +10,7 @@ import {
   SERVICES,
   SmartDrive
 } from '@permobil/core';
+import * as _ from 'lodash';
 import { ReflectiveInjector } from 'injection-js';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
@@ -38,7 +39,15 @@ import {
   hideOffScreenLayout,
   showOffScreenLayout
 } from '../../utils';
-import { addDays, subDays, eachDay, format } from 'date-fns';
+import {
+  addDays,
+  subDays,
+  eachDay,
+  format,
+  isToday,
+  isSameDay,
+  closestIndexTo
+} from 'date-fns';
 
 namespace PowerAssist {
   export const InactiveRingColor = '#000000';
@@ -81,12 +90,28 @@ namespace SmartDriveData {
     ];
 
     export function getDateValue(date: any) {
-      return format(date, 'DD/MM/YYYY');
+      return format(date, 'YYYY/MM/DD');
     }
 
     export function getPastDates(numDates: number) {
       const now = new Date();
       return eachDay(subDays(now, numDates), now);
+    }
+
+    export function newInfo(
+      id: number = null,
+      date: any,
+      battery: number,
+      drive: number,
+      coast: number
+    ) {
+      return {
+        [SmartDriveData.Info.IdName]: id,
+        [SmartDriveData.Info.DateName]: SmartDriveData.Info.getDateValue(date),
+        [SmartDriveData.Info.BatteryName]: battery,
+        [SmartDriveData.Info.DriveDistanceName]: drive,
+        [SmartDriveData.Info.CoastDistanceName]: coast
+      };
     }
   }
 
@@ -177,6 +202,10 @@ export class MainViewModel extends Observable {
    * Used to indicate the highest value in the distance chart.
    */
   @Prop() distanceChartMaxValue: string;
+  /**
+   * Units of distance for the distance chart.
+   */
+  @Prop() distanceUnits: string = 'mi';
 
   /**
    * State Management for Sensor Monitoring / Data Collection
@@ -208,6 +237,8 @@ export class MainViewModel extends Observable {
   private _bluetoothService: BluetoothService;
   private _sensorService: SensorService;
   private _sqliteService: SqliteService;
+
+  private _throttledSmartDriveSaveFn: any = null;
 
   constructor() {
     super();
@@ -253,6 +284,16 @@ export class MainViewModel extends Observable {
       .catch(err => {
         Log.E("Couldn't make SmartDriveData.Errors table:", err);
       });
+
+    // make throttled save function - not called more than once every 10 seconds
+    this._throttledSmartDriveSaveFn = _.throttle(
+      this.saveUsageInfoToDatabase,
+      10000
+    );
+    console.log('made throttled function');
+
+    // read in the db to update the chart data
+    this.updateChartData();
 
     // register for watch battery updates
     // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
@@ -504,52 +545,57 @@ export class MainViewModel extends Observable {
     });
   }
 
-  onBatteryChartRepeaterLoaded(args) {
-    const rpter = args.object as Repeater;
-    // get distance data from db here then handle the data binding and
-    // calculating the Max Value for the chart and some sizing checks
+  updateChartData() {
     this.getUsageInfoFromDatabase(6)
       .then(sdData => {
+        // update battery data
         const batteryData = sdData.map(e => {
           return {
             day: format(new Date(e.date), 'dd'),
             value: e.battery
           };
         });
-        const maxValue = batteryData.reduce((max, obj) => {
+        const maxBattery = batteryData.reduce((max, obj) => {
           return obj.value > max ? obj.value : max;
         }, 0);
 
-        Log.D('Highest Battery Value:', maxValue);
-        this.batteryChartMaxValue = maxValue;
+        Log.D('Highest Battery Value:', maxBattery);
+        this.batteryChartMaxValue = maxBattery;
 
         this.batteryChartData = batteryData;
+        // update distance data
+        const distanceData = sdData.map(e => {
+          let dist = SmartDrive.motorTicksToMiles(e.drive_distance);
+          if (this.settings.units == 'Metric') {
+            dist = dist * 1.609;
+          }
+          return {
+            day: format(new Date(e.date), 'dd'),
+            value: dist.toFixed(1)
+          };
+        });
+        const maxDist = distanceData.reduce((max, obj) => {
+          return obj.value > max ? obj.value : max;
+        }, 0);
+
+        Log.D('Highest Distance Value:', maxDist);
+        this.distanceChartMaxValue = maxDist;
+
+        this.distanceChartData = distanceData;
       })
       .catch(err => {});
+  }
+
+  onBatteryChartRepeaterLoaded(args) {
+    const rpter = args.object as Repeater;
+    // get distance data from db here then handle the data binding and
+    // calculating the Max Value for the chart and some sizing checks
   }
 
   onDistanceChartRepeaterLoaded(args) {
     const rpter = args.object as Repeater;
     // get distance data from db here then handle the data binding and
     // calculating the Max Value for the chart and some sizing checks
-    this.getUsageInfoFromDatabase(6)
-      .then(sdData => {
-        const distanceData = sdData.map(e => {
-          return {
-            day: format(new Date(e.date), 'dd'),
-            value: e.drive_distance
-          };
-        });
-        const maxValue = distanceData.reduce((max, obj) => {
-          return obj.value > max ? obj.value : max;
-        }, 0);
-
-        Log.D('Highest Distance Value:', maxValue);
-        this.distanceChartMaxValue = maxValue;
-
-        this.distanceChartData = distanceData;
-      })
-      .catch(err => {});
   }
 
   onSettingsTap() {
@@ -619,6 +665,8 @@ export class MainViewModel extends Observable {
 
   updateSettingsDisplay() {
     if (this.settings.units == 'English') {
+      // update distance units
+      this.distanceUnits = 'mi';
       // update speed display
       this.currentSpeedDisplay = this.currentSpeed.toFixed(1);
       this.currentSpeedDescription = 'Esimated Speed (mph)';
@@ -626,6 +674,8 @@ export class MainViewModel extends Observable {
       this.estimatedDistanceDisplay = this.estimatedDistance.toFixed(1);
       this.estimatedDistanceDescription = 'Estimated Range (mi)';
     } else {
+      // update distance units
+      this.distanceUnits = 'km';
       // update speed display
       this.currentSpeedDisplay = (this.currentSpeed * 1.609).toFixed(1);
       this.currentSpeedDescription = 'Esimated Speed (kph)';
@@ -635,6 +685,7 @@ export class MainViewModel extends Observable {
       );
       this.estimatedDistanceDescription = 'Estimated Range (km)';
     }
+    this.updateChartData();
   }
 
   onConfirmChangesTap() {
@@ -1077,12 +1128,25 @@ export class MainViewModel extends Observable {
     // update speed display
     this.currentSpeed = motorInfo.speed;
     this.updateSettingsDisplay();
+    // save to the database
+    this._throttledSmartDriveSaveFn(
+      this._smartDrive.driveDistance,
+      this._smartDrive.coastDistance,
+      this._smartDrive.battery
+    );
   }
 
   async onDistance(args: any) {
     // Log.D('onDistance event');
     const coastDistance = args.data.coastDistance;
     const driveDistance = args.data.driveDistance;
+
+    // save to the database
+    this._throttledSmartDriveSaveFn(
+      this._smartDrive.driveDistance,
+      this._smartDrive.coastDistance,
+      this._smartDrive.battery
+    );
 
     // save the updated distance
     appSettings.setNumber(
@@ -1151,19 +1215,86 @@ export class MainViewModel extends Observable {
       });
   }
 
+  saveUsageInfoToDatabase(
+    driveDistance: number,
+    coastDistance: number,
+    battery: number
+  ) {
+    console.log('saving to db:', driveDistance, coastDistance, battery);
+    return this.getTodaysUsageInfoFromDatabase()
+      .then(u => {
+        console.log('Got usage:', u);
+        if (u.id) {
+          // TODO: determine how to store amount of battery used!
+          // there was a record, so we need to update it
+          return this._sqliteService.updateInTable(
+            SmartDriveData.Info.TableName,
+            {
+              [SmartDriveData.Info.BatteryName]: battery,
+              [SmartDriveData.Info.DriveDistanceName]: driveDistance,
+              [SmartDriveData.Info.CoastDistanceName]: coastDistance
+            },
+            {
+              [SmartDriveData.Info.IdName]: u.id
+            }
+          );
+        } else {
+          // this is the first record, so we create it
+          return this._sqliteService.insertIntoTable(
+            SmartDriveData.Info.TableName,
+            u
+          );
+        }
+      })
+      .then(() => {
+        return this.updateChartData();
+      })
+      .catch(err => {
+        new Toasty(`Failed saving usage: ${err}`, ToastDuration.LONG)
+          .setToastPosition(ToastPosition.CENTER)
+          .show();
+      });
+  }
+
+  getTodaysUsageInfoFromDatabase() {
+    return this._sqliteService
+      .getLast(SmartDriveData.Info.TableName, SmartDriveData.Info.IdName)
+      .then(e => {
+        let id = e && e[0];
+        let date = new Date((e && e[1]) || null);
+        let battery = e && e[2];
+        let drive = e && e[3];
+        let coast = e && e[4];
+        if (isToday(date)) {
+          return SmartDriveData.Info.newInfo(id, date, battery, drive, coast);
+        } else {
+          return SmartDriveData.Info.newInfo(undefined, new Date(), 0, 0, 0);
+        }
+      })
+      .catch(err => {
+        // nothing was found
+        return SmartDriveData.Info.newInfo(undefined, new Date(), 0, 0, 0);
+      });
+  }
+
   getUsageInfoFromDatabase(numDays: number) {
     const dates = SmartDriveData.Info.getPastDates(numDays);
     const usageInfo = dates.map(d => {
-      return {
-        date: d,
-        drive_distance: 0,
-        coast_distance: 0,
-        battery: 0
-      };
+      return SmartDriveData.Info.newInfo(null, d, 0, 0, 0);
     });
+    //console.log('usage info', usageInfo);
     return this.getRecentInfoFromDatabase(6)
       .then(objs => {
-        console.log(objs);
+        console.log('get recent info', objs);
+        objs.map(o => {
+          const obj = SmartDriveData.Info.newInfo(...o);
+          const objDate = new Date(obj.date);
+          const index = closestIndexTo(objDate, dates);
+          const usageDate = dates[index];
+          if (index > -1 && isSameDay(objDate, usageDate)) {
+            usageInfo[index] = obj;
+          }
+        });
         return usageInfo;
       })
       .catch(err => {

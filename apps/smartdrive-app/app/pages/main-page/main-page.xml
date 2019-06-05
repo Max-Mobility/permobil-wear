@@ -67,7 +67,7 @@
         <box:BoxInsetLayout>
           <GridLayout rows="auto, auto, *" columns="*, auto">
             // Chart Title
-            <Label row="0" colSpan="8" text="Daily SmartDrive Distance Traveled (mi)" class="chart-title" textWrap="true" />
+            <Label row="0" colSpan="8" text="{{ 'Daily SmartDrive Distance Traveled (' + distanceUnits + ')' }}" class="chart-title" textWrap="true" />
             <Label text="" row="1" col="0" class="hr-blue" />
             <Label text="{{ distanceChartMaxValue }}" row="1" col="1" class="chart-max-value" />
             // Distance Traveled Bar Chart
