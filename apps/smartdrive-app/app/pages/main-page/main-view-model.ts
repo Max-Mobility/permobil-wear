@@ -6,6 +6,7 @@ import {
   SensorChangedEventData,
   SensorService,
   SentryService,
+  SqliteService,
   SERVICES,
   SmartDrive
 } from '@permobil/core';
@@ -37,6 +38,7 @@ import {
   hideOffScreenLayout,
   showOffScreenLayout
 } from '../../utils';
+import { addDays, subDays, eachDay, format } from 'date-fns';
 
 namespace PowerAssist {
   export const InactiveRingColor = '#000000';
@@ -60,6 +62,55 @@ namespace PowerAssist {
     Disconnected,
     Connected,
     Training
+  }
+}
+
+namespace SmartDriveData {
+  export namespace Info {
+    export const TableName = 'SmartDriveInfo';
+    export const IdName = 'id';
+    export const DateName = 'date';
+    export const BatteryName = 'battery';
+    export const DriveDistanceName = 'drive_distance';
+    export const CoastDistanceName = 'coast_distance';
+    export const Fields = [
+      DateName,
+      BatteryName,
+      DriveDistanceName,
+      CoastDistanceName
+    ];
+
+    export function getDateValue(date: any) {
+      return format(date, 'DD/MM/YYYY');
+    }
+
+    export function getPastDates(numDates: number) {
+      const now = new Date();
+      return eachDay(subDays(now, numDates), now);
+    }
+  }
+
+  export namespace Errors {
+    export const TableName = 'SmartDriveErrors';
+    export const IdName = 'id';
+    export const TimestampName = 'timestamp';
+    export const ErrorCodeName = 'error_code';
+    export const ErrorIdName = 'error_id';
+    export const Fields = [TimestampName, ErrorCodeName, ErrorIdName];
+
+    export function getTimestamp() {
+      // 'x' is Milliseconds timetsamp format
+      return format(new Date(), 'x');
+    }
+
+    export function newError(errorType: number, errorId: number) {
+      return {
+        [SmartDriveData.Errors
+          .TimestampName]: SmartDriveData.Errors.getTimestamp(),
+        [SmartDriveData.Errors.ErrorCodeName]: errorType,
+        [SmartDriveData.Errors.ErrorIdName]: errorId
+      };
+    }
   }
 }
 
@@ -152,6 +203,7 @@ export class MainViewModel extends Observable {
   private _sentryService: SentryService;
   private _bluetoothService: BluetoothService;
   private _sensorService: SensorService;
+  private _sqliteService: SqliteService;
 
   constructor() {
     super();
@@ -176,6 +228,27 @@ export class MainViewModel extends Observable {
     this._sentryService = injector.get(SentryService);
     this._bluetoothService = injector.get(BluetoothService);
     this._sensorService = injector.get(SensorService);
+    this._sqliteService = injector.get(SqliteService);
+
+    // create / load tables for smartdrive data
+    this._sqliteService
+      .makeTable(
+        SmartDriveData.Info.TableName,
+        SmartDriveData.Info.IdName,
+        SmartDriveData.Info.Fields
+      )
+      .catch(err => {
+        Log.E("Couldn't make SmartDriveData.Info table:", err);
+      });
+    this._sqliteService
+      .makeTable(
+        SmartDriveData.Errors.TableName,
+        SmartDriveData.Errors.IdName,
+        SmartDriveData.Errors.Fields
+      )
+      .catch(err => {
+        Log.E("Couldn't make SmartDriveData.Errors table:", err);
+      });
 
     // register for watch battery updates
     // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
@@ -833,6 +906,11 @@ export class MainViewModel extends Observable {
       this.onMotorInfo,
       this
     );
+    this._smartDrive.on(
+      SmartDrive.smartdrive_error_event,
+      this.onSmartDriveError,
+      this
+    );
 
     // now connect to smart drive
     return this._smartDrive
@@ -896,6 +974,11 @@ export class MainViewModel extends Observable {
         this.onMotorInfo,
         this
       );
+      this._smartDrive.off(
+        SmartDrive.smartdrive_error_event,
+        this.onSmartDriveError,
+        this
+      );
       this._smartDrive.disconnect().then(() => {
         this.motorOn = false;
         this.powerAssistActive = false;
@@ -945,6 +1028,14 @@ export class MainViewModel extends Observable {
     new Toasty(`Disconnected from ${this._smartDrive.address}`)
       .setToastPosition(ToastPosition.CENTER)
       .show();
+  }
+
+  async onSmartDriveError(args: any) {
+    // Log.D('onSmartDriveError event');
+    const errorType = args.data.errorType;
+    const errorId = args.data.errorId;
+    // save the error into the database
+    this.saveErrorToDatabase(errorType, errorId);
   }
 
   async onMotorInfo(args: any) {
@@ -1002,5 +1093,47 @@ export class MainViewModel extends Observable {
       DataKeys.SD_VERSION_BLE,
       this._smartDrive.ble_version
     );
+  }
+
+  /*
+   * DATABASE FUNCTIONS
+   */
+
+  saveErrorToDatabase(errorCode: number, errorId: number) {
+    // get the most recent error
+    this._sqliteService
+      .getLast(SmartDriveData.Errors.TableName, SmartDriveData.Errors.IdName)
+      .then(obj => {
+        //Log.D('From DB: ', obj);
+        const lastId = obj && obj[0];
+        const lastTimestamp = obj && obj[1];
+        const lastErrorCode = obj && obj[2];
+        const lastErrorId = obj && obj[3];
+        // make sure this isn't an error we've seen before
+        if (errorId !== lastErrorId) {
+          // now save the error into the table
+          return this._sqliteService
+            .insertIntoTable(
+              SmartDriveData.Errors.TableName,
+              SmartDriveData.Errors.newError(errorCode, errorId)
+            )
+            .catch(err => {
+              new Toasty(
+                `Failed Saving SmartDrive Error: ${err}`,
+                ToastDuration.LONG
+              )
+                .setToastPosition(ToastPosition.CENTER)
+                .show();
+            });
+        }
+      })
+      .catch(err => {
+        new Toasty(
+          `Failed getting SmartDrive Error: ${err}`,
+          ToastDuration.LONG
+        )
+          .setToastPosition(ToastPosition.CENTER)
+          .show();
+      });
   }
 }

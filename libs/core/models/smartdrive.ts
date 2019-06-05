@@ -39,6 +39,7 @@ export class SmartDrive extends DeviceBase {
   public static smartdrive_mcu_version_event = 'smartdrive_mcu_version_event';
   public static smartdrive_distance_event = 'smartdrive_distance_event';
   public static smartdrive_motor_info_event = 'smartdrive_motor_info_event';
+  public static smartdrive_error_event = 'smartdrive_error_event';
   public static smartdrive_ota_ready_event = 'smartdrive_ota_ready_event';
   public static smartdrive_ota_ready_ble_event =
     'smartdrive_ota_ready_ble_event';
@@ -554,7 +555,6 @@ export class SmartDrive extends DeviceBase {
           };
           return this.stopNotifyCharacteristics(SmartDrive.Characteristics)
             .then(() => {
-              // TODO: Doesn't properly disconnect
               console.log(`Disconnecting from ${this.address}`);
               return this._bluetoothService.disconnect({
                 UUID: this.address
@@ -1117,10 +1117,22 @@ export class SmartDrive extends DeviceBase {
         default:
           break;
       }
+    } else if (packetType === 'Error') {
+      this._handleError(p);
     }
   }
 
   // private functions
+  private _handleError(p: Packet) {
+    // This is sent by the smartdrive whenever it encounters an error
+    const errorType = p.SubType();
+    const errorId = p.data('errorId');
+    this.sendEvent(SmartDrive.smartdrive_error_event, {
+      errorType: errorType,
+      errorId: errorId
+    });
+  }
+
   private _handleDeviceInfo(p: Packet) {
     // This is sent by the SmartDrive Bluetooth Chip when it
     // connects
@@ -1133,7 +1145,6 @@ export class SmartDrive extends DeviceBase {
            }            deviceInfo;
         */
     this.ble_version = devInfo.version;
-    // TODO: send version event (for BLE_VERSION) to subscribers
     this.sendEvent(SmartDrive.smartdrive_ble_version_event, {
       ble: this.ble_version
     });
@@ -1158,14 +1169,13 @@ export class SmartDrive extends DeviceBase {
     this.battery = motorInfo.batteryLevel;
     const motorOnState = Packet.makeBoundData('MotorState', 'On');
     this.driving = motorInfo.state === motorOnState;
-    // TODO: send version event (for MCU_VERSION) to subscribers
+    // send events to subscribers
     this.sendEvent(SmartDrive.smartdrive_mcu_version_event, {
       mcu: this.mcu_version
     });
     this.sendEvent(SmartDrive.smartdrive_motor_info_event, {
       motorInfo: motorInfo
     });
-    // so they get updated about this smartDrive's version
   }
 
   private _handleDistanceInfo(p: Packet) {
