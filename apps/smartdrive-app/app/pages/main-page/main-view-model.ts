@@ -290,10 +290,6 @@ export class MainViewModel extends Observable {
       this.saveUsageInfoToDatabase,
       10000
     );
-    console.log('made throttled function');
-
-    // read in the db to update the chart data
-    this.updateChartData();
 
     // register for watch battery updates
     // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
@@ -546,8 +542,12 @@ export class MainViewModel extends Observable {
   }
 
   updateChartData() {
-    this.getUsageInfoFromDatabase(6)
+    this.getUsageInfoFromDatabase(7)
       .then(sdData => {
+        // we've asked for one more day than needed so that we can
+        // compute distance differences
+        const oldest = sdData[0];
+        sdData = sdData.slice(1);
         // update battery data
         const batteryData = sdData.map(e => {
           return {
@@ -564,14 +564,18 @@ export class MainViewModel extends Observable {
 
         this.batteryChartData = batteryData;
         // update distance data
+        let oldestDist = oldest[SmartDriveData.Info.DriveDistanceName];
         const distanceData = sdData.map(e => {
-          let dist = SmartDrive.motorTicksToMiles(e.drive_distance);
+          let dist = e[SmartDriveData.Info.DriveDistanceName];
+          let diff = dist - oldestDist;
+          oldestDist = Math.max(dist, oldestDist);
+          diff = SmartDrive.motorTicksToMiles(diff);
           if (this.settings.units == 'Metric') {
-            dist = dist * 1.609;
+            diff = diff * 1.609;
           }
           return {
             day: format(new Date(e.date), 'dd'),
-            value: dist.toFixed(1)
+            value: diff.toFixed(1)
           };
         });
         const maxDist = distanceData.reduce((max, obj) => {
