@@ -6,9 +6,11 @@ import {
   SensorChangedEventData,
   SensorService,
   SentryService,
+  SqliteService,
   SERVICES,
   SmartDrive
 } from '@permobil/core';
+import * as _ from 'lodash';
 import { ReflectiveInjector } from 'injection-js';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
@@ -37,6 +39,15 @@ import {
   hideOffScreenLayout,
   showOffScreenLayout
 } from '../../utils';
+import {
+  addDays,
+  subDays,
+  eachDay,
+  format,
+  isToday,
+  isSameDay,
+  closestIndexTo
+} from 'date-fns';
 
 namespace PowerAssist {
   export const InactiveRingColor = '#000000';
@@ -60,6 +71,71 @@ namespace PowerAssist {
     Disconnected,
     Connected,
     Training
+  }
+}
+
+namespace SmartDriveData {
+  export namespace Info {
+    export const TableName = 'SmartDriveInfo';
+    export const IdName = 'id';
+    export const DateName = 'date';
+    export const BatteryName = 'battery';
+    export const DriveDistanceName = 'drive_distance';
+    export const CoastDistanceName = 'coast_distance';
+    export const Fields = [
+      DateName,
+      BatteryName,
+      DriveDistanceName,
+      CoastDistanceName
+    ];
+
+    export function getDateValue(date: any) {
+      return format(date, 'YYYY/MM/DD');
+    }
+
+    export function getPastDates(numDates: number) {
+      const now = new Date();
+      return eachDay(subDays(now, numDates), now);
+    }
+
+    export function newInfo(
+      id: number = null,
+      date: any,
+      battery: number,
+      drive: number,
+      coast: number
+    ) {
+      return {
+        [SmartDriveData.Info.IdName]: id,
+        [SmartDriveData.Info.DateName]: SmartDriveData.Info.getDateValue(date),
+        [SmartDriveData.Info.BatteryName]: battery,
+        [SmartDriveData.Info.DriveDistanceName]: drive,
+        [SmartDriveData.Info.CoastDistanceName]: coast
+      };
+    }
+  }
+
+  export namespace Errors {
+    export const TableName = 'SmartDriveErrors';
+    export const IdName = 'id';
+    export const TimestampName = 'timestamp';
+    export const ErrorCodeName = 'error_code';
+    export const ErrorIdName = 'error_id';
+    export const Fields = [TimestampName, ErrorCodeName, ErrorIdName];
+
+    export function getTimestamp() {
+      // 'x' is Milliseconds timetsamp format
+      return format(new Date(), 'x');
+    }
+
+    export function newError(errorType: number, errorId: number) {
+      return {
+        [SmartDriveData.Errors
+          .TimestampName]: SmartDriveData.Errors.getTimestamp(),
+        [SmartDriveData.Errors.ErrorCodeName]: errorType,
+        [SmartDriveData.Errors.ErrorIdName]: errorId
+      };
+    }
   }
 }
 
@@ -113,7 +189,11 @@ export class MainViewModel extends Observable {
   /**
    * Data to bind to the Battery Usage Chart repeater.
    */
-  @Prop() public batteryUsageData;
+  @Prop() public batteryChartData;
+  /**
+   * Used to indicate the highest value in the battery chart.
+   */
+  @Prop() batteryChartMaxValue: string;
   /**
    * Data to bind to the Distance Chart repeater.
    */
@@ -122,6 +202,10 @@ export class MainViewModel extends Observable {
    * Used to indicate the highest value in the distance chart.
    */
   @Prop() distanceChartMaxValue: string;
+  /**
+   * Units of distance for the distance chart.
+   */
+  @Prop() distanceUnits: string = 'mi';
 
   /**
    * State Management for Sensor Monitoring / Data Collection
@@ -152,6 +236,9 @@ export class MainViewModel extends Observable {
   private _sentryService: SentryService;
   private _bluetoothService: BluetoothService;
   private _sensorService: SensorService;
+  private _sqliteService: SqliteService;
+
+  private _throttledSmartDriveSaveFn: any = null;
 
   constructor() {
     super();
@@ -176,6 +263,37 @@ export class MainViewModel extends Observable {
     this._sentryService = injector.get(SentryService);
     this._bluetoothService = injector.get(BluetoothService);
     this._sensorService = injector.get(SensorService);
+    this._sqliteService = injector.get(SqliteService);
+
+    // create / load tables for smartdrive data
+    this._sqliteService
+      .makeTable(
+        SmartDriveData.Info.TableName,
+        SmartDriveData.Info.IdName,
+        SmartDriveData.Info.Fields
+      )
+      .catch(err => {
+        Log.E("Couldn't make SmartDriveData.Info table:", err);
+      });
+    this._sqliteService
+      .makeTable(
+        SmartDriveData.Errors.TableName,
+        SmartDriveData.Errors.IdName,
+        SmartDriveData.Errors.Fields
+      )
+      .catch(err => {
+        Log.E("Couldn't make SmartDriveData.Errors table:", err);
+      });
+
+    // make throttled save function - not called more than once every 10 seconds
+    this._throttledSmartDriveSaveFn = _.throttle(
+      this.saveUsageInfoToDatabase,
+      10000
+    );
+    console.log('made throttled function');
+
+    // read in the db to update the chart data
+    this.updateChartData();
 
     // register for watch battery updates
     // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
@@ -204,19 +322,6 @@ export class MainViewModel extends Observable {
     }, 20000);
 
     this.currentTimeMeridiem = currentSystemTimeMeridiem();
-
-    // setup some static data for charts for now
-    // need to be storing these locally (local-storage or application-settings)
-    // then grabbing the most recent 7 from the data set, possibly include a service call that runs at some point to clear out really old data
-    this.batteryUsageData = [
-      { day: 'Th', value: '40' },
-      { day: 'F', value: '88' },
-      { day: 'S', value: '37' },
-      { day: 'Su', value: '100' },
-      { day: 'M', value: '78' },
-      { day: 'T', value: '43' },
-      { day: 'W', value: '65' }
-    ];
 
     // this._sensorService.on(
     //   SensorService.AccuracyChanged,
@@ -440,28 +545,57 @@ export class MainViewModel extends Observable {
     });
   }
 
+  updateChartData() {
+    this.getUsageInfoFromDatabase(6)
+      .then(sdData => {
+        // update battery data
+        const batteryData = sdData.map(e => {
+          return {
+            day: format(new Date(e.date), 'dd'),
+            value: e.battery
+          };
+        });
+        const maxBattery = batteryData.reduce((max, obj) => {
+          return obj.value > max ? obj.value : max;
+        }, 0);
+
+        Log.D('Highest Battery Value:', maxBattery);
+        this.batteryChartMaxValue = maxBattery;
+
+        this.batteryChartData = batteryData;
+        // update distance data
+        const distanceData = sdData.map(e => {
+          let dist = SmartDrive.motorTicksToMiles(e.drive_distance);
+          if (this.settings.units == 'Metric') {
+            dist = dist * 1.609;
+          }
+          return {
+            day: format(new Date(e.date), 'dd'),
+            value: dist.toFixed(1)
+          };
+        });
+        const maxDist = distanceData.reduce((max, obj) => {
+          return obj.value > max ? obj.value : max;
+        }, 0);
+
+        Log.D('Highest Distance Value:', maxDist);
+        this.distanceChartMaxValue = maxDist;
+
+        this.distanceChartData = distanceData;
+      })
+      .catch(err => {});
+  }
+
+  onBatteryChartRepeaterLoaded(args) {
+    const rpter = args.object as Repeater;
+    // get distance data from db here then handle the data binding and
+    // calculating the Max Value for the chart and some sizing checks
+  }
+
   onDistanceChartRepeaterLoaded(args) {
     const rpter = args.object as Repeater;
-    // need to get distance data at here
-    // then handle the data binding and calculating the Max Value for the chart
-    // and some sizing checks
-    const distanceData = [
-      { day: 'Th', value: '1' },
-      { day: 'F', value: '2' },
-      { day: 'S', value: '5' },
-      { day: 'Su', value: '5' },
-      { day: 'M', value: '9' },
-      { day: 'T', value: '2' },
-      { day: 'W', value: '4' }
-    ];
-    const j = distanceData.reduce((max, obj) => {
-      return obj.value > max.value ? obj : max;
-    });
-
-    Log.D('Highest Distance Value:', j.value);
-    this.distanceChartMaxValue = j.value;
-
-    this.distanceChartData = distanceData;
+    // get distance data from db here then handle the data binding and
+    // calculating the Max Value for the chart and some sizing checks
   }
 
   onSettingsTap() {
@@ -531,6 +665,8 @@ export class MainViewModel extends Observable {
 
   updateSettingsDisplay() {
     if (this.settings.units == 'English') {
+      // update distance units
+      this.distanceUnits = 'mi';
       // update speed display
       this.currentSpeedDisplay = this.currentSpeed.toFixed(1);
       this.currentSpeedDescription = 'Esimated Speed (mph)';
@@ -538,6 +674,8 @@ export class MainViewModel extends Observable {
       this.estimatedDistanceDisplay = this.estimatedDistance.toFixed(1);
       this.estimatedDistanceDescription = 'Estimated Range (mi)';
     } else {
+      // update distance units
+      this.distanceUnits = 'km';
       // update speed display
       this.currentSpeedDisplay = (this.currentSpeed * 1.609).toFixed(1);
       this.currentSpeedDescription = 'Esimated Speed (kph)';
@@ -547,6 +685,7 @@ export class MainViewModel extends Observable {
       );
       this.estimatedDistanceDescription = 'Estimated Range (km)';
     }
+    this.updateChartData();
   }
 
   onConfirmChangesTap() {
@@ -833,6 +972,11 @@ export class MainViewModel extends Observable {
       this.onMotorInfo,
       this
     );
+    this._smartDrive.on(
+      SmartDrive.smartdrive_error_event,
+      this.onSmartDriveError,
+      this
+    );
 
     // now connect to smart drive
     return this._smartDrive
@@ -896,6 +1040,11 @@ export class MainViewModel extends Observable {
         this.onMotorInfo,
         this
       );
+      this._smartDrive.off(
+        SmartDrive.smartdrive_error_event,
+        this.onSmartDriveError,
+        this
+      );
       this._smartDrive.disconnect().then(() => {
         this.motorOn = false;
         this.powerAssistActive = false;
@@ -947,6 +1096,14 @@ export class MainViewModel extends Observable {
       .show();
   }
 
+  async onSmartDriveError(args: any) {
+    // Log.D('onSmartDriveError event');
+    const errorType = args.data.errorType;
+    const errorId = args.data.errorId;
+    // save the error into the database
+    this.saveErrorToDatabase(errorType, errorId);
+  }
+
   async onMotorInfo(args: any) {
     // Log.D('onMotorInfo event');
     const motorInfo = args.data.motorInfo;
@@ -971,12 +1128,25 @@ export class MainViewModel extends Observable {
     // update speed display
     this.currentSpeed = motorInfo.speed;
     this.updateSettingsDisplay();
+    // save to the database
+    this._throttledSmartDriveSaveFn(
+      this._smartDrive.driveDistance,
+      this._smartDrive.coastDistance,
+      this._smartDrive.battery
+    );
   }
 
   async onDistance(args: any) {
     // Log.D('onDistance event');
     const coastDistance = args.data.coastDistance;
     const driveDistance = args.data.driveDistance;
+
+    // save to the database
+    this._throttledSmartDriveSaveFn(
+      this._smartDrive.driveDistance,
+      this._smartDrive.coastDistance,
+      this._smartDrive.battery
+    );
 
     // save the updated distance
     appSettings.setNumber(
@@ -1002,5 +1172,143 @@ export class MainViewModel extends Observable {
       DataKeys.SD_VERSION_BLE,
       this._smartDrive.ble_version
     );
+  }
+
+  /*
+   * DATABASE FUNCTIONS
+   */
+  saveErrorToDatabase(errorCode: number, errorId: number) {
+    // get the most recent error
+    this._sqliteService
+      .getLast(SmartDriveData.Errors.TableName, SmartDriveData.Errors.IdName)
+      .then(obj => {
+        //Log.D('From DB: ', obj);
+        const lastId = obj && obj[0];
+        const lastTimestamp = obj && obj[1];
+        const lastErrorCode = obj && obj[2];
+        const lastErrorId = obj && obj[3];
+        // make sure this isn't an error we've seen before
+        if (errorId !== lastErrorId) {
+          // now save the error into the table
+          return this._sqliteService
+            .insertIntoTable(
+              SmartDriveData.Errors.TableName,
+              SmartDriveData.Errors.newError(errorCode, errorId)
+            )
+            .catch(err => {
+              new Toasty(
+                `Failed Saving SmartDrive Error: ${err}`,
+                ToastDuration.LONG
+              )
+                .setToastPosition(ToastPosition.CENTER)
+                .show();
+            });
+        }
+      })
+      .catch(err => {
+        new Toasty(
+          `Failed getting SmartDrive Error: ${err}`,
+          ToastDuration.LONG
+        )
+          .setToastPosition(ToastPosition.CENTER)
+          .show();
+      });
+  }
+
+  saveUsageInfoToDatabase(
+    driveDistance: number,
+    coastDistance: number,
+    battery: number
+  ) {
+    console.log('saving to db:', driveDistance, coastDistance, battery);
+    return this.getTodaysUsageInfoFromDatabase()
+      .then(u => {
+        console.log('Got usage:', u);
+        if (u.id) {
+          // TODO: determine how to store amount of battery used!
+          // there was a record, so we need to update it
+          return this._sqliteService.updateInTable(
+            SmartDriveData.Info.TableName,
+            {
+              [SmartDriveData.Info.BatteryName]: battery,
+              [SmartDriveData.Info.DriveDistanceName]: driveDistance,
+              [SmartDriveData.Info.CoastDistanceName]: coastDistance
+            },
+            {
+              [SmartDriveData.Info.IdName]: u.id
+            }
+          );
+        } else {
+          // this is the first record, so we create it
+          return this._sqliteService.insertIntoTable(
+            SmartDriveData.Info.TableName,
+            u
+          );
+        }
+      })
+      .then(() => {
+        return this.updateChartData();
+      })
+      .catch(err => {
+        new Toasty(`Failed saving usage: ${err}`, ToastDuration.LONG)
+          .setToastPosition(ToastPosition.CENTER)
+          .show();
+      });
+  }
+
+  getTodaysUsageInfoFromDatabase() {
+    return this._sqliteService
+      .getLast(SmartDriveData.Info.TableName, SmartDriveData.Info.IdName)
+      .then(e => {
+        let id = e && e[0];
+        let date = new Date((e && e[1]) || null);
+        let battery = e && e[2];
+        let drive = e && e[3];
+        let coast = e && e[4];
+        if (isToday(date)) {
+          return SmartDriveData.Info.newInfo(id, date, battery, drive, coast);
+        } else {
+          return SmartDriveData.Info.newInfo(undefined, new Date(), 0, 0, 0);
+        }
+      })
+      .catch(err => {
+        // nothing was found
+        return SmartDriveData.Info.newInfo(undefined, new Date(), 0, 0, 0);
+      });
+  }
+
+  getUsageInfoFromDatabase(numDays: number) {
+    const dates = SmartDriveData.Info.getPastDates(numDays);
+    const usageInfo = dates.map(d => {
+      return SmartDriveData.Info.newInfo(null, d, 0, 0, 0);
+    });
+    //console.log('usage info', usageInfo);
+    return this.getRecentInfoFromDatabase(6)
+      .then(objs => {
+        console.log('get recent info', objs);
+        objs.map(o => {
+          const obj = SmartDriveData.Info.newInfo(...o);
+          const objDate = new Date(obj.date);
+          const index = closestIndexTo(objDate, dates);
+          const usageDate = dates[index];
+          if (index > -1 && isSameDay(objDate, usageDate)) {
+            usageInfo[index] = obj;
+          }
+        });
+        return usageInfo;
+      })
+      .catch(err => {
+        console.log('error getting rececnt info:', err);
+        return usageInfo;
+      });
+  }
+
+  getRecentInfoFromDatabase(numRecentEntries: number) {
+    return this._sqliteService.getAll({
+      tableName: SmartDriveData.Info.TableName,
+      orderBy: SmartDriveData.Info.DateName,
+      ascending: false,
+      limit: numRecentEntries
+    });
   }
 }
