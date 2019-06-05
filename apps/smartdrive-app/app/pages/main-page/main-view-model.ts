@@ -306,6 +306,7 @@ export class MainViewModel extends Observable {
     this._sensorService = injector.get(SensorService);
     this._sqliteService = injector.get(SqliteService);
 
+    console.time('SQLite_Init');
     // create / load tables for smartdrive data
     this._sqliteService
       .makeTable(
@@ -325,6 +326,7 @@ export class MainViewModel extends Observable {
       .catch(err => {
         Log.E(`Couldn't make SmartDriveData.Errors table:`, err);
       });
+    console.timeEnd('SQLite_Init');
 
     // make throttled save function - not called more than once every 10 seconds
     this._throttledSmartDriveSaveFn = throttle(
@@ -1185,7 +1187,6 @@ export class MainViewModel extends Observable {
     appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
     // update speed display
     this.currentSpeed = motorInfo.speed;
-    this.updateSettingsDisplay();
     // save to the database
     this._throttledSmartDriveSaveFn(
       this._smartDrive.driveDistance,
@@ -1300,7 +1301,7 @@ export class MainViewModel extends Observable {
         }
       })
       .then(() => {
-        return this.updateChartData();
+        return this.updateSettingsDisplay();
       })
       .catch(err => {
         new Toasty(`Failed saving usage: ${err}`, ToastDuration.LONG)
