@@ -45,9 +45,9 @@
           <GridLayout rows="auto, auto, *" columns="*, auto">
             <Label row="0" colSpan="2" text="Daily SmartDrive Battery Usage" class="chart-title" textWrap="true" />
             <Label text="" row="1" col="0" class="hr-blue" />
-            <Label text="100" row="1" col="1" class="chart-max-value" />
+            <Label text="{{ batteryChartMaxValue }}" row="1" col="1" class="chart-max-value" />
             // Battery Usage Bar Chart
-            <Repeater row="2" colSpan="1" verticalAlignment="bottom" items="{{ batteryUsageData }}">
+            <Repeater row="2" colSpan="1" verticalAlignment="bottom" items="{{ batteryChartData }}" loaded="{{ onBatteryChartRepeaterLoaded }}">
               <Repeater.itemsLayout>
                 <FlexboxLayout justifyContent="space-between" flexDirection="row" />
               </Repeater.itemsLayout>
@@ -67,7 +67,7 @@
         <box:BoxInsetLayout>
           <GridLayout rows="auto, auto, *" columns="*, auto">
             // Chart Title
-            <Label row="0" colSpan="8" text="Daily SmartDrive Distance Traveled (MI)" class="chart-title" textWrap="true" />
+            <Label row="0" colSpan="8" text="Daily SmartDrive Distance Traveled (mi)" class="chart-title" textWrap="true" />
             <Label text="" row="1" col="0" class="hr-blue" />
             <Label text="{{ distanceChartMaxValue }}" row="1" col="1" class="chart-max-value" />
             // Distance Traveled Bar Chart

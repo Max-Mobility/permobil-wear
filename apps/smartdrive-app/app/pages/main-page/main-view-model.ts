@@ -164,7 +164,11 @@ export class MainViewModel extends Observable {
   /**
    * Data to bind to the Battery Usage Chart repeater.
    */
-  @Prop() public batteryUsageData;
+  @Prop() public batteryChartData;
+  /**
+   * Used to indicate the highest value in the battery chart.
+   */
+  @Prop() batteryChartMaxValue: string;
   /**
    * Data to bind to the Distance Chart repeater.
    */
@@ -277,19 +281,6 @@ export class MainViewModel extends Observable {
     }, 20000);
 
     this.currentTimeMeridiem = currentSystemTimeMeridiem();
-
-    // setup some static data for charts for now
-    // need to be storing these locally (local-storage or application-settings)
-    // then grabbing the most recent 7 from the data set, possibly include a service call that runs at some point to clear out really old data
-    this.batteryUsageData = [
-      { day: 'Th', value: '40' },
-      { day: 'F', value: '88' },
-      { day: 'S', value: '37' },
-      { day: 'Su', value: '100' },
-      { day: 'M', value: '78' },
-      { day: 'T', value: '43' },
-      { day: 'W', value: '65' }
-    ];
 
     // this._sensorService.on(
     //   SensorService.AccuracyChanged,
@@ -513,28 +504,52 @@ export class MainViewModel extends Observable {
     });
   }
 
+  onBatteryChartRepeaterLoaded(args) {
+    const rpter = args.object as Repeater;
+    // get distance data from db here then handle the data binding and
+    // calculating the Max Value for the chart and some sizing checks
+    this.getUsageInfoFromDatabase(6)
+      .then(sdData => {
+        const batteryData = sdData.map(e => {
+          return {
+            day: format(new Date(e.date), 'dd'),
+            value: e.battery
+          };
+        });
+        const maxValue = batteryData.reduce((max, obj) => {
+          return obj.value > max ? obj.value : max;
+        }, 0);
+
+        Log.D('Highest Battery Value:', maxValue);
+        this.batteryChartMaxValue = maxValue;
+
+        this.batteryChartData = batteryData;
+      })
+      .catch(err => {});
+  }
+
   onDistanceChartRepeaterLoaded(args) {
     const rpter = args.object as Repeater;
-    // need to get distance data at here
-    // then handle the data binding and calculating the Max Value for the chart
-    // and some sizing checks
-    const distanceData = [
-      { day: 'Th', value: '1' },
-      { day: 'F', value: '2' },
-      { day: 'S', value: '5' },
-      { day: 'Su', value: '5' },
-      { day: 'M', value: '9' },
-      { day: 'T', value: '2' },
-      { day: 'W', value: '4' }
-    ];
-    const j = distanceData.reduce((max, obj) => {
-      return obj.value > max.value ? obj : max;
-    });
+    // get distance data from db here then handle the data binding and
+    // calculating the Max Value for the chart and some sizing checks
+    this.getUsageInfoFromDatabase(6)
+      .then(sdData => {
+        const distanceData = sdData.map(e => {
+          return {
+            day: format(new Date(e.date), 'dd'),
+            value: e.drive_distance
+          };
+        });
+        const maxValue = distanceData.reduce((max, obj) => {
+          return obj.value > max ? obj.value : max;
+        }, 0);
 
-    Log.D('Highest Distance Value:', j.value);
-    this.distanceChartMaxValue = j.value;
+        Log.D('Highest Distance Value:', maxValue);
+        this.distanceChartMaxValue = maxValue;
 
-    this.distanceChartData = distanceData;
+        this.distanceChartData = distanceData;
+      })
+      .catch(err => {});
   }
 
   onSettingsTap() {
@@ -1098,7 +1113,6 @@ export class MainViewModel extends Observable {
   /*
    * DATABASE FUNCTIONS
    */
-
   saveErrorToDatabase(errorCode: number, errorId: number) {
     // get the most recent error
     this._sqliteService
@@ -1135,5 +1149,35 @@ export class MainViewModel extends Observable {
           .setToastPosition(ToastPosition.CENTER)
           .show();
       });
+  }
+
+  getUsageInfoFromDatabase(numDays: number) {
+    const dates = SmartDriveData.Info.getPastDates(numDays);
+    const usageInfo = dates.map(d => {
+      return {
+        date: d,
+        drive_distance: 0,
+        coast_distance: 0,
+        battery: 0
+      };
+    });
+    return this.getRecentInfoFromDatabase(6)
+      .then(objs => {
+        console.log(objs);
+        return usageInfo;
+      })
+      .catch(err => {
+        console.log('error getting rececnt info:', err);
+        return usageInfo;
+      });
+  }
+
+  getRecentInfoFromDatabase(numRecentEntries: number) {
+    return this._sqliteService.getAll({
+      tableName: SmartDriveData.Info.TableName,
+      orderBy: SmartDriveData.Info.DateName,
+      ascending: false,
+      limit: numRecentEntries
+    });
   }
 }

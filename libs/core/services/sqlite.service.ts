@@ -104,13 +104,13 @@ export class SqliteService {
     });
   }
 
-  public getAll(
-    tableName: string,
-    queries?: any,
-    orderBy?: string,
-    ascending?: boolean,
-    limit?: number
-  ) {
+  public getAll(args: {
+    tableName: string;
+    queries?: any;
+    orderBy?: string;
+    ascending?: boolean;
+    limit?: number;
+  }) {
     /**
      *  expects queries to be an object of the form:
      *   {
@@ -120,6 +120,11 @@ export class SqliteService {
      */
     return this.getDatabase().then(db => {
       let parameters = null;
+      let tableName = args.tableName;
+      let queries = args.queries;
+      let orderBy = args.orderBy;
+      let ascending = args.ascending;
+      let limit = args.limit;
       let dbGetString = `SELECT * from ${tableName}`;
       if (queries) {
         let queryStrings = Object.keys(queries);
@@ -135,7 +140,7 @@ export class SqliteService {
         }
       }
       if (limit > 0) {
-        dbGetString += `LIMIT ${limit}`;
+        dbGetString += ` LIMIT ${limit}`;
       }
       return db.all(dbGetString, parameters);
     });
