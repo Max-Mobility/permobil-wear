@@ -18,6 +18,7 @@ import {
   isToday,
   subDays
 } from 'date-fns';
+import throttle from 'lodash/throttle';
 import { ReflectiveInjector } from 'injection-js';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
@@ -98,7 +99,7 @@ namespace SmartDriveData {
     }
 
     export function newInfo(
-      id: number = null,
+      id: number,
       date: any,
       battery: number,
       drive: number,
@@ -326,9 +327,10 @@ export class MainViewModel extends Observable {
       });
 
     // make throttled save function - not called more than once every 10 seconds
-    this._throttledSmartDriveSaveFn = _.throttle(
+    this._throttledSmartDriveSaveFn = throttle(
       this.saveUsageInfoToDatabase,
-      10000
+      10000,
+      { leading: true, trailing: false }
     );
 
     // register for watch battery updates
@@ -1165,6 +1167,18 @@ export class MainViewModel extends Observable {
       }
     }
     this.motorOn = this._smartDrive.driving;
+    // determine if we've used more battery percentage
+    let usedBattery = 0;
+    const batteryChange =
+      this.smartDriveCurrentBatteryPercentage - this._smartDrive.battery;
+    // only check against -1 so that we filter out charging and only
+    // get decreases due to driving
+    if (batteryChange == -1) {
+      usedBattery = 1;
+      // cancel previous invocations of the save so that the next
+      // one definitely saves the battery increment
+      this._throttledSmartDriveSaveFn.cancel();
+    }
     // update battery percentage
     this.smartDriveCurrentBatteryPercentage = this._smartDrive.battery;
     // save the updated smartdrive battery
@@ -1176,7 +1190,7 @@ export class MainViewModel extends Observable {
     this._throttledSmartDriveSaveFn(
       this._smartDrive.driveDistance,
       this._smartDrive.coastDistance,
-      this._smartDrive.battery
+      usedBattery
     );
   }
 
@@ -1184,13 +1198,6 @@ export class MainViewModel extends Observable {
     // Log.D('onDistance event');
     const coastDistance = args.data.coastDistance;
     const driveDistance = args.data.driveDistance;
-
-    // save to the database
-    this._throttledSmartDriveSaveFn(
-      this._smartDrive.driveDistance,
-      this._smartDrive.coastDistance,
-      this._smartDrive.battery
-    );
 
     // save the updated distance
     appSettings.setNumber(
@@ -1268,13 +1275,15 @@ export class MainViewModel extends Observable {
     return this.getTodaysUsageInfoFromDatabase()
       .then(u => {
         console.log('Got usage:', u);
-        if (u.id) {
-          // TODO: determine how to store amount of battery used!
-          // there was a record, so we need to update it
+        if (u[SmartDriveData.Info.IdName]) {
+          // there was a record, so we need to update it. we add the
+          // already used battery plus the amount of new battery
+          // that has been used
+          let usedBattery = battery + u[SmartDriveData.Info.BatteryName];
           return this._sqliteService.updateInTable(
             SmartDriveData.Info.TableName,
             {
-              [SmartDriveData.Info.BatteryName]: battery,
+              [SmartDriveData.Info.BatteryName]: usedBattery,
               [SmartDriveData.Info.DriveDistanceName]: driveDistance,
               [SmartDriveData.Info.CoastDistanceName]: coastDistance
             },
@@ -1331,6 +1340,7 @@ export class MainViewModel extends Observable {
       .then(objs => {
         console.log('get recent info', objs);
         objs.map(o => {
+          // @ts-ignore
           const obj = SmartDriveData.Info.newInfo(...o);
           const objDate = new Date(obj.date);
           const index = closestIndexTo(objDate, dates);
