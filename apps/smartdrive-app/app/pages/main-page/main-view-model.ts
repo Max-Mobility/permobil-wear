@@ -19,6 +19,7 @@ import {
   subDays
 } from 'date-fns';
 import throttle from 'lodash/throttle';
+import once from 'lodash/once';
 import { ReflectiveInjector } from 'injection-js';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
@@ -169,8 +170,8 @@ export class MainViewModel extends Observable {
    * SmartDrive Related Data
    *
    */
-  maxTapSensitivity: number = 3.0;
-  minTapSensitivity: number = 0.5;
+  maxTapSensitivity: number = 4.0;
+  minTapSensitivity: number = 1.0;
 
   /**
    * State tracking for power assist
@@ -240,6 +241,7 @@ export class MainViewModel extends Observable {
   private _sqliteService: SqliteService;
 
   private _throttledSmartDriveSaveFn: any = null;
+  private _onceSendSmartDriveSettings: any = null;
 
   constructor() {
     super();
@@ -603,20 +605,19 @@ export class MainViewModel extends Observable {
         const oldest = sdData[0];
         sdData = sdData.slice(1);
         // update battery data
-        const batteryData = sdData.map(e => {
+        const maxBattery = sdData.reduce((max, obj) => {
+          return obj.battery > max ? obj.battery : max;
+        }, 0);
+        let batteryData = sdData.map(e => {
           return {
             day: format(new Date(e.date), 'dd'),
-            value: e.battery
+            value: (e.battery * 100.0) / maxBattery
           };
         });
-        const maxBattery = batteryData.reduce((max, obj) => {
-          return obj.value > max ? obj.value : max;
-        }, 0);
-
         Log.D('Highest Battery Value:', maxBattery);
         this.batteryChartMaxValue = maxBattery;
-
         this.batteryChartData = batteryData;
+
         // update distance data
         let oldestDist = oldest[SmartDriveData.Info.DriveDistanceName];
         const distanceData = sdData.map(e => {
@@ -635,6 +636,9 @@ export class MainViewModel extends Observable {
         const maxDist = distanceData.reduce((max, obj) => {
           return obj.value > max ? obj.value : max;
         }, 0);
+        distanceData.map(data => {
+          data.value = (100.0 * data.value) / maxDist;
+        });
 
         Log.D('Highest Distance Value:', maxDist);
         this.distanceChartMaxValue = maxDist;
@@ -1131,19 +1135,36 @@ export class MainViewModel extends Observable {
     }
   }
 
+  sendSmartDriveSettings() {
+    // send the current settings to the SD
+    return this._smartDrive.sendSettingsObject(this.settings).catch(err => {
+      // make sure we retry this while we're connected
+      this._onceSendSmartDriveSettings = once(this.sendSmartDriveSettings);
+      // indicate failure
+      Log.E('send settings failed', err);
+      new Toasty(
+        'Failed to send settings to ' +
+          this._savedSmartDriveAddress +
+          ' ' +
+          err,
+        ToastDuration.SHORT,
+        ToastPosition.CENTER
+      ).show();
+    });
+  }
+
   /*
    * SMART DRIVE EVENT HANDLERS
    */
   async onSmartDriveConnect(args: any) {
     this.powerAssistState = PowerAssist.State.Connected;
     this.updatePowerAssistRing();
-    // send the current settings to the SD
-    this._smartDrive.sendSettingsObject(this.settings);
     new Toasty(
       'Connected to ' + this._savedSmartDriveAddress,
       ToastDuration.SHORT,
       ToastPosition.CENTER
     ).show();
+    this._onceSendSmartDriveSettings = once(this.sendSmartDriveSettings);
   }
 
   async onSmartDriveDisconnect(args: any) {
@@ -1172,6 +1193,8 @@ export class MainViewModel extends Observable {
   }
 
   async onMotorInfo(args: any) {
+    // send current settings to SD
+    this._onceSendSmartDriveSettings();
     // Log.D('onMotorInfo event');
     const motorInfo = args.data.motorInfo;
 
