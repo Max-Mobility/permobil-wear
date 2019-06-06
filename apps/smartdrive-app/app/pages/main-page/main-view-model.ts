@@ -736,7 +736,7 @@ export class MainViewModel extends Observable {
       this.distanceUnits = 'mi';
       // update speed display
       this.currentSpeedDisplay = this.currentSpeed.toFixed(1);
-      this.currentSpeedDescription = 'Esimated Speed (mph)';
+      this.currentSpeedDescription = 'Speed (mph)';
       // update estimated range display
       this.estimatedDistanceDisplay = this.estimatedDistance.toFixed(1);
       this.estimatedDistanceDescription = 'Estimated Range (mi)';
@@ -745,7 +745,7 @@ export class MainViewModel extends Observable {
       this.distanceUnits = 'km';
       // update speed display
       this.currentSpeedDisplay = (this.currentSpeed * 1.609).toFixed(1);
-      this.currentSpeedDescription = 'Esimated Speed (kph)';
+      this.currentSpeedDescription = 'Speed (kph)';
       // update estimated range display
       this.estimatedDistanceDisplay = (this.estimatedDistance * 1.609).toFixed(
         1
