@@ -712,6 +712,11 @@ export class MainViewModel extends Observable {
   }
 
   updateSettingsDisplay() {
+    this.updateSpeedDisplay();
+    this.updateChartData();
+  }
+
+  updateSpeedDisplay() {
     if (this.settings.units === 'English') {
       // update distance units
       this.distanceUnits = 'mi';
@@ -733,7 +738,6 @@ export class MainViewModel extends Observable {
       );
       this.estimatedDistanceDescription = 'Estimated Range (km)';
     }
-    this.updateChartData();
   }
 
   onConfirmChangesTap() {
@@ -1187,6 +1191,7 @@ export class MainViewModel extends Observable {
     appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
     // update speed display
     this.currentSpeed = motorInfo.speed;
+    this.updateSpeedDisplay();
     // save to the database
     this._throttledSmartDriveSaveFn(
       this._smartDrive.driveDistance,
@@ -1301,7 +1306,7 @@ export class MainViewModel extends Observable {
         }
       })
       .then(() => {
-        return this.updateSettingsDisplay();
+        return this.updateChartData();
       })
       .catch(err => {
         new Toasty(`Failed saving usage: ${err}`, ToastDuration.LONG)
