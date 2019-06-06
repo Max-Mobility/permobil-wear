@@ -833,12 +833,14 @@ export class MainViewModel extends Observable {
           break;
       }
     }
+    /*
     if (this.powerAssistRing) {
       (this.powerAssistRing as any).animate({
         backgroundColor: this.powerAssistRingColor,
         duration: 200
       });
     }
+	  */
   }
 
   updatePowerAssistButton() {
