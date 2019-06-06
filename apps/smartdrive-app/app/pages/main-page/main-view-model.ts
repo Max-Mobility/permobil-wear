@@ -22,6 +22,7 @@ import throttle from 'lodash/throttle';
 import { ReflectiveInjector } from 'injection-js';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
+import { keepAwake, allowSleepAgain } from 'nativescript-insomnia';
 import { Pager } from 'nativescript-pager';
 import { Sentry } from 'nativescript-sentry';
 import * as themes from 'nativescript-themes';
@@ -337,7 +338,7 @@ export class MainViewModel extends Observable {
 
     // register for watch battery updates
     // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
-    const receiverCallback = (androidContext, intent) => {
+    const batteryReceiverCallback = (androidContext, intent) => {
       const level = intent.getIntExtra(
         android.os.BatteryManager.EXTRA_LEVEL,
         -1
@@ -352,17 +353,26 @@ export class MainViewModel extends Observable {
 
     applicationModule.android.registerBroadcastReceiver(
       android.content.Intent.ACTION_BATTERY_CHANGED,
-      receiverCallback
+      batteryReceiverCallback
     );
 
-    // improve the time tracking with a service or some watcher to actually watch the SYSTEM CLOCK
+    // monitor the clock / system time for display and logging:
     this.currentTime = currentSystemTime();
-    setInterval(() => {
-      this.currentTime = currentSystemTime();
-    }, 20000);
-
     this.currentTimeMeridiem = currentSystemTimeMeridiem();
+    const timeReceiverCallback = (androidContext, intent) => {
+      this.currentTime = currentSystemTime();
+      this.currentTimeMeridiem = currentSystemTimeMeridiem();
+    };
+    applicationModule.android.registerBroadcastReceiver(
+      android.content.Intent.ACTION_TIME_TICK,
+      timeReceiverCallback
+    );
+    applicationModule.android.registerBroadcastReceiver(
+      android.content.Intent.ACTION_TIMEZONE_CHANGED,
+      timeReceiverCallback
+    );
 
+    // Now set up the sensor service:
     // this._sensorService.on(
     //   SensorService.AccuracyChanged,
     //   (args: AccuracyChangedEventData) => {
@@ -824,7 +834,6 @@ export class MainViewModel extends Observable {
       }
     }
     if (this.powerAssistRing) {
-      (this.powerAssistRing as any).barColor = this.powerAssistRingColor;
       (this.powerAssistRing as any).animate({
         backgroundColor: this.powerAssistRingColor,
         duration: 200
@@ -874,6 +883,7 @@ export class MainViewModel extends Observable {
       showFailure('You must wear the watch to activate power assist.');
       return;
     }
+    keepAwake();
     this.powerAssistState = PowerAssist.State.Disconnected;
     this.powerAssistActive = true;
     this.updatePowerAssistRing();
@@ -886,6 +896,7 @@ export class MainViewModel extends Observable {
             this.RING_TIMER_INTERVAL_MS
           );
         } else {
+          allowSleepAgain();
           this.powerAssistState = PowerAssist.State.Inactive;
           this.powerAssistActive = false;
           this.updatePowerAssistRing();
@@ -893,6 +904,7 @@ export class MainViewModel extends Observable {
         }
       })
       .catch(err => {
+        allowSleepAgain();
         this.powerAssistState = PowerAssist.State.Inactive;
         this.powerAssistActive = false;
         this.updatePowerAssistRing();
@@ -901,6 +913,7 @@ export class MainViewModel extends Observable {
   }
 
   disablePowerAssist() {
+    allowSleepAgain();
     this.powerAssistState = PowerAssist.State.Inactive;
     this.powerAssistActive = false;
     this.motorOn = false;

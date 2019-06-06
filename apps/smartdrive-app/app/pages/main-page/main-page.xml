@@ -13,7 +13,7 @@
       <pager:PagerItem>
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
           // Power Assist Circle
-          <nac:AnimatedCircle id="powerAssistCircle" rowSpan="3" colSpan="3" class="powerAssistCircle" width="100%" height="100%" animated="true" animateFrom="0" rimColor="transparent" barColor="{{ powerAssistRingColor }}" clockwise="true" rimWidth="12" progress="100" visibility="{{ (powerAssistActive || isTraining) ? 'visible' : 'collapsed' }}" loaded="{{ onPowerAssistCircleLoaded }}"/>
+          <nac:AnimatedCircle id="powerAssistCircle" rowSpan="3" colSpan="3" class="powerAssistCircle" width="100%" height="100%" animated="true" animateFrom="0" rimColor="{{ powerAssistRingColor }}" barColor="{{ powerAssistRingColor }}" clockwise="true" rimWidth="12" progress="100" visibility="{{ (powerAssistActive || isTraining) ? 'visible' : 'collapsed' }}" loaded="{{ onPowerAssistCircleLoaded }}"/>
          // SmartDrive Battery Circle
           <nac:AnimatedCircle id="smartDriveBatteryCircle" loaded="{{ onSmartDriveCircleLoaded }}" rowSpan="3" colSpan="3" class="sdBatteryCircle" width="90%" height="90%" animated="true" animateFrom="0" clockwise="true" rimColor="{{ smartDriveCurrentBatteryPercentage == 0 ? '#fbff22' : 'transparent' }}" barColor="#fbff22" rimWidth="{{ smartDriveCurrentBatteryPercentage == 0 ? 3 : 7 }}" progress="{{ smartDriveCurrentBatteryPercentage }}">
           </nac:AnimatedCircle>
