@@ -166,6 +166,11 @@ export class MainViewModel extends Observable {
   @Prop() changeSettingKeyValue;
 
   /**
+   * Boolean to track the error history swipe layout visibility.
+   */
+  @Prop() isErrorHistoryLayoutEnabled = false;
+
+  /**
    *
    * SmartDrive Related Data
    *
@@ -210,6 +215,11 @@ export class MainViewModel extends Observable {
   @Prop() distanceUnits: string = 'mi';
 
   /**
+   * Data to bind to the Error History repeater
+   */
+  @Prop() public errorHistoryData;
+
+  /**
    * State Management for Sensor Monitoring / Data Collection
    */
   private _isListeningDeviceSensors = false;
@@ -234,6 +244,7 @@ export class MainViewModel extends Observable {
   private smartDriveBatteryRing: AnimatedCircle;
   private _settingsLayout: SwipeDismissLayout;
   public _changeSettingsLayout: SwipeDismissLayout;
+  private _errorHistoryLayout: SwipeDismissLayout;
   private _vibrator: Vibrate = new Vibrate();
   private _sentryService: SentryService;
   private _bluetoothService: BluetoothService;
@@ -597,6 +608,17 @@ export class MainViewModel extends Observable {
     });
   }
 
+  onErrorHistoryLayoutLoaded(args) {
+    // show the chart
+    this._errorHistoryLayout = args.object as SwipeDismissLayout;
+    this._errorHistoryLayout.on(SwipeDismissLayout.dimissedEvent, args => {
+      Log.D('dimissedEvent', args.object);
+      // hide the offscreen layout when dismissed
+      hideOffScreenLayout(this._errorHistoryLayout, { x: 500, y: 0 });
+      this.isErrorHistoryLayoutEnabled = false;
+    });
+  }
+
   updateChartData() {
     this.getUsageInfoFromDatabase(7)
       .then(sdData => {
@@ -658,6 +680,13 @@ export class MainViewModel extends Observable {
     const rpter = args.object as Repeater;
     // get distance data from db here then handle the data binding and
     // calculating the Max Value for the chart and some sizing checks
+  }
+
+  showErrorHistory() {
+    // load the error data
+    this.getRecentErrors(10);
+    showOffScreenLayout(this._errorHistoryLayout);
+    this.isErrorHistoryLayoutEnabled = true;
   }
 
   onSettingsTap() {
@@ -1307,6 +1336,29 @@ export class MainViewModel extends Observable {
         )
           .setToastPosition(ToastPosition.CENTER)
           .show();
+      });
+  }
+
+  getRecentErrors(numErrors: number) {
+    return this._sqliteService
+      .getAll({
+        tableName: SmartDriveData.Errors.TableName,
+        orderBy: SmartDriveData.Errors.IdName,
+        ascending: false,
+        limit: numErrors
+      })
+      .then(rows => {
+        this.errorHistoryData = rows.map(obj => {
+          Log.D(obj[1], new Date(obj[1]), new Date(+obj[1]));
+          return {
+            time: format(new Date(obj && +obj[1]), 'YYYY-MM-DD HH:MM'),
+            code: obj && obj[2]
+          };
+        });
+      })
+      .catch(err => {
+        Log.E("couldn't get errors", err);
+        return [];
       });
   }
 

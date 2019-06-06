@@ -150,6 +150,12 @@
           </GridLayout>
         </RL:Ripple>
         <RL:Ripple row="5" rippleColor="#ddd">
+          <GridLayout rows="*" columns="15, *" id="units" tap="{{ showErrorHistory }}">
+            <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+            <Label row="0" col="1" text="Error History" class="settings-label" textWrap="true" />
+          </GridLayout>
+        </RL:Ripple>
+        <RL:Ripple row="6" rippleColor="#ddd">
           <GridLayout rows="*" columns="15, *" id="pairSmartDrive" tap="{{ saveNewSmartDrive }}">
             <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
             <Label row="0" col="1" text="Pair SmartDrive" class="settings-label" textWrap="true" />
@@ -190,6 +196,27 @@
           </StackLayout>
         </RL:Ripple>
       </GridLayout>
+    </sdl:SwipeDismissLayout>
+
+	// Error History "Page" -- need to wrap this in a component
+    <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onErrorHistoryLayoutLoaded }}" class="page" translateX="500" visibility="{{ isErrorHistoryLayoutEnabled ? 'visible' : 'collapsed' }}">
+      <wol:WearOsLayout height="100%" width="100%">
+        <StackLayout>
+          <Label text="SmartDrive Error History" class="chart-title" textWrap="true" />
+          <Label text="" row="1" col="0" class="hr-blue" />
+          <Repeater row="2" colSpan="1" items="{{ errorHistoryData }}">
+			<Repeater.itemTemplate>
+			  <RL:Ripple rippleColor="#ddd">
+				<GridLayout rows="auto, auto" columns="15, *">
+				  <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+				  <Label row="0" col="1" text="{{ code }}" class="settings-label" textWrap="true" />
+				  <Label row="1" col="1" text="{{ time }}" class="settings-label" textWrap="true" />
+				</GridLayout>
+			  </RL:Ripple>
+			</Repeater.itemTemplate>
+          </Repeater>
+		</StackLayout>
+      </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
 
   </GridLayout>
