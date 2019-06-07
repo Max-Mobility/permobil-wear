@@ -258,8 +258,10 @@ export class MainViewModel extends Observable {
     // handle ambient mode callbacks
     application.on('enterAmbient', args => {
       Log.D('*** enterAmbient ***');
-      // themes.applyTheme('ambient.css');
-      themes.applyTheme('../../scss/theme-ambient.css');
+      themes.applyThemeCss(
+        require('../../scss/theme-ambient.css').toString(),
+        '../../scss/theme-ambient.css'
+      );
 
       if (this.pager) {
         const children = this.pager._childrenViews;
@@ -274,7 +276,6 @@ export class MainViewModel extends Observable {
     application.on('exitAmbient', args => {
       Log.D('*** exitAmbient ***');
       this.enableDeviceSensors();
-      // themes.applyTheme('app.css');
       themes.applyThemeCss(
         require('../../scss/theme-default.css').toString(),
         '../../scss/theme-default.css'
