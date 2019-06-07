@@ -1,8 +1,8 @@
-import {
-  setActivityCallbacks,
-  AndroidActivityCallbacks
-} from 'tns-core-modules/ui/frame';
 import * as application from 'tns-core-modules/application';
+import {
+  AndroidActivityCallbacks,
+  setActivityCallbacks
+} from 'tns-core-modules/ui/frame';
 
 @JavaProxy('com.permobil.smartdrive.MainActivity')
 @Interfaces([

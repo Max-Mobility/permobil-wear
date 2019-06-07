@@ -90,13 +90,15 @@ export class SqliteService {
      *   }
      */
     return this.getDatabase().then(db => {
-      let tableName = args.tableName;
-      let queries = args.queries;
-      let orderBy = args.orderBy;
-      let ascending = args.ascending;
+      const tableName = args.tableName;
+      const queries = args.queries;
+      const orderBy = args.orderBy;
+      const ascending = args.ascending;
       let dbGetString = `SELECT * from ${tableName}`;
       if (queries) {
-        let queryStrings = Object.keys(queries).map(q => `${q}=${queries[q]}`);
+        const queryStrings = Object.keys(queries).map(
+          q => `${q}=${queries[q]}`
+        );
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
       if (orderBy) {
@@ -126,14 +128,16 @@ export class SqliteService {
      *   }
      */
     return this.getDatabase().then(db => {
-      let tableName = args.tableName;
-      let queries = args.queries;
-      let orderBy = args.orderBy;
-      let ascending = args.ascending;
-      let limit = args.limit;
+      const tableName = args.tableName;
+      const queries = args.queries;
+      const orderBy = args.orderBy;
+      const ascending = args.ascending;
+      const limit = args.limit;
       let dbGetString = `SELECT * from ${tableName}`;
       if (queries) {
-        let queryStrings = Object.keys(queries).map(q => `${q}=${queries[q]}`);
+        const queryStrings = Object.keys(queries).map(
+          q => `${q}=${queries[q]}`
+        );
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
       if (orderBy) {
