@@ -32,9 +32,7 @@
             </GridLayout>
           </nac:AnimatedCircle>
           // Battery Icon
-          <StackLayout class="batteryIconStack" rowSpan="1" col="1" height="17">
-            <Image src="~/assets/images/round_battery_full_green_24.png" stretch="aspectFit" />
-          </StackLayout>
+          <Image rowSpan="1" col="1" height="18" src="~/assets/images/round_battery_full_green_24.png" stretch="aspectFit" />
 
         </GridLayout>
       </pager:PagerItem>
