@@ -592,6 +592,11 @@ export class MainViewModel extends Observable {
       }
       Log.D('Sending tap!');
       this._smartDrive.sendTap().catch(err => Log.E('could not send tap', err));
+    } else if (this.isTraining) {
+      // vibrate for tapping while training
+      Log.D('Vibrating for tap while training!');
+      this._vibrator.cancel();
+      this._vibrator.vibrate(250); // vibrate for 250 ms
     }
   }
 
