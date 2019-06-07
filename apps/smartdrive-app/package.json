@@ -2,7 +2,7 @@
   "nativescript": {
     "id": "com.permobil.smartdrive.wearos",
     "tns-android": {
-      "version": "5.3.1"
+      "version": "5.4.0"
     }
   },
   "main": "app.js",
@@ -42,7 +42,7 @@
     "nativescript-wear-os": "../../node_modules/nativescript-wear-os",
     "reflect-metadata": "../../node_modules/reflect-metadata",
     "smart-eval-kinvey": "file:../../node_modules/smart-eval-kinvey",
-    "tns-core-modules": "../../node_modules/tns-core-modules"
+    "tns-core-modules": "~5.4.1"
   },
   "devDependencies": {
     "awesome-typescript-loader": "~5.2.1",
@@ -50,8 +50,8 @@
     "lint-staged": "../../node_modules/lint-staged",
     "mkdirp": "../../node_modules/mkdirp",
     "nativescript-dev-sass": "~1.7.0",
-    "nativescript-dev-typescript": "~0.9.0",
-    "nativescript-dev-webpack": "~0.21.0",
+    "nativescript-dev-typescript": "~0.10.0",
+    "nativescript-dev-webpack": "~0.24.0",
     "nativescript-hook": "~0.2.5",
     "prettier": "../../node_modules/prettier",
     "prompt": "../../node_modules/prompt",
