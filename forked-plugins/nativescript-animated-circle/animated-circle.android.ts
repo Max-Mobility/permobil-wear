@@ -62,6 +62,7 @@ export class AnimatedCircle extends Common {
 
   initNativeView() {
     this._android.setAutoTextSize(false);
+    this._android.setBarStrokeCap(android.graphics.Paint.Cap.ROUND);
     this._android.setTextMode(at.grabner.circleprogress.TextMode.TEXT);
     this._android.setTextScale(1.1);
     this._android.setTextSize(300);
