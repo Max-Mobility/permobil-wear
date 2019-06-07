@@ -1298,7 +1298,7 @@ export class MainViewModel extends Observable {
         this._vibrator.vibrate(250); // vibrate for 250 ms
       } else {
         this._vibrator.cancel();
-        this._vibrator.vibrate(350); // long vibrate
+        this._vibrator.vibrate([0, 250, 50, 250]); // vibrate twice
       }
     }
     this.motorOn = this._smartDrive.driving;
