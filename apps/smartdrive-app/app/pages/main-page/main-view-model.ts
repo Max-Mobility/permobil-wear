@@ -19,6 +19,8 @@ import {
   subDays
 } from 'date-fns';
 import { ReflectiveInjector } from 'injection-js';
+import clamp from 'lodash/clamp';
+import last from 'lodash/last';
 import once from 'lodash/once';
 import throttle from 'lodash/throttle';
 import { SensorDelay } from 'nativescript-android-sensors';
@@ -175,6 +177,8 @@ export class MainViewModel extends Observable {
    */
   maxTapSensitivity: number = 4.0;
   minTapSensitivity: number = 1.0;
+  minRangeFactor: number = 2.0 / 100.0; // never estimate less than 2 mi per full charge
+  maxRangeFactor: number = 12.0 / 100.0; // never estimate more than 12 mi per full charge
 
   /**
    * State tracking for power assist
@@ -722,6 +726,25 @@ export class MainViewModel extends Observable {
         //Log.D('Highest Distance Value:', maxDist);
         this.distanceChartMaxValue = maxDist;
         this.distanceChartData = distanceData;
+
+        // update estimated range based on battery / distance
+        let rangeFactor = (this.minRangeFactor + this.maxRangeFactor) / 2.0;
+        oldestDist = oldest[SmartDriveData.Info.DriveDistanceName];
+        const newestDist = last(sdData)[SmartDriveData.Info.DriveDistanceName];
+        const totalBatteryUsage = sdData.reduce((usage, obj) => {
+          return usage + obj[SmartDriveData.Info.BatteryName];
+        }, 0);
+        const totalDistance = newestDist - oldestDist;
+        if (totalDistance && totalBatteryUsage) {
+          rangeFactor = clamp(
+            totalDistance / totalBatteryUsage,
+            this.minRangeFactor,
+            this.maxRangeFactor
+          );
+        }
+        // estimated distance is always in miles
+        this.estimatedDistance =
+          this.smartDriveCurrentBatteryPercentage * rangeFactor;
       })
       .catch(err => {});
   }
