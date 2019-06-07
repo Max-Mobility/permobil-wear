@@ -175,8 +175,10 @@ export class MainViewModel extends Observable {
    * SmartDrive Related Data
    *
    */
-  maxTapSensitivity: number = 4.0;
-  minTapSensitivity: number = 1.0;
+  lastTapTime: number;
+  tapLockoutTimeMs: number = 200;
+  maxTapSensitivity: number = 3.5;
+  minTapSensitivity: number = 1.5;
   minRangeFactor: number = 2.0 / 100.0; // never estimate less than 2 mi per full charge
   maxRangeFactor: number = 12.0 / 100.0; // never estimate more than 12 mi per full charge
 
@@ -184,11 +186,6 @@ export class MainViewModel extends Observable {
    * State tracking for power assist
    */
   @Prop() powerAssistState: PowerAssist.State = PowerAssist.State.Inactive;
-
-  /**
-   * Boolean to track whether a tap has been performed.
-   */
-  @Prop() hasTapped = false;
 
   /**
    * Boolean to track if the SmartDrive motor is on.
@@ -417,7 +414,7 @@ export class MainViewModel extends Observable {
         }
 
         if (parsedData.s === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
-          this.handleAccel(parsedData.d);
+          this.handleAccel(parsedData.d, parsedData.ts);
         }
       }
     );
@@ -545,8 +542,8 @@ export class MainViewModel extends Observable {
     (this.watchBatteryRing as any).android.setInnerContourSize(0);
   }
 
-  handleAccel(acceleration: any) {
-    let diff = acceleration.z;
+  handleAccel(acceleration: any, timestamp: number) {
+    let diff = -acceleration.z;
     if (this.motorOn) {
       diff = Math.abs(diff);
     }
@@ -556,11 +553,11 @@ export class MainViewModel extends Observable {
         (this.settings.tapSensitivity / 100.0);
     if (diff > threshold) {
       // user has met threshold for tapping
-      this.handleTap();
+      this.handleTap(timestamp);
     }
   }
 
-  handleTap() {
+  handleTap(timestamp: number) {
     // ignore tapping if we're not in the right mode
     if (!this.powerAssistActive && !this.isTraining) {
       return;
@@ -569,16 +566,18 @@ export class MainViewModel extends Observable {
     if (!this.watchBeingWorn) {
       return;
     }
+    // get time diff in ms - stamps are in ns
+    const timeDiffMs = (timestamp - this.lastTapTime) / 1000000;
     // block high frequency tapping
-    if (this.hasTapped) {
+    if (timeDiffMs < this.tapLockoutTimeMs) {
       return;
     }
-    this.hasTapped = true;
+    this.lastTapTime = timestamp;
     this.updatePowerAssistRing(PowerAssist.TappedRingColor);
+    // timeout for updating the power assist ring
     setTimeout(() => {
-      this.hasTapped = false;
       this.updatePowerAssistRing();
-    }, 300);
+    }, this.tapLockoutTimeMs / 2);
     // now send
     if (
       this.powerAssistActive &&
@@ -586,17 +585,14 @@ export class MainViewModel extends Observable {
       this._smartDrive.ableToSend
     ) {
       if (this.motorOn) {
-        Log.D('Vibrating for tap while connected to SD and motor on!');
         this._vibrator.cancel();
-        this._vibrator.vibrate(250); // vibrate for 250 ms
+        this._vibrator.vibrate((this.tapLockoutTimeMs * 3) / 4);
       }
-      Log.D('Sending tap!');
       this._smartDrive.sendTap().catch(err => Log.E('could not send tap', err));
     } else if (this.isTraining) {
       // vibrate for tapping while training
-      Log.D('Vibrating for tap while training!');
       this._vibrator.cancel();
-      this._vibrator.vibrate(250); // vibrate for 250 ms
+      this._vibrator.vibrate((this.tapLockoutTimeMs * 3) / 4);
     }
   }
 
@@ -1302,7 +1298,7 @@ export class MainViewModel extends Observable {
         this._vibrator.vibrate(250); // vibrate for 250 ms
       } else {
         this._vibrator.cancel();
-        this._vibrator.vibrate([100, 50, 100]); // vibrate twice
+        this._vibrator.vibrate(350); // long vibrate
       }
     }
     this.motorOn = this._smartDrive.driving;
