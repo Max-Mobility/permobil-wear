@@ -110,9 +110,9 @@ namespace SmartDriveData {
       return {
         [SmartDriveData.Info.IdName]: id,
         [SmartDriveData.Info.DateName]: SmartDriveData.Info.getDateValue(date),
-        [SmartDriveData.Info.BatteryName]: battery,
-        [SmartDriveData.Info.DriveDistanceName]: drive,
-        [SmartDriveData.Info.CoastDistanceName]: coast
+        [SmartDriveData.Info.BatteryName]: +battery,
+        [SmartDriveData.Info.DriveDistanceName]: +drive,
+        [SmartDriveData.Info.CoastDistanceName]: +coast
       };
     }
   }
@@ -278,6 +278,7 @@ export class MainViewModel extends Observable {
     // handle ambient mode callbacks
     application.on('exitAmbient', args => {
       Log.D('*** exitAmbient ***');
+      this.enableDeviceSensors();
       // themes.applyTheme('app.css');
       themes.applyThemeCss(
         require('../../scss/theme-default.css').toString(),
@@ -298,14 +299,8 @@ export class MainViewModel extends Observable {
       Log.D('updateAmbient', args.data, currentSystemTime());
     });
 
-    application.on(application.exitEvent, args => {
-      Log.D(
-        'App exit event inside main-view-model.ts. Turning off Power Assist and disabling sensors.'
-      );
-      this.disableDeviceSensors();
-      this.disablePowerAssist();
-      Log.D('Sensors and PowerAssist should be disabled.');
-    });
+    // handle application lifecycle events
+    this.registerAppEventHandlers();
 
     console.time('Sentry_Init');
     // init sentry - DNS key for permobil-wear Sentry project
@@ -373,6 +368,7 @@ export class MainViewModel extends Observable {
     this.currentTime = currentSystemTime();
     this.currentTimeMeridiem = currentSystemTimeMeridiem();
     const timeReceiverCallback = (androidContext, intent) => {
+      Log.D('timeReceiverCallback');
       this.currentTime = currentSystemTime();
       this.currentTimeMeridiem = currentSystemTimeMeridiem();
     };
@@ -450,6 +446,76 @@ export class MainViewModel extends Observable {
       'Device Language: ' + device.language,
       'UUID: ' + device.uuid
     );
+  }
+
+  /**
+   * Application lifecycle event handlers
+   */
+  registerAppEventHandlers() {
+    application.on(application.launchEvent, this.onAppLaunch.bind(this));
+    application.on(application.resumeEvent, this.onAppResume.bind(this));
+    application.on(application.suspendEvent, this.onAppSuspend.bind(this));
+    application.on(application.exitEvent, this.onAppExit.bind(this));
+    application.on(application.displayedEvent, this.onAppDisplayed.bind(this));
+    application.on(application.lowMemoryEvent, this.onAppLowMemory.bind(this));
+    application.on(
+      application.uncaughtErrorEvent,
+      this.onAppUncaughtError.bind(this)
+    );
+  }
+
+  unregisterAppEventHandlers() {
+    application.off(application.launchEvent, this.onAppLaunch.bind(this));
+    application.off(application.resumeEvent, this.onAppResume.bind(this));
+    application.off(application.suspendEvent, this.onAppSuspend.bind(this));
+    application.off(application.exitEvent, this.onAppExit.bind(this));
+    application.off(application.displayedEvent, this.onAppDisplayed.bind(this));
+    application.off(application.lowMemoryEvent, this.onAppLowMemory.bind(this));
+    application.off(
+      application.uncaughtErrorEvent,
+      this.onAppUncaughtError.bind(this)
+    );
+  }
+
+  onAppLaunch(args?: any) {
+    Log.D('App launch');
+  }
+
+  onAppResume(args?: any) {
+    Log.D('App resume');
+    this.enableDeviceSensors();
+  }
+
+  onAppSuspend(args?: any) {
+    Log.D('App suspend');
+    this.fullStop();
+  }
+
+  onAppExit(args?: any) {
+    Log.D('App exit');
+    this.fullStop();
+  }
+
+  onAppDisplayed(args?: any) {
+    Log.D('App displayed');
+    this.enableDeviceSensors();
+  }
+
+  onAppLowMemory(args?: any) {
+    Log.D('App low memory');
+    this.fullStop();
+  }
+
+  onAppUncaughtError(args?: any) {
+    Log.D('App uncaught error');
+    this.fullStop();
+  }
+
+  fullStop() {
+    Log.D('Disabling power assist');
+    this.disablePowerAssist();
+    Log.D('Disabling sensors');
+    this.disableDeviceSensors();
   }
 
   onPagerLoaded(args: any) {
@@ -601,7 +667,7 @@ export class MainViewModel extends Observable {
   onSettingsLayoutLoaded(args) {
     this._settingsLayout = args.object as SwipeDismissLayout;
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      Log.D('dimissedEvent', args.object);
+      Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
       this.isSettingsLayoutEnabled = false;
@@ -612,7 +678,7 @@ export class MainViewModel extends Observable {
     // show the chart
     this._errorHistoryLayout = args.object as SwipeDismissLayout;
     this._errorHistoryLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      Log.D('dimissedEvent', args.object);
+      Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(this._errorHistoryLayout, { x: 500, y: 0 });
       this.isErrorHistoryLayoutEnabled = false;
@@ -1244,9 +1310,9 @@ export class MainViewModel extends Observable {
     let usedBattery = 0;
     const batteryChange =
       this.smartDriveCurrentBatteryPercentage - this._smartDrive.battery;
-    // only check against -1 so that we filter out charging and only
-    // get decreases due to driving
-    if (batteryChange === -1) {
+    // only check against 1 so that we filter out charging and only
+    // get decreases due to driving / while connected
+    if (batteryChange === 1) {
       usedBattery = 1;
       // cancel previous invocations of the save so that the next
       // one definitely saves the battery increment
@@ -1349,9 +1415,8 @@ export class MainViewModel extends Observable {
       })
       .then(rows => {
         this.errorHistoryData = rows.map(obj => {
-          Log.D(obj[1], new Date(obj[1]), new Date(+obj[1]));
           return {
-            time: format(new Date(obj && +obj[1]), 'YYYY-MM-DD HH:MM'),
+            time: format(new Date(obj && +obj[1]), 'YYYY-MM-DD HH:mm'),
             code: obj && obj[2]
           };
         });
@@ -1367,7 +1432,7 @@ export class MainViewModel extends Observable {
     coastDistance: number,
     battery: number
   ) {
-    console.log('saving to db:', driveDistance, coastDistance, battery);
+    Log.D('saving to db:', driveDistance, coastDistance, battery);
     return this.getTodaysUsageInfoFromDatabase()
       .then(u => {
         console.log('Got usage:', u);
@@ -1434,7 +1499,7 @@ export class MainViewModel extends Observable {
     // console.log('usage info', usageInfo);
     return this.getRecentInfoFromDatabase(6)
       .then(objs => {
-        console.log('get recent info', objs);
+        Log.D('get recent info', objs);
         objs.map(o => {
           // @ts-ignore
           const obj = SmartDriveData.Info.newInfo(...o);
