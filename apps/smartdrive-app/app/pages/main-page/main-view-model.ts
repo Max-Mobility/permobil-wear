@@ -363,7 +363,7 @@ export class MainViewModel extends Observable {
     this.currentTime = currentSystemTime();
     this.currentTimeMeridiem = currentSystemTimeMeridiem();
     const timeReceiverCallback = (androidContext, intent) => {
-      Log.D('timeReceiverCallback');
+      Log.D('timeReceiverCallback', currentSystemTime());
       this.currentTime = currentSystemTime();
       this.currentTimeMeridiem = currentSystemTimeMeridiem();
     };
@@ -599,7 +599,6 @@ export class MainViewModel extends Observable {
   stopSmartDrive() {
     // turn off the motor if SD is connected
     if (this._smartDrive && this._smartDrive.ableToSend) {
-      Log.D('Turning off Motor!');
       return this._smartDrive
         .stopMotor()
         .catch(err => Log.E('Could not stop motor', err));
@@ -613,7 +612,6 @@ export class MainViewModel extends Observable {
   }
 
   disableDeviceSensors() {
-    Log.D('Disabling device sensors.');
     try {
       this._sensorService.stopDeviceSensors();
     } catch (err) {
@@ -624,7 +622,6 @@ export class MainViewModel extends Observable {
   }
 
   enableDeviceSensors() {
-    Log.D('Enable device sensors...');
     try {
       if (!this._isListeningDeviceSensors) {
         this._sensorService.startDeviceSensors(SensorDelay.UI, 50000);
@@ -644,7 +641,6 @@ export class MainViewModel extends Observable {
   }
 
   onTrainingTap() {
-    Log.D('Trained tapped.');
     this.isTraining = true;
     this.powerAssistState = PowerAssist.State.Training;
     this.updatePowerAssistRing();
@@ -663,7 +659,7 @@ export class MainViewModel extends Observable {
   onSettingsLayoutLoaded(args) {
     this._settingsLayout = args.object as SwipeDismissLayout;
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      Log.D('dismissedEvent', args.object);
+      //Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
       this.isSettingsLayoutEnabled = false;
@@ -674,7 +670,7 @@ export class MainViewModel extends Observable {
     // show the chart
     this._errorHistoryLayout = args.object as SwipeDismissLayout;
     this._errorHistoryLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      Log.D('dismissedEvent', args.object);
+      //Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(this._errorHistoryLayout, { x: 500, y: 0 });
       this.isErrorHistoryLayoutEnabled = false;
@@ -698,7 +694,7 @@ export class MainViewModel extends Observable {
             value: (e.battery * 100.0) / maxBattery
           };
         });
-        Log.D('Highest Battery Value:', maxBattery);
+        //Log.D('Highest Battery Value:', maxBattery);
         this.batteryChartMaxValue = maxBattery;
         this.batteryChartData = batteryData;
 
@@ -723,10 +719,8 @@ export class MainViewModel extends Observable {
         distanceData.map(data => {
           data.value = (100.0 * data.value) / maxDist;
         });
-
-        Log.D('Highest Distance Value:', maxDist);
+        //Log.D('Highest Distance Value:', maxDist);
         this.distanceChartMaxValue = maxDist;
-
         this.distanceChartData = distanceData;
       })
       .catch(err => {});
@@ -759,7 +753,6 @@ export class MainViewModel extends Observable {
   onChangeSettingsItemTap(args) {
     // copy the current settings into temporary store
     this.tempSettings.copy(this.settings);
-    Log.D('id: ' + args.object.id);
     const tappedId = args.object.id as string;
     switch (tappedId.toLowerCase()) {
       case 'maxspeed':
@@ -811,7 +804,6 @@ export class MainViewModel extends Observable {
   }
 
   onCancelChangesTap() {
-    Log.D('Cancelled the changes, do NOT save any changes to config setting.');
     hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
     this.isChangeSettingsLayoutEnabled = false;
   }
@@ -851,7 +843,6 @@ export class MainViewModel extends Observable {
       y: 0
     });
     this.isChangeSettingsLayoutEnabled = false;
-    Log.D('Confirmed the value, need to save config setting.');
     // SAVE THE VALUE to local data for the setting user has selected
     this.settings.copy(this.tempSettings);
     this.saveSettings();
@@ -860,13 +851,11 @@ export class MainViewModel extends Observable {
   }
 
   onIncreaseSettingsTap() {
-    Log.D('increase current settings change key value and save to local data');
     this.tempSettings.increase(this.changeSettingKeyString);
     this.updateSettingsChangeDisplay();
   }
 
   onDecreaseSettingsTap(args) {
-    Log.D('decrease current settings change key value and save to local data');
     this.tempSettings.decrease(this.changeSettingKeyString);
     this.updateSettingsChangeDisplay();
   }
@@ -876,7 +865,6 @@ export class MainViewModel extends Observable {
     // disabling swipeable to make it easier to tap the cancel button without starting the swipe behavior
     (this._changeSettingsLayout as any).swipeable = false;
     // this._changeSettingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-    //   Log.D('dimissedEvent', args.object);
     //   // hide the offscreen layout when dismissed
     //   hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
     //   this.isChangeSettingsLayoutEnabled = false;
@@ -1038,8 +1026,6 @@ export class MainViewModel extends Observable {
   }
 
   saveNewSmartDrive(): Promise<any> {
-    Log.D('saveNewSmartDrive()');
-
     new Toasty(
       'Scanning for SmartDrives...',
       ToastDuration.LONG,
@@ -1071,8 +1057,6 @@ export class MainViewModel extends Observable {
           actions: addresses,
           cancelButtonText: 'Dismiss'
         }).then(result => {
-          Log.D('result', result);
-
           // if user selected one of the smartdrives in the action dialog, attempt to connect to it
           if (addresses.indexOf(result) > -1) {
             // save the smartdrive here
@@ -1153,7 +1137,6 @@ export class MainViewModel extends Observable {
   }
 
   connectToSavedSmartDrive(): Promise<any> {
-    Log.D('connectToSavedSmartDrive()');
     if (
       this._savedSmartDriveAddress === null ||
       this._savedSmartDriveAddress.length === 0
@@ -1292,11 +1275,9 @@ export class MainViewModel extends Observable {
     // update motor state
     if (this.motorOn !== this._smartDrive.driving) {
       if (this._smartDrive.driving) {
-        Log.D('Vibrating for motor turning on!');
         this._vibrator.cancel();
         this._vibrator.vibrate(250); // vibrate for 250 ms
       } else {
-        Log.D('Vibrating for motor turning off!');
         this._vibrator.cancel();
         this._vibrator.vibrate([100, 50, 100]); // vibrate twice
       }
@@ -1428,7 +1409,6 @@ export class MainViewModel extends Observable {
     coastDistance: number,
     battery: number
   ) {
-    Log.D('saving to db:', driveDistance, coastDistance, battery);
     return this.getTodaysUsageInfoFromDatabase()
       .then(u => {
         console.log('Got usage:', u);
@@ -1495,7 +1475,6 @@ export class MainViewModel extends Observable {
     // console.log('usage info', usageInfo);
     return this.getRecentInfoFromDatabase(6)
       .then(objs => {
-        Log.D('get recent info', objs);
         objs.map(o => {
           // @ts-ignore
           const obj = SmartDriveData.Info.newInfo(...o);
