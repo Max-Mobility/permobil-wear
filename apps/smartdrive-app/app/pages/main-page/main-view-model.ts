@@ -35,7 +35,6 @@ import {
   showSuccess
 } from 'nativescript-wear-os/packages/dialogs';
 import * as application from 'tns-core-modules/application';
-import * as applicationModule from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Color } from 'tns-core-modules/color';
 import { Observable } from 'tns-core-modules/data/observable';
@@ -43,7 +42,6 @@ import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
 import { Page, View } from 'tns-core-modules/ui/page';
 import { Repeater } from 'tns-core-modules/ui/repeater';
-// import { injector } from '../../app';
 import {
   currentSystemTime,
   currentSystemTimeMeridiem,
@@ -261,18 +259,15 @@ export class MainViewModel extends Observable {
     application.on('enterAmbient', args => {
       Log.D('*** enterAmbient ***');
       // themes.applyTheme('ambient.css');
-      themes.applyThemeCss(
-        require('../../scss/theme-ambient.css').toString(),
-        '../../scss/theme-ambient.css'
-      );
+      themes.applyTheme('../../scss/theme-ambient.css');
 
-      // if (this.pager) {
-      //   const children = this.pager._childrenViews;
-      //   for (let i = 0; i < children.size; i++) {
-      //     const child = children.get(i);
-      //     child._onCssStateChange();
-      //   }
-      // }
+      if (this.pager) {
+        const children = this.pager._childrenViews;
+        for (let i = 0; i < children.size; i++) {
+          const child = children.get(i);
+          child._onCssStateChange();
+        }
+      }
     });
 
     // handle ambient mode callbacks
@@ -359,7 +354,7 @@ export class MainViewModel extends Observable {
       this.watchCurrentBatteryPercentage = percent;
     };
 
-    applicationModule.android.registerBroadcastReceiver(
+    application.android.registerBroadcastReceiver(
       android.content.Intent.ACTION_BATTERY_CHANGED,
       batteryReceiverCallback
     );
@@ -372,11 +367,11 @@ export class MainViewModel extends Observable {
       this.currentTime = currentSystemTime();
       this.currentTimeMeridiem = currentSystemTimeMeridiem();
     };
-    applicationModule.android.registerBroadcastReceiver(
+    application.android.registerBroadcastReceiver(
       android.content.Intent.ACTION_TIME_TICK,
       timeReceiverCallback
     );
-    applicationModule.android.registerBroadcastReceiver(
+    application.android.registerBroadcastReceiver(
       android.content.Intent.ACTION_TIMEZONE_CHANGED,
       timeReceiverCallback
     );
