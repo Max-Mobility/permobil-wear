@@ -275,7 +275,6 @@ export class MainViewModel extends Observable {
     // handle ambient mode callbacks
     application.on('exitAmbient', args => {
       Log.D('*** exitAmbient ***');
-      this.enableDeviceSensors();
       themes.applyThemeCss(
         require('../../scss/theme-default.css').toString(),
         '../../scss/theme-default.css'
@@ -479,7 +478,6 @@ export class MainViewModel extends Observable {
 
   onAppResume(args?: any) {
     Log.D('App resume');
-    this.enableDeviceSensors();
   }
 
   onAppSuspend(args?: any) {
@@ -494,7 +492,6 @@ export class MainViewModel extends Observable {
 
   onAppDisplayed(args?: any) {
     Log.D('App displayed');
-    this.enableDeviceSensors();
   }
 
   onAppLowMemory(args?: any) {
@@ -510,8 +507,6 @@ export class MainViewModel extends Observable {
   fullStop() {
     Log.D('Disabling power assist');
     this.disablePowerAssist();
-    Log.D('Disabling sensors');
-    this.disableDeviceSensors();
   }
 
   onPagerLoaded(args: any) {
