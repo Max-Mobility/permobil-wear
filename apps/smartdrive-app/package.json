@@ -42,7 +42,7 @@
     "nativescript-wear-os": "../../node_modules/nativescript-wear-os",
     "reflect-metadata": "../../node_modules/reflect-metadata",
     "smart-eval-kinvey": "file:../../node_modules/smart-eval-kinvey",
-    "tns-core-modules": "~5.4.1"
+    "tns-core-modules": "~5.4.2"
   },
   "devDependencies": {
     "awesome-typescript-loader": "~5.2.1",
@@ -51,7 +51,7 @@
     "mkdirp": "../../node_modules/mkdirp",
     "nativescript-dev-sass": "~1.7.0",
     "nativescript-dev-typescript": "~0.10.0",
-    "nativescript-dev-webpack": "~0.24.0",
+    "nativescript-dev-webpack": "~0.24.1",
     "nativescript-hook": "~0.2.5",
     "prettier": "../../node_modules/prettier",
     "prompt": "../../node_modules/prompt",
