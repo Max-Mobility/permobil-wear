@@ -18,12 +18,12 @@ import {
   isToday,
   subDays
 } from 'date-fns';
-import throttle from 'lodash/throttle';
-import once from 'lodash/once';
 import { ReflectiveInjector } from 'injection-js';
+import once from 'lodash/once';
+import throttle from 'lodash/throttle';
 import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
-import { keepAwake, allowSleepAgain } from 'nativescript-insomnia';
+import { allowSleepAgain, keepAwake } from 'nativescript-insomnia';
 import { Pager } from 'nativescript-pager';
 import { Sentry } from 'nativescript-sentry';
 import * as themes from 'nativescript-themes';
@@ -266,13 +266,13 @@ export class MainViewModel extends Observable {
         '../../scss/theme-ambient.css'
       );
 
-      if (this.pager) {
-        const children = this.pager._childrenViews;
-        for (let i = 0; i < children.size; i++) {
-          const child = children.get(i);
-          child._onCssStateChange();
-        }
-      }
+      // if (this.pager) {
+      //   const children = this.pager._childrenViews;
+      //   for (let i = 0; i < children.size; i++) {
+      //     const child = children.get(i);
+      //     child._onCssStateChange();
+      //   }
+      // }
     });
 
     // handle ambient mode callbacks
@@ -630,7 +630,7 @@ export class MainViewModel extends Observable {
         const maxBattery = sdData.reduce((max, obj) => {
           return obj.battery > max ? obj.battery : max;
         }, 0);
-        let batteryData = sdData.map(e => {
+        const batteryData = sdData.map(e => {
           return {
             day: format(new Date(e.date), 'dd'),
             value: (e.battery * 100.0) / maxBattery
@@ -643,11 +643,11 @@ export class MainViewModel extends Observable {
         // update distance data
         let oldestDist = oldest[SmartDriveData.Info.DriveDistanceName];
         const distanceData = sdData.map(e => {
-          let dist = e[SmartDriveData.Info.DriveDistanceName];
+          const dist = e[SmartDriveData.Info.DriveDistanceName];
           let diff = dist - oldestDist;
           oldestDist = Math.max(dist, oldestDist);
           diff = SmartDrive.motorTicksToMiles(diff);
-          if (this.settings.units == 'Metric') {
+          if (this.settings.units === 'Metric') {
             diff = diff * 1.609;
           }
           return {
@@ -1246,7 +1246,7 @@ export class MainViewModel extends Observable {
       this.smartDriveCurrentBatteryPercentage - this._smartDrive.battery;
     // only check against -1 so that we filter out charging and only
     // get decreases due to driving
-    if (batteryChange == -1) {
+    if (batteryChange === -1) {
       usedBattery = 1;
       // cancel previous invocations of the save so that the next
       // one definitely saves the battery increment
@@ -1357,7 +1357,7 @@ export class MainViewModel extends Observable {
         });
       })
       .catch(err => {
-        Log.E("couldn't get errors", err);
+        Log.E(`couldn't get errors`, err);
         return [];
       });
   }
@@ -1375,7 +1375,7 @@ export class MainViewModel extends Observable {
           // there was a record, so we need to update it. we add the
           // already used battery plus the amount of new battery
           // that has been used
-          let usedBattery = battery + u[SmartDriveData.Info.BatteryName];
+          const usedBattery = battery + u[SmartDriveData.Info.BatteryName];
           return this._sqliteService.updateInTable(
             SmartDriveData.Info.TableName,
             {
