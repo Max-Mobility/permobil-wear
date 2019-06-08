@@ -659,7 +659,7 @@ export class MainViewModel extends Observable {
   onSettingsLayoutLoaded(args) {
     this._settingsLayout = args.object as SwipeDismissLayout;
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      //Log.D('dismissedEvent', args.object);
+      // Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
       this.isSettingsLayoutEnabled = false;
@@ -670,7 +670,7 @@ export class MainViewModel extends Observable {
     // show the chart
     this._errorHistoryLayout = args.object as SwipeDismissLayout;
     this._errorHistoryLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      //Log.D('dismissedEvent', args.object);
+      // Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(this._errorHistoryLayout, { x: 500, y: 0 });
       this.isErrorHistoryLayoutEnabled = false;
@@ -694,7 +694,7 @@ export class MainViewModel extends Observable {
             value: (e.battery * 100.0) / maxBattery
           };
         });
-        //Log.D('Highest Battery Value:', maxBattery);
+        // Log.D('Highest Battery Value:', maxBattery);
         this.batteryChartMaxValue = maxBattery;
         this.batteryChartData = batteryData;
 
@@ -719,7 +719,7 @@ export class MainViewModel extends Observable {
         distanceData.map(data => {
           data.value = (100.0 * data.value) / maxDist;
         });
-        //Log.D('Highest Distance Value:', maxDist);
+        // Log.D('Highest Distance Value:', maxDist);
         this.distanceChartMaxValue = maxDist;
         this.distanceChartData = distanceData;
 
