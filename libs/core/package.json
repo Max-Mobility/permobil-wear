@@ -7,9 +7,15 @@
     "tns-core-modules": "../../node_modules/tns-core-modules",
     "smart-eval-kinvey": "../../node_modules/smart-eval-kinvey",
     "nativescript-sentry": "../../node_modules/nativescript-sentry",
+    "nativescript-sqlite": "../../node_modules/nativescript-sqlite",
+    "nativescript-sqlite-commercial": "../../node_modules/nativescript-sqlite-commercial",
+    "nativescript-sqlite-encrypted": "../../node_modules/nativescript-sqlite-encrypted",
     "nativescript-bluetooth": "../../forked-plugins/nativescript-bluetooth"
   },
   "devDependencies": {
+    "nativescript-dev-typescript": "../../node_modules/nativescript-dev-typescript",
+    "nativescript-dev-webpack": "../../node_modules/nativescript-dev-webpack",
+    "nativescript-worker-loader": "../../node_modules/nativescript-worker-loader",
     "tns-platform-declarations": "../../node_modules/tns-platform-declarations"
   }
 }
