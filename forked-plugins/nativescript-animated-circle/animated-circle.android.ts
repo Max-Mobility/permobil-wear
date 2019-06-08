@@ -62,6 +62,7 @@ export class AnimatedCircle extends Common {
 
   initNativeView() {
     this._android.setAutoTextSize(false);
+    this._android.setBarStrokeCap(android.graphics.Paint.Cap.ROUND);
     this._android.setTextMode(at.grabner.circleprogress.TextMode.TEXT);
     this._android.setTextScale(1.1);
     this._android.setTextSize(300);
@@ -246,8 +247,14 @@ export class AnimatedCircle extends Common {
       if (this.startAngle) {
         this.android.setStartAngle(this.startAngle);
       }
+      if (this.barWidth) {
+        this.android.setBarWidth(this.barWidth);
+      } else {
+        if (this.rimWidth) {
+          this.android.setBarWidth(this.rimWidth);
+        }
+      }
       if (this.rimWidth) {
-        this.android.setBarWidth(this.rimWidth);
         this.android.setRimWidth(this.rimWidth);
       }
       if (this.barColor) {

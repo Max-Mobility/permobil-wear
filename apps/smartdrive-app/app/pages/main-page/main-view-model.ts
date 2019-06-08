@@ -19,6 +19,8 @@ import {
   subDays
 } from 'date-fns';
 import { ReflectiveInjector } from 'injection-js';
+import clamp from 'lodash/clamp';
+import last from 'lodash/last';
 import once from 'lodash/once';
 import throttle from 'lodash/throttle';
 import { SensorDelay } from 'nativescript-android-sensors';
@@ -173,18 +175,17 @@ export class MainViewModel extends Observable {
    * SmartDrive Related Data
    *
    */
-  maxTapSensitivity: number = 4.0;
-  minTapSensitivity: number = 1.0;
+  lastTapTime: number;
+  tapLockoutTimeMs: number = 200;
+  maxTapSensitivity: number = 3.5;
+  minTapSensitivity: number = 1.5;
+  minRangeFactor: number = 2.0 / 100.0; // never estimate less than 2 mi per full charge
+  maxRangeFactor: number = 12.0 / 100.0; // never estimate more than 12 mi per full charge
 
   /**
    * State tracking for power assist
    */
   @Prop() powerAssistState: PowerAssist.State = PowerAssist.State.Inactive;
-
-  /**
-   * Boolean to track whether a tap has been performed.
-   */
-  @Prop() hasTapped = false;
 
   /**
    * Boolean to track if the SmartDrive motor is on.
@@ -275,7 +276,6 @@ export class MainViewModel extends Observable {
     // handle ambient mode callbacks
     application.on('exitAmbient', args => {
       Log.D('*** exitAmbient ***');
-      this.enableDeviceSensors();
       themes.applyThemeCss(
         require('../../scss/theme-default.css').toString(),
         '../../scss/theme-default.css'
@@ -364,7 +364,7 @@ export class MainViewModel extends Observable {
     this.currentTime = currentSystemTime();
     this.currentTimeMeridiem = currentSystemTimeMeridiem();
     const timeReceiverCallback = (androidContext, intent) => {
-      Log.D('timeReceiverCallback');
+      Log.D('timeReceiverCallback', currentSystemTime());
       this.currentTime = currentSystemTime();
       this.currentTimeMeridiem = currentSystemTimeMeridiem();
     };
@@ -414,7 +414,7 @@ export class MainViewModel extends Observable {
         }
 
         if (parsedData.s === android.hardware.Sensor.TYPE_LINEAR_ACCELERATION) {
-          this.handleAccel(parsedData.d);
+          this.handleAccel(parsedData.d, parsedData.ts);
         }
       }
     );
@@ -479,7 +479,6 @@ export class MainViewModel extends Observable {
 
   onAppResume(args?: any) {
     Log.D('App resume');
-    this.enableDeviceSensors();
   }
 
   onAppSuspend(args?: any) {
@@ -494,7 +493,6 @@ export class MainViewModel extends Observable {
 
   onAppDisplayed(args?: any) {
     Log.D('App displayed');
-    this.enableDeviceSensors();
   }
 
   onAppLowMemory(args?: any) {
@@ -510,8 +508,6 @@ export class MainViewModel extends Observable {
   fullStop() {
     Log.D('Disabling power assist');
     this.disablePowerAssist();
-    Log.D('Disabling sensors');
-    this.disableDeviceSensors();
   }
 
   onPagerLoaded(args: any) {
@@ -546,8 +542,8 @@ export class MainViewModel extends Observable {
     (this.watchBatteryRing as any).android.setInnerContourSize(0);
   }
 
-  handleAccel(acceleration: any) {
-    let diff = acceleration.z;
+  handleAccel(acceleration: any, timestamp: number) {
+    let diff = -acceleration.z;
     if (this.motorOn) {
       diff = Math.abs(diff);
     }
@@ -557,11 +553,11 @@ export class MainViewModel extends Observable {
         (this.settings.tapSensitivity / 100.0);
     if (diff > threshold) {
       // user has met threshold for tapping
-      this.handleTap();
+      this.handleTap(timestamp);
     }
   }
 
-  handleTap() {
+  handleTap(timestamp: number) {
     // ignore tapping if we're not in the right mode
     if (!this.powerAssistActive && !this.isTraining) {
       return;
@@ -570,16 +566,18 @@ export class MainViewModel extends Observable {
     if (!this.watchBeingWorn) {
       return;
     }
+    // get time diff in ms - stamps are in ns
+    const timeDiffMs = (timestamp - this.lastTapTime) / 1000000;
     // block high frequency tapping
-    if (this.hasTapped) {
+    if (timeDiffMs < this.tapLockoutTimeMs) {
       return;
     }
-    this.hasTapped = true;
+    this.lastTapTime = timestamp;
     this.updatePowerAssistRing(PowerAssist.TappedRingColor);
+    // timeout for updating the power assist ring
     setTimeout(() => {
-      this.hasTapped = false;
       this.updatePowerAssistRing();
-    }, 300);
+    }, this.tapLockoutTimeMs / 2);
     // now send
     if (
       this.powerAssistActive &&
@@ -587,24 +585,20 @@ export class MainViewModel extends Observable {
       this._smartDrive.ableToSend
     ) {
       if (this.motorOn) {
-        Log.D('Vibrating for tap while connected to SD and motor on!');
         this._vibrator.cancel();
-        this._vibrator.vibrate(250); // vibrate for 250 ms
+        this._vibrator.vibrate((this.tapLockoutTimeMs * 3) / 4);
       }
-      Log.D('Sending tap!');
       this._smartDrive.sendTap().catch(err => Log.E('could not send tap', err));
     } else if (this.isTraining) {
       // vibrate for tapping while training
-      Log.D('Vibrating for tap while training!');
       this._vibrator.cancel();
-      this._vibrator.vibrate(250); // vibrate for 250 ms
+      this._vibrator.vibrate((this.tapLockoutTimeMs * 3) / 4);
     }
   }
 
   stopSmartDrive() {
     // turn off the motor if SD is connected
     if (this._smartDrive && this._smartDrive.ableToSend) {
-      Log.D('Turning off Motor!');
       return this._smartDrive
         .stopMotor()
         .catch(err => Log.E('Could not stop motor', err));
@@ -618,7 +612,6 @@ export class MainViewModel extends Observable {
   }
 
   disableDeviceSensors() {
-    Log.D('Disabling device sensors.');
     try {
       this._sensorService.stopDeviceSensors();
     } catch (err) {
@@ -629,7 +622,6 @@ export class MainViewModel extends Observable {
   }
 
   enableDeviceSensors() {
-    Log.D('Enable device sensors...');
     try {
       if (!this._isListeningDeviceSensors) {
         this._sensorService.startDeviceSensors(SensorDelay.UI, 50000);
@@ -649,7 +641,6 @@ export class MainViewModel extends Observable {
   }
 
   onTrainingTap() {
-    Log.D('Trained tapped.');
     this.isTraining = true;
     this.powerAssistState = PowerAssist.State.Training;
     this.updatePowerAssistRing();
@@ -668,7 +659,7 @@ export class MainViewModel extends Observable {
   onSettingsLayoutLoaded(args) {
     this._settingsLayout = args.object as SwipeDismissLayout;
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      Log.D('dismissedEvent', args.object);
+      //Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
       this.isSettingsLayoutEnabled = false;
@@ -679,7 +670,7 @@ export class MainViewModel extends Observable {
     // show the chart
     this._errorHistoryLayout = args.object as SwipeDismissLayout;
     this._errorHistoryLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-      Log.D('dismissedEvent', args.object);
+      //Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(this._errorHistoryLayout, { x: 500, y: 0 });
       this.isErrorHistoryLayoutEnabled = false;
@@ -703,7 +694,7 @@ export class MainViewModel extends Observable {
             value: (e.battery * 100.0) / maxBattery
           };
         });
-        Log.D('Highest Battery Value:', maxBattery);
+        //Log.D('Highest Battery Value:', maxBattery);
         this.batteryChartMaxValue = maxBattery;
         this.batteryChartData = batteryData;
 
@@ -728,11 +719,28 @@ export class MainViewModel extends Observable {
         distanceData.map(data => {
           data.value = (100.0 * data.value) / maxDist;
         });
-
-        Log.D('Highest Distance Value:', maxDist);
+        //Log.D('Highest Distance Value:', maxDist);
         this.distanceChartMaxValue = maxDist;
-
         this.distanceChartData = distanceData;
+
+        // update estimated range based on battery / distance
+        let rangeFactor = (this.minRangeFactor + this.maxRangeFactor) / 2.0;
+        oldestDist = oldest[SmartDriveData.Info.DriveDistanceName];
+        const newestDist = last(sdData)[SmartDriveData.Info.DriveDistanceName];
+        const totalBatteryUsage = sdData.reduce((usage, obj) => {
+          return usage + obj[SmartDriveData.Info.BatteryName];
+        }, 0);
+        const totalDistance = newestDist - oldestDist;
+        if (totalDistance && totalBatteryUsage) {
+          rangeFactor = clamp(
+            totalDistance / totalBatteryUsage,
+            this.minRangeFactor,
+            this.maxRangeFactor
+          );
+        }
+        // estimated distance is always in miles
+        this.estimatedDistance =
+          this.smartDriveCurrentBatteryPercentage * rangeFactor;
       })
       .catch(err => {});
   }
@@ -764,7 +772,6 @@ export class MainViewModel extends Observable {
   onChangeSettingsItemTap(args) {
     // copy the current settings into temporary store
     this.tempSettings.copy(this.settings);
-    Log.D('id: ' + args.object.id);
     const tappedId = args.object.id as string;
     switch (tappedId.toLowerCase()) {
       case 'maxspeed':
@@ -816,7 +823,6 @@ export class MainViewModel extends Observable {
   }
 
   onCancelChangesTap() {
-    Log.D('Cancelled the changes, do NOT save any changes to config setting.');
     hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
     this.isChangeSettingsLayoutEnabled = false;
   }
@@ -856,7 +862,6 @@ export class MainViewModel extends Observable {
       y: 0
     });
     this.isChangeSettingsLayoutEnabled = false;
-    Log.D('Confirmed the value, need to save config setting.');
     // SAVE THE VALUE to local data for the setting user has selected
     this.settings.copy(this.tempSettings);
     this.saveSettings();
@@ -865,13 +870,11 @@ export class MainViewModel extends Observable {
   }
 
   onIncreaseSettingsTap() {
-    Log.D('increase current settings change key value and save to local data');
     this.tempSettings.increase(this.changeSettingKeyString);
     this.updateSettingsChangeDisplay();
   }
 
   onDecreaseSettingsTap(args) {
-    Log.D('decrease current settings change key value and save to local data');
     this.tempSettings.decrease(this.changeSettingKeyString);
     this.updateSettingsChangeDisplay();
   }
@@ -881,7 +884,6 @@ export class MainViewModel extends Observable {
     // disabling swipeable to make it easier to tap the cancel button without starting the swipe behavior
     (this._changeSettingsLayout as any).swipeable = false;
     // this._changeSettingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
-    //   Log.D('dimissedEvent', args.object);
     //   // hide the offscreen layout when dismissed
     //   hideOffScreenLayout(this._changeSettingsLayout, { x: 500, y: 0 });
     //   this.isChangeSettingsLayoutEnabled = false;
@@ -1043,8 +1045,6 @@ export class MainViewModel extends Observable {
   }
 
   saveNewSmartDrive(): Promise<any> {
-    Log.D('saveNewSmartDrive()');
-
     new Toasty(
       'Scanning for SmartDrives...',
       ToastDuration.LONG,
@@ -1076,8 +1076,6 @@ export class MainViewModel extends Observable {
           actions: addresses,
           cancelButtonText: 'Dismiss'
         }).then(result => {
-          Log.D('result', result);
-
           // if user selected one of the smartdrives in the action dialog, attempt to connect to it
           if (addresses.indexOf(result) > -1) {
             // save the smartdrive here
@@ -1158,7 +1156,6 @@ export class MainViewModel extends Observable {
   }
 
   connectToSavedSmartDrive(): Promise<any> {
-    Log.D('connectToSavedSmartDrive()');
     if (
       this._savedSmartDriveAddress === null ||
       this._savedSmartDriveAddress.length === 0
@@ -1297,13 +1294,11 @@ export class MainViewModel extends Observable {
     // update motor state
     if (this.motorOn !== this._smartDrive.driving) {
       if (this._smartDrive.driving) {
-        Log.D('Vibrating for motor turning on!');
         this._vibrator.cancel();
         this._vibrator.vibrate(250); // vibrate for 250 ms
       } else {
-        Log.D('Vibrating for motor turning off!');
         this._vibrator.cancel();
-        this._vibrator.vibrate([100, 50, 100]); // vibrate twice
+        this._vibrator.vibrate([0, 250, 50, 250]); // vibrate twice
       }
     }
     this.motorOn = this._smartDrive.driving;
@@ -1433,7 +1428,6 @@ export class MainViewModel extends Observable {
     coastDistance: number,
     battery: number
   ) {
-    Log.D('saving to db:', driveDistance, coastDistance, battery);
     return this.getTodaysUsageInfoFromDatabase()
       .then(u => {
         console.log('Got usage:', u);
@@ -1500,7 +1494,6 @@ export class MainViewModel extends Observable {
     // console.log('usage info', usageInfo);
     return this.getRecentInfoFromDatabase(6)
       .then(objs => {
-        Log.D('get recent info', objs);
         objs.map(o => {
           // @ts-ignore
           const obj = SmartDriveData.Info.newInfo(...o);
