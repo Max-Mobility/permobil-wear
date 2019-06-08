@@ -53,3 +53,9 @@ Page {
   text-align: center;
   font-size: 13;
 }
+
+/** Battery Icon on Main page for Power Assist **/
+.batteryIcon {
+  border-radius: 9;
+  background-color: $black;
+}
