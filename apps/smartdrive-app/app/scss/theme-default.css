@@ -4,6 +4,12 @@
 .ionicon {
   font-family: ionicons, "ionicons", Ionicons, "Ionicons"; }
 
+Page {
+  background-color: #000; }
+
+.page {
+  background-color: #000; }
+
 /** Buttons **/
 .btn-transparent {
   background-color: transparent;
@@ -39,6 +45,11 @@
   horizontal-align: center;
   text-align: center;
   font-size: 13; }
+
+/** Battery Icon on Main page for Power Assist **/
+.batteryIcon {
+  border-radius: 9;
+  background-color: #000; }
 
 /** Fonts **/
 /** Label Line Chart Styles **/
@@ -180,12 +191,6 @@
   color: #fff;
   vertical-align: center;
   margin: 5 0 5 0; }
-
-Page {
-  background-color: #000; }
-
-.page {
-  background-color: #000; }
 
 label {
   color: #fff; }
