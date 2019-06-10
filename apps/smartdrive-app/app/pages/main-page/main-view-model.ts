@@ -233,6 +233,7 @@ export class MainViewModel extends Observable {
   private _savedSmartDriveAddress: string = null;
   private _ringTimerId = null;
   private RING_TIMER_INTERVAL_MS = 500;
+  private _lastChartDay = null;
 
   /**
    * User interaction objects
@@ -367,6 +368,10 @@ export class MainViewModel extends Observable {
       Log.D('timeReceiverCallback', currentSystemTime());
       this.currentTime = currentSystemTime();
       this.currentTimeMeridiem = currentSystemTimeMeridiem();
+      // update charts if date has changed
+      if (!isSameDay(new Date(), this._lastChartDay)) {
+        this.updateChartData();
+      }
     };
     application.android.registerBroadcastReceiver(
       android.content.Intent.ACTION_TIME_TICK,
@@ -678,11 +683,17 @@ export class MainViewModel extends Observable {
   }
 
   updateChartData() {
-    this.getUsageInfoFromDatabase(7)
+    Log.D('Updating Chart Data / Display');
+    return this.getUsageInfoFromDatabase(7)
       .then(sdData => {
         // we've asked for one more day than needed so that we can
         // compute distance differences
         const oldest = sdData[0];
+        const newest = last(sdData);
+        // keep track of the most recent day so we know when to update
+        this._lastChartDay = new Date(newest.date);
+        // remove the oldest so it's not displayed - we only use it
+        // to track distance differences
         sdData = sdData.slice(1);
         // update battery data
         const maxBattery = sdData.reduce((max, obj) => {
@@ -1500,6 +1511,7 @@ export class MainViewModel extends Observable {
           const objDate = new Date(obj.date);
           const index = closestIndexTo(objDate, dates);
           const usageDate = dates[index];
+          Log.D(index, objDate, usageDate, isSameDay(objDate, usageDate));
           if (index > -1 && isSameDay(objDate, usageDate)) {
             usageInfo[index] = obj;
           }
