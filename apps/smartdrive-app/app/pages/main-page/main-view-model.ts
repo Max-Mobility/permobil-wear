@@ -144,6 +144,7 @@ namespace SmartDriveData {
 export class MainViewModel extends Observable {
   @Prop() smartDriveCurrentBatteryPercentage: number = 0;
   @Prop() watchCurrentBatteryPercentage: number = 0;
+  @Prop() watchIsCharging: boolean = false;
   @Prop() powerAssistBtnText: string = PowerAssist.InactiveButtonText;
   @Prop() powerAssistBtnColor: Color = PowerAssist.InactiveButtonColor;
   @Prop() powerAssistRingColor: string = PowerAssist.InactiveRingColor;
@@ -233,6 +234,7 @@ export class MainViewModel extends Observable {
   private _savedSmartDriveAddress: string = null;
   private _ringTimerId = null;
   private RING_TIMER_INTERVAL_MS = 500;
+  private CHARGING_WORK_PERIOD_MS = 30 * 1000;
   private _lastChartDay = null;
 
   /**
@@ -344,6 +346,7 @@ export class MainViewModel extends Observable {
     // register for watch battery updates
     // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
     const batteryReceiverCallback = (androidContext, intent) => {
+      // get the info from the event
       const level = intent.getIntExtra(
         android.os.BatteryManager.EXTRA_LEVEL,
         -1
@@ -352,8 +355,20 @@ export class MainViewModel extends Observable {
         android.os.BatteryManager.EXTRA_SCALE,
         -1
       );
+      const plugged = intent.getIntExtra(
+        android.os.BatteryManager.EXTRA_PLUGGED,
+        -1
+      );
       const percent = (level / scale) * 100.0;
+      // update the battery display
       this.watchCurrentBatteryPercentage = percent;
+      // are we charging
+      this.watchIsCharging =
+        plugged === android.os.BatteryManager.BATTERY_PLUGGED_AC ||
+        plugged === android.os.BatteryManager.BATTERY_PLUGGED_USB ||
+        plugged === android.os.BatteryManager.BATTERY_PLUGGED_WIRELESS;
+      // do work that we need while charging
+      setTimeout(this.doWhileCharged.bind(this), this.CHARGING_WORK_PERIOD_MS);
     };
 
     application.android.registerBroadcastReceiver(
@@ -513,6 +528,15 @@ export class MainViewModel extends Observable {
   fullStop() {
     Log.D('Disabling power assist');
     this.disablePowerAssist();
+  }
+
+  doWhileCharged() {
+    // TODO: send errors to kinvey here
+    // TODO: send usage data to kinvey here
+    if (this.watchIsCharging) {
+      // re-schedule any work that may still need to be done
+      setTimeout(this.doWhileCharged.bind(this), this.CHARGING_WORK_PERIOD_MS);
+    }
   }
 
   onPagerLoaded(args: any) {
