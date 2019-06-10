@@ -177,9 +177,12 @@ export class MainViewModel extends Observable {
    *
    */
   lastTapTime: number;
+  lastAccelZ: number = null;
   tapLockoutTimeMs: number = 200;
   maxTapSensitivity: number = 3.5;
   minTapSensitivity: number = 1.5;
+  SENSOR_DELAY_US: number = 25 * 1000;
+  MAX_REPORTING_INTERVAL_US: number = 50 * 1000;
   minRangeFactor: number = 2.0 / 100.0; // never estimate less than 2 mi per full charge
   maxRangeFactor: number = 12.0 / 100.0; // never estimate more than 12 mi per full charge
 
@@ -572,21 +575,6 @@ export class MainViewModel extends Observable {
   }
 
   handleAccel(acceleration: any, timestamp: number) {
-    let diff = -acceleration.z;
-    if (this.motorOn) {
-      diff = Math.abs(diff);
-    }
-    const threshold =
-      this.maxTapSensitivity -
-      (this.maxTapSensitivity - this.minTapSensitivity) *
-        (this.settings.tapSensitivity / 100.0);
-    if (diff > threshold) {
-      // user has met threshold for tapping
-      this.handleTap(timestamp);
-    }
-  }
-
-  handleTap(timestamp: number) {
     // ignore tapping if we're not in the right mode
     if (!this.powerAssistActive && !this.isTraining) {
       return;
@@ -595,13 +583,36 @@ export class MainViewModel extends Observable {
     if (!this.watchBeingWorn) {
       return;
     }
+    // now get the z-axis acceleration
+    let acc = acceleration.z;
+    const diff = acc - this.lastAccelZ;
+    this.lastAccelZ = acc;
+    if (this.motorOn) {
+      // respond to both axes for tapping if the motor is on
+      acc = Math.abs(acc);
+    }
+    const threshold =
+      this.maxTapSensitivity -
+      (this.maxTapSensitivity - this.minTapSensitivity) *
+        (this.settings.tapSensitivity / 100.0);
     // get time diff in ms - stamps are in ns
-    const timeDiffMs = (timestamp - this.lastTapTime) / 1000000;
+    const timeDiffMs = (timestamp - this.lastTapTime) / (1000 * 1000);
     // block high frequency tapping
     if (timeDiffMs < this.tapLockoutTimeMs) {
       return;
     }
-    this.lastTapTime = timestamp;
+    // must have a high enough abs(accel.z) and it must be a jerk
+    // movement - high difference between previous accel and current
+    // accel
+    if (acc > threshold && diff > threshold) {
+      // record that there has been a tap
+      this.lastTapTime = timestamp;
+      // user has met threshold for tapping
+      this.handleTap(timestamp);
+    }
+  }
+
+  handleTap(timestamp: number) {
     this.updatePowerAssistRing(PowerAssist.TappedRingColor);
     // timeout for updating the power assist ring
     setTimeout(() => {
@@ -653,7 +664,10 @@ export class MainViewModel extends Observable {
   enableDeviceSensors() {
     try {
       if (!this._isListeningDeviceSensors) {
-        this._sensorService.startDeviceSensors(SensorDelay.UI, 50000);
+        this._sensorService.startDeviceSensors(
+          this.SENSOR_DELAY_US,
+          this.MAX_REPORTING_INTERVAL_US
+        );
         this._isListeningDeviceSensors = true;
       }
     } catch (err) {
