@@ -1,12 +1,18 @@
 import { Injectable } from 'injection-js';
 const Sqlite = require('nativescript-sqlite');
 
+function _exists(o, k): boolean {
+  return o[k] !== undefined && o[k] !== null && o[k] !== NaN;
+}
+
 @Injectable()
 export class SqliteService {
   static DatabaseName: string = 'com.permobil.smartdrive.wearos';
 
   public getDatabase() {
-    return new Sqlite(SqliteService.DatabaseName);
+    return new Sqlite(SqliteService.DatabaseName, {
+      multithreading: true
+    });
   }
 
   public closeDatabase() {
@@ -23,7 +29,10 @@ export class SqliteService {
         `CREATE TABLE IF NOT EXISTS ${tableName} ` +
         `(${idName} INTEGER PRIMARY KEY AUTOINCREMENT, ` +
         `${keys.join(' TEXT, ')})`;
-      return db.execSQL(dbCreationString);
+      return db.execSQL(dbCreationString).then(ret => {
+        db.close();
+        return ret;
+      });
     });
   }
 
@@ -36,7 +45,10 @@ export class SqliteService {
         `insert into ${tableName} ` +
         `(${objKeyNames.join(',')}) values ` +
         `(${objValues.join(',')})`;
-      return db.execSQL(dbInsertString, values);
+      return db.execSQL(dbInsertString, values).then(ret => {
+        db.close();
+        return ret;
+      });
     });
   }
 
@@ -57,22 +69,32 @@ export class SqliteService {
     return this.getDatabase().then(db => {
       const setsStrings = Object.keys(sets);
       const setValues = setsStrings.map(s => {
-        return `${s}=${sets[s]}`;
+        if (_exists(sets, s)) return `${s}=${sets[s]}`;
+        else return ``;
       });
-      const queryStrings = Object.keys(queries).map(q => `${q}=${queries[q]}`);
+      const queryStrings = Object.keys(queries).map(q => {
+        if (_exists(queries, q)) return `${q}=${queries[q]}`;
+        else return ``;
+      });
       const dbUpdateString =
         `UPDATE ${tableName} ` +
         `SET ${setValues.join(', ')} ` +
         `WHERE ${queryStrings.join(' and ')}`;
-      return db.execSQL(dbUpdateString);
+      return db.execSQL(dbUpdateString).then(ret => {
+        db.close();
+        return ret;
+      });
     });
   }
 
   public getLast(tableName: string, idName: string) {
     return this.getDatabase().then(db => {
-      return db.get(
-        `SELECT * FROM ${tableName} ORDER BY ${idName} DESC LIMIT 1`
-      );
+      return db
+        .get(`SELECT * FROM ${tableName} ORDER BY ${idName} DESC LIMIT 1`)
+        .then(ret => {
+          db.close();
+          return ret;
+        });
     });
   }
 
@@ -96,9 +118,10 @@ export class SqliteService {
       const ascending = args.ascending;
       let dbGetString = `SELECT * from ${tableName}`;
       if (queries) {
-        const queryStrings = Object.keys(queries).map(
-          q => `${q}=${queries[q]}`
-        );
+        const queryStrings = Object.keys(queries).map(q => {
+          if (_exists(queries, q)) return `${q}=${queries[q]}`;
+          else return ``;
+        });
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
       if (orderBy) {
@@ -109,7 +132,10 @@ export class SqliteService {
           dbGetString += ' DESC';
         }
       }
-      return db.get(dbGetString);
+      return db.get(dbGetString).then(ret => {
+        db.close();
+        return ret;
+      });
     });
   }
 
@@ -135,9 +161,10 @@ export class SqliteService {
       const limit = args.limit;
       let dbGetString = `SELECT * from ${tableName}`;
       if (queries) {
-        const queryStrings = Object.keys(queries).map(
-          q => `${q}=${queries[q]}`
-        );
+        const queryStrings = Object.keys(queries).map(q => {
+          if (_exists(queries, q)) return `${q}=${queries[q]}`;
+          else return ``;
+        });
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
       if (orderBy) {
@@ -151,7 +178,10 @@ export class SqliteService {
       if (limit > 0) {
         dbGetString += ` LIMIT ${limit}`;
       }
-      return db.all(dbGetString);
+      return db.all(dbGetString).then(ret => {
+        db.close();
+        return ret;
+      });
     });
   }
 
@@ -159,7 +189,10 @@ export class SqliteService {
     return this.getDatabase()
       .then(db => {
         const dbString = `SELECT SUM(${columnName}) as Total FROM ${tableName}`;
-        return db.execSQL(dbString);
+        return db.execSQL(dbString).then(ret => {
+          db.close();
+          return ret;
+        });
       })
       .then(row => {
         return row && row[0];

@@ -238,6 +238,7 @@ export class MainViewModel extends Observable {
   private _ringTimerId = null;
   private RING_TIMER_INTERVAL_MS = 500;
   private CHARGING_WORK_PERIOD_MS = 30 * 1000;
+  private DATABASE_SAVE_INTERVAL_MS = 10 * 1000;
   private _lastChartDay = null;
 
   /**
@@ -342,7 +343,7 @@ export class MainViewModel extends Observable {
     // make throttled save function - not called more than once every 10 seconds
     this._throttledSmartDriveSaveFn = throttle(
       this.saveUsageInfoToDatabase,
-      10000,
+      this.DATABASE_SAVE_INTERVAL_MS,
       { leading: true, trailing: false }
     );
 
@@ -515,11 +516,11 @@ export class MainViewModel extends Observable {
   }
 
   onAppDisplayed(args?: any) {
-    Log.D('App displayed');
+    Log.D('App displayed', args);
   }
 
   onAppLowMemory(args?: any) {
-    Log.D('App low memory');
+    Log.D('App low memory', args);
     this.fullStop();
   }
 
@@ -721,13 +722,14 @@ export class MainViewModel extends Observable {
   }
 
   updateChartData() {
-    Log.D('Updating Chart Data / Display');
+    //Log.D('Updating Chart Data / Display');
     return this.getUsageInfoFromDatabase(7)
       .then(sdData => {
         // we've asked for one more day than needed so that we can
         // compute distance differences
         const oldest = sdData[0];
         const newest = last(sdData);
+        let sumDistance = 0;
         // keep track of the most recent day so we know when to update
         this._lastChartDay = new Date(newest.date);
         // remove the oldest so it's not displayed - we only use it
@@ -751,7 +753,13 @@ export class MainViewModel extends Observable {
         let oldestDist = oldest[SmartDriveData.Info.DriveDistanceName];
         const distanceData = sdData.map(e => {
           const dist = e[SmartDriveData.Info.DriveDistanceName];
-          let diff = dist - oldestDist;
+          let diff = 0;
+          // make sure we only compute diffs between valid distances
+          if (oldestDist > 0) {
+            diff = dist - oldestDist;
+            // used for range computation
+            sumDistance += diff;
+          }
           oldestDist = Math.max(dist, oldestDist);
           diff = SmartDrive.motorTicksToMiles(diff);
           if (this.settings.units === 'Metric') {
@@ -774,15 +782,15 @@ export class MainViewModel extends Observable {
 
         // update estimated range based on battery / distance
         let rangeFactor = (this.minRangeFactor + this.maxRangeFactor) / 2.0;
-        oldestDist = oldest[SmartDriveData.Info.DriveDistanceName];
-        const newestDist = last(sdData)[SmartDriveData.Info.DriveDistanceName];
         const totalBatteryUsage = sdData.reduce((usage, obj) => {
           return usage + obj[SmartDriveData.Info.BatteryName];
         }, 0);
-        const totalDistance = newestDist - oldestDist;
-        if (totalDistance && totalBatteryUsage) {
+        if (sumDistance && totalBatteryUsage) {
+          // convert from ticks to miles
+          sumDistance = SmartDrive.motorTicksToMiles(sumDistance);
+          // now compute the range factor
           rangeFactor = clamp(
-            totalDistance / totalBatteryUsage,
+            sumDistance / totalBatteryUsage,
             this.minRangeFactor,
             this.maxRangeFactor
           );
@@ -790,6 +798,8 @@ export class MainViewModel extends Observable {
         // estimated distance is always in miles
         this.estimatedDistance =
           this.smartDriveCurrentBatteryPercentage * rangeFactor;
+        // now actually update the display of the distance
+        this.updateSpeedDisplay();
       })
       .catch(err => {});
   }
@@ -1352,16 +1362,18 @@ export class MainViewModel extends Observable {
     }
     this.motorOn = this._smartDrive.driving;
     // determine if we've used more battery percentage
-    let usedBattery = 0;
     const batteryChange =
       this.smartDriveCurrentBatteryPercentage - this._smartDrive.battery;
     // only check against 1 so that we filter out charging and only
     // get decreases due to driving / while connected
     if (batteryChange === 1) {
-      usedBattery = 1;
       // cancel previous invocations of the save so that the next
       // one definitely saves the battery increment
-      this._throttledSmartDriveSaveFn.cancel();
+      this._throttledSmartDriveSaveFn.flush();
+      // save to the database
+      this._throttledSmartDriveSaveFn({
+        battery: 1
+      });
     }
     // update battery percentage
     this.smartDriveCurrentBatteryPercentage = this._smartDrive.battery;
@@ -1370,18 +1382,18 @@ export class MainViewModel extends Observable {
     // update speed display
     this.currentSpeed = motorInfo.speed;
     this.updateSpeedDisplay();
-    // save to the database
-    this._throttledSmartDriveSaveFn(
-      this._smartDrive.driveDistance,
-      this._smartDrive.coastDistance,
-      usedBattery
-    );
   }
 
   async onDistance(args: any) {
     // Log.D('onDistance event');
     const coastDistance = args.data.coastDistance;
     const driveDistance = args.data.driveDistance;
+
+    // save to the database
+    this._throttledSmartDriveSaveFn({
+      driveDistance: this._smartDrive.driveDistance,
+      coastDistance: this._smartDrive.coastDistance
+    });
 
     // save the updated distance
     appSettings.setNumber(
@@ -1472,25 +1484,60 @@ export class MainViewModel extends Observable {
       });
   }
 
-  saveUsageInfoToDatabase(
-    driveDistance: number,
-    coastDistance: number,
-    battery: number
-  ) {
-    return this.getTodaysUsageInfoFromDatabase()
+  saveUsageInfoToDatabase(args: {
+    driveDistance?: number;
+    coastDistance?: number;
+    battery?: number;
+  }) {
+    const driveDistance = args.driveDistance || 0;
+    const coastDistance = args.coastDistance || 0;
+    const battery = args.battery || 0;
+    if (driveDistance === 0 && coastDistance === 0 && battery === 0) {
+      return Promise.reject(
+        'Must provide at least one valid usage data point!'
+      );
+    }
+    return this.getRecentInfoFromDatabase(1)
+      .then(infos => {
+        //Log.D('recent infos', infos);
+        if (!infos || !infos.length) {
+          // record the data if we have it
+          if (driveDistance > 0 && coastDistance > 0) {
+            // make the first entry for computing distance differences
+            const firstEntry = SmartDriveData.Info.newInfo(
+              undefined,
+              subDays(new Date(), 1),
+              0,
+              driveDistance,
+              coastDistance
+            );
+            return this._sqliteService.insertIntoTable(
+              SmartDriveData.Info.TableName,
+              firstEntry
+            );
+          }
+        }
+      })
+      .then(() => {
+        return this.getTodaysUsageInfoFromDatabase();
+      })
       .then(u => {
         console.log('Got usage:', u);
         if (u[SmartDriveData.Info.IdName]) {
           // there was a record, so we need to update it. we add the
           // already used battery plus the amount of new battery
           // that has been used
-          const usedBattery = battery + u[SmartDriveData.Info.BatteryName];
+          const updatedBattery = battery + u[SmartDriveData.Info.BatteryName];
+          const updatedDriveDistance =
+            driveDistance || u[SmartDriveData.Info.DriveDistanceName];
+          const updatedCoastDistance =
+            coastDistance || u[SmartDriveData.Info.CoastDistanceName];
           return this._sqliteService.updateInTable(
             SmartDriveData.Info.TableName,
             {
-              [SmartDriveData.Info.BatteryName]: usedBattery,
-              [SmartDriveData.Info.DriveDistanceName]: driveDistance,
-              [SmartDriveData.Info.CoastDistanceName]: coastDistance
+              [SmartDriveData.Info.BatteryName]: updatedBattery,
+              [SmartDriveData.Info.DriveDistanceName]: updatedDriveDistance,
+              [SmartDriveData.Info.CoastDistanceName]: updatedCoastDistance
             },
             {
               [SmartDriveData.Info.IdName]: u.id
@@ -1500,7 +1547,13 @@ export class MainViewModel extends Observable {
           // this is the first record, so we create it
           return this._sqliteService.insertIntoTable(
             SmartDriveData.Info.TableName,
-            u
+            SmartDriveData.Info.newInfo(
+              undefined,
+              new Date(),
+              battery,
+              driveDistance,
+              coastDistance
+            )
           );
         }
       })
@@ -1508,6 +1561,7 @@ export class MainViewModel extends Observable {
         return this.updateChartData();
       })
       .catch(err => {
+        Log.E('Failed saving usage:', err);
         new Toasty(`Failed saving usage: ${err}`, ToastDuration.LONG)
           .setToastPosition(ToastPosition.CENTER)
           .show();
@@ -1549,7 +1603,7 @@ export class MainViewModel extends Observable {
           const objDate = new Date(obj.date);
           const index = closestIndexTo(objDate, dates);
           const usageDate = dates[index];
-          Log.D(index, objDate, usageDate, isSameDay(objDate, usageDate));
+          //Log.D('recent info:', o);
           if (index > -1 && isSameDay(objDate, usageDate)) {
             usageInfo[index] = obj;
           }
