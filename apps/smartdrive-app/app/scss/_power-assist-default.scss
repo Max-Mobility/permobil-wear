@@ -1,5 +1,10 @@
 @import 'variables';
 
+$sd-battery-color: #fbff22;
+$watch-battery-color: #ff671f;
+$sd-battery-rim: #696969;
+$watch-battery-rim: #696969;
+
 .batteryIconStack {
   background-color: $black;
 }
@@ -16,6 +21,8 @@
   fill-color: transparent;
   width: 90%;
   height: 90%;
+  bar-color: $sd-battery-color;
+  rim-color: red;
 }
 
 .watchBatteryCircle {
@@ -23,6 +30,8 @@
   fill-color: transparent;
   width: 80%;
   height: 80%;
+  bar-color: $watch-battery-color;
+  rim-color: red;
 }
 
 .topValue {

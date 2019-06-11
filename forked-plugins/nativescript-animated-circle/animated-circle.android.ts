@@ -1,4 +1,8 @@
-import { Common } from './animated-circle.common';
+import {
+  Common,
+  rimColorProperty,
+  barColorProperty
+} from './animated-circle.common';
 import { Color } from 'tns-core-modules/color';
 import { View } from 'tns-core-modules/ui/core/view';
 
@@ -26,7 +30,7 @@ export class AnimatedCircle extends Common {
   private _textSize = 28 * 10;
 
   clockwise = true;
-  barColor = '#3D8FF4';
+  private _barColor = '#3D8FF4';
   fillColor: any;
 
   constructor() {
@@ -144,13 +148,22 @@ export class AnimatedCircle extends Common {
     return this._maxValue;
   }
 
-  set rimColor(value: any) {
+  [rimColorProperty.setNative](value: any) {
     this._rimColor = value;
     this._updateAnimatedCircle();
   }
 
-  get rimColor() {
+  [rimColorProperty.getDefault]() {
     return this._rimColor;
+  }
+
+  [barColorProperty.setNative](value: any) {
+    this._barColor = value;
+    this._updateAnimatedCircle();
+  }
+
+  [barColorProperty.getDefault]() {
+    return this._barColor;
   }
 
   set rimWidth(value: number) {

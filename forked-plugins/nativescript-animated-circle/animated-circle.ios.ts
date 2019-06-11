@@ -52,23 +52,15 @@ export class AnimatedCircle extends Common {
   /**
    * The fill color of the percentage completed
    */
-  set barColor(value: string | UIColor) {
-    if (value instanceof UIColor) {
-      this._ios.progressColor = value;
-    } else if (typeof value === 'string') {
-      this._ios.progressColor = new Color(value).ios;
-    }
+  set barColor(value: string) {
+    this._ios.progressColor = new Color(value).ios;
   }
 
   /**
    * The "remaining" circle color
    */
-  set rimColor(value: string | UIColor) {
-    if (value instanceof UIColor) {
-      this._ios.alternativeColor = value;
-    } else if (typeof value === 'string') {
-      this._ios.alternativeColor = new Color(value).ios;
-    }
+  set rimColor(value: string) {
+    this._ios.alternativeColor = new Color(value).ios;
   }
 
   /**
