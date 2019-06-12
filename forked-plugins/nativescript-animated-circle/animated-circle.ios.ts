@@ -1,4 +1,8 @@
-import { Common } from './animated-circle.common';
+import {
+  Common,
+  rimColorProperty,
+  barColorProperty
+} from './animated-circle.common';
 import { Color } from 'tns-core-modules/color';
 import * as utils from 'tns-core-modules/utils/utils';
 
@@ -49,26 +53,31 @@ export class AnimatedCircle extends Common {
     this._ios.progressValue = Number(value / 100);
   }
 
-  /**
-   * The fill color of the percentage completed
-   */
-  set barColor(value: string | UIColor) {
-    if (value instanceof UIColor) {
-      this._ios.progressColor = value;
-    } else if (typeof value === 'string') {
-      this._ios.progressColor = new Color(value).ios;
-    }
+  get rimColor(): Color {
+    return this._ios.alternativeColor;
+  }
+  set rimColor(value: Color) {
+    this._ios.alternativeColor = value.ios;
+  }
+  get barColor(): Color {
+    return this._ios.progressColor;
+  }
+  set barColor(value: Color) {
+    this._ios.progressColor = value.ios;
   }
 
   /**
    * The "remaining" circle color
    */
-  set rimColor(value: string | UIColor) {
-    if (value instanceof UIColor) {
-      this._ios.alternativeColor = value;
-    } else if (typeof value === 'string') {
-      this._ios.alternativeColor = new Color(value).ios;
-    }
+  [rimColorProperty.setNative](value: any) {
+    this._ios.alternativeColor = value.ios;
+  }
+
+  /**
+   * The fill color of the percentage completed
+   */
+  [barColorProperty.setNative](value: any) {
+    this._ios.progressColor = value.ios;
   }
 
   /**

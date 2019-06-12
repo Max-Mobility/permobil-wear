@@ -15,10 +15,10 @@
           // Power Assist Circle
           <nac:AnimatedCircle id="powerAssistCircle" rowSpan="3" colSpan="3" class="powerAssistCircle" width="100%" height="100%" animated="true" animateFrom="0" rimColor="{{ powerAssistRingColor }}" barColor="{{ powerAssistRingColor }}" clockwise="true" rimWidth="12" progress="100" visibility="{{ (powerAssistActive || isTraining) ? 'visible' : 'collapsed' }}" loaded="{{ onPowerAssistCircleLoaded }}"/>
          // SmartDrive Battery Circle
-          <nac:AnimatedCircle id="smartDriveBatteryCircle" loaded="{{ onSmartDriveCircleLoaded }}" rowSpan="3" colSpan="3" class="sdBatteryCircle" width="90%" height="90%" animated="true" animateFrom="0" clockwise="true" rimColor="#696969" barColor="#fbff22" rimWidth="2" barWidth="8" progress="{{ smartDriveCurrentBatteryPercentage }}">
+          <nac:AnimatedCircle id="smartDriveBatteryCircle" loaded="{{ onSmartDriveCircleLoaded }}" rowSpan="3" colSpan="3" class="sdBatteryCircle" width="90%" height="90%" animated="true" animateFrom="0" clockwise="true" rimWidth="2" barWidth="8" progress="{{ smartDriveCurrentBatteryPercentage }}">
           </nac:AnimatedCircle>
          // Watch Battery Circle
-          <nac:AnimatedCircle id="watchBatteryCircle" loaded="{{ onWatchCircleLoaded }}" rowSpan="3" colSpan="3" class="watchBatteryCircle" width="84%" height="84%" animated="true" animateFrom="0" rimColor="#696969" barColor="#ff671f" clockwise="true" rimWidth="2" barWidth="8" progress="{{ watchCurrentBatteryPercentage }}">
+          <nac:AnimatedCircle id="watchBatteryCircle" loaded="{{ onWatchCircleLoaded }}" rowSpan="3" colSpan="3" class="watchBatteryCircle" width="84%" height="84%" animated="true" animateFrom="0" clockwise="true" rimWidth="2" barWidth="8" progress="{{ watchCurrentBatteryPercentage }}">
             <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
               <Label row="1" col="1" class="topValue" horizontalAlignment="center" text="{{ estimatedDistanceDisplay }}" textWrap="true" visibility="{{ motorOn ? 'collapsed' : 'visible' }}"/>
               <Label row="2" col="1" class="topValueDescription" text="{{ estimatedDistanceDescription }}" textWrap="true" visibility="{{ motorOn ? 'collapsed' : 'visible' }}"/>

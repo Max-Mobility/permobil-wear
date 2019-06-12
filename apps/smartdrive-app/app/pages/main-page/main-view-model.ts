@@ -52,21 +52,21 @@ import {
 } from '../../utils';
 
 namespace PowerAssist {
-  export const InactiveRingColor = '#000000';
+  export const InactiveRingColor = new Color('#000000');
   export const InactiveButtonColor = new Color('#2fa52f');
   export const InactiveButtonText = 'Activate Power Assist';
 
-  export const ActiveRingColor = '#009ac7';
+  export const ActiveRingColor = new Color('#009ac7');
   export const ActiveButtonColor = new Color('#a52f2f');
   export const ActiveButtonText = 'Deactivate Power Assist';
 
-  export const TrainingRingColor = '#2fa52f';
+  export const TrainingRingColor = new Color('#2fa52f');
   export const TrainingButtonColor = new Color('#2fa52f');
   export const TrainingButtonText = 'Exit Training Mode';
 
-  export const TappedRingColor = '#a52f2f';
-  export const ConnectedRingColor = '#009ac7';
-  export const DisconnectedRingColor = '#a52f2f';
+  export const TappedRingColor = new Color('#a52f2f');
+  export const ConnectedRingColor = new Color('#009ac7');
+  export const DisconnectedRingColor = new Color('#a52f2f');
 
   export enum State {
     Inactive,
@@ -147,7 +147,7 @@ export class MainViewModel extends Observable {
   @Prop() watchIsCharging: boolean = false;
   @Prop() powerAssistBtnText: string = PowerAssist.InactiveButtonText;
   @Prop() powerAssistBtnColor: Color = PowerAssist.InactiveButtonColor;
-  @Prop() powerAssistRingColor: string = PowerAssist.InactiveRingColor;
+  @Prop() powerAssistRingColor: Color = PowerAssist.InactiveRingColor;
   @Prop() estimatedDistance: number = 0.0;
   @Prop() estimatedDistanceDisplay: string = '0.0';
   @Prop() estimatedDistanceDescription: string = 'Estimated Range (mi)';
