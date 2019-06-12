@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+    "module": "commonjs",
+    "skipLibCheck": true,
+    "target": "es5",
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noEmitHelpers": true,
+    "noEmitOnError": false,
+    "declaration": false,
+    "lib": ["es6", "es2016", "dom"],
+    "baseUrl": "."
+    },
+	"files": [
+		"references.d.ts",
+		"./node_modules/tns-platform-declarations/ios.d.ts",
+		"./node_modules/tns-platform-declarations/android-27.d.ts",
+		"vibrate.common.ts",
+		"vibrate.ios.ts",
+		"vibrate.android.ts"
+	],
+    "exclude": [
+        "node_modules",
+		"platforms"
+    ],
+    "compileOnSave": false
+}

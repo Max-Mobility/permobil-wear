@@ -1,0 +1,43 @@
+{
+    "name": "nativescript-vibrate",
+    "version": "2.1.3",
+    "description": "A vibrate NativeScript plugin for Android and iOS",
+    "main": "vibrate",
+    "typings": "index.d.ts",
+    "nativescript": {
+        "platforms": {
+            "android": "5.4.0",
+            "ios": "5.4.0"
+        }
+    },
+    "scripts": {
+        "build": "tsc"
+    },
+    "keywords": [
+        "NativeScript",
+        "JavaScript",
+        "Android",
+        "iOS"
+    ],
+    "author": {
+        "name": "Julio Marquez",
+        "email": "j@bazzite.com"
+    },
+    "bugs": {
+        "url": "https://github.com/bazzite/nativescript-vibrate/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/bazzite/nativescript-vibrate.git"
+    },
+    "license": "MIT",
+    "homepage": "https://www.bazzite.com/docs/nativescript-vibrate",
+    "readmeFilename": "README.md",
+    "devDependencies": {
+        "tns-core-modules": "../../node_modules/tns-core-modules",
+        "tns-platform-declarations": "../../node_modules/tns-platform-declarations",
+        "typescript": "../../node_modules/typescript"
+    },
+    "dependencies": {},
+    "bootstrapper": "nativescript-plugin-seed"
+}

@@ -40,7 +40,7 @@
     "nativescript-theme-core": "../../node_modules/nativescript-theme-core",
     "nativescript-themes": "../../node_modules/nativescript-themes",
     "nativescript-toasty": "../../node_modules/nativescript-toasty",
-    "nativescript-vibrate": "../../node_modules/nativescript-vibrate",
+    "nativescript-vibrate": "file:../../forked-plugins/nativescript-vibrate",
     "nativescript-wear-os": "../../node_modules/nativescript-wear-os",
     "reflect-metadata": "../../node_modules/reflect-metadata",
     "smart-eval-kinvey": "file:../../node_modules/smart-eval-kinvey",
