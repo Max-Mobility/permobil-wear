@@ -15,6 +15,7 @@
     "// end Brad Section": "************************************************************************************************************",
     "tslint": "tslint -p tsconfig.json -c tslint.json",
     "scss-b": "node-sass --watch ./app/scss -o ./app/scss",
+    "scss": "node-sass ./app/scss -o ./app/scss",
     "release-build": "cd tools && node android-release.js"
   },
   "dependencies": {
