@@ -10,16 +10,16 @@ export declare class AnimatedCircle extends Common {
   private _animationDuration;
   private _animated;
   private _maxValue;
+  private _barColor;
+  private _barWidth;
   private _rimColor;
   private _rimWidth;
   private _spinBarColor;
-  private _barWidth;
   private _startAngle;
   private _text;
   private _textColor;
   private _textSize;
   clockwise: boolean;
-  private _barColor;
   fillColor: any;
   constructor();
   createNativeView(): globalAndroid.widget.RelativeLayout;

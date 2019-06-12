@@ -9,8 +9,8 @@ export declare class AnimatedCircle extends Common {
   onLayout(left: any, top: any, right: any, bottom: any): void;
   readonly ios: any;
   progress: number;
-  barColor: string;
-  rimColor: string;
+  barColor: any;
+  rimColor: any;
   clockwise: boolean;
   rimWidth: number;
   startAngle: number;

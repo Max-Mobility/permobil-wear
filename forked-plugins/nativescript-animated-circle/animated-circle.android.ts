@@ -20,17 +20,17 @@ export class AnimatedCircle extends Common {
   private _animationDuration = 1000;
   private _animated: boolean;
   private _maxValue = 100;
-  private _rimColor = '#FF5722';
+  private _barColor = new Color('#3D8FF4');
+  private _barWidth: number;
+  private _rimColor = new Color('#FF5722');
   private _rimWidth = 5;
   private _spinBarColor: any;
-  private _barWidth: number;
   private _startAngle: number;
   private _text = '';
   private _textColor = new Color('orange');
   private _textSize = 28 * 10;
 
   clockwise = true;
-  private _barColor = '#3D8FF4';
   fillColor: any;
 
   constructor() {
@@ -149,6 +149,7 @@ export class AnimatedCircle extends Common {
   }
 
   [rimColorProperty.setNative](value: any) {
+    console.log('set rim color', value);
     this._rimColor = value;
     this._updateAnimatedCircle();
   }
@@ -158,6 +159,7 @@ export class AnimatedCircle extends Common {
   }
 
   [barColorProperty.setNative](value: any) {
+    console.log('set bar color', value);
     this._barColor = value;
     this._updateAnimatedCircle();
   }
@@ -252,7 +254,7 @@ export class AnimatedCircle extends Common {
       }
       this.android.setMaxValue(this.maxValue);
       if (this.rimColor) {
-        this.android.setRimColor(new Color(this.rimColor).argb);
+        this.android.setRimColor(this.rimColor.argb);
       }
       if (this.spinBarColor) {
         this.android.setSpinBarColor(new Color(this.spinBarColor).argb);
@@ -271,7 +273,7 @@ export class AnimatedCircle extends Common {
         this.android.setRimWidth(this.rimWidth);
       }
       if (this.barColor) {
-        this.android.setBarColor([new Color(this.barColor).argb]);
+        this.android.setBarColor([this.barColor.argb]);
       }
       if (this.fillColor) {
         this.android.setFillCircleColor(new Color(this.fillColor).argb);
