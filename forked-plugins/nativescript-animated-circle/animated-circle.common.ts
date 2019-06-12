@@ -24,18 +24,6 @@ export class Common extends View {
   constructor() {
     super();
   }
-  get rimColor(): Color {
-    return this.style.rimColor;
-  }
-  set rimColor(value: Color) {
-    this.style.rimColor = value;
-  }
-  get barColor(): Color {
-    return this.style.barColor;
-  }
-  set barColor(value: Color) {
-    this.style.barColor = value;
-  }
 }
 // register after class definition or we'll get an exception according
 // to

@@ -8,8 +8,6 @@ export declare const rimColorProperty: InheritedCssProperty<Style, Color>;
 export declare const barColorProperty: InheritedCssProperty<Style, Color>;
 export declare class Common extends View {
   constructor();
-  rimColor: Color;
-  barColor: Color;
 }
 declare module 'tns-core-modules/ui/styling/style' {
   interface Style {

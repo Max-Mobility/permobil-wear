@@ -139,13 +139,17 @@ Page {
   background-color: transparent;
   fill-color: transparent;
   width: 90%;
-  height: 90%; }
+  height: 90%;
+  bar-color: #B9B9B9;
+  rim-color: #000000; }
 
 .watchBatteryCircle {
   background-color: transparent;
   fill-color: transparent;
   width: 80%;
-  height: 80%; }
+  height: 80%;
+  bar-color: #B9B9B9;
+  rim-color: #000000; }
 
 .topValue {
   color: #888888;

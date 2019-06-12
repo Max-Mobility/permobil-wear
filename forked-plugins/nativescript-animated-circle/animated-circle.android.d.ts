@@ -1,4 +1,5 @@
 import { Common } from './animated-circle.common';
+import { Color } from 'tns-core-modules/color';
 import { View } from 'tns-core-modules/ui/core/view';
 export declare class AnimatedCircle extends Common {
   private _android;
@@ -33,6 +34,8 @@ export declare class AnimatedCircle extends Common {
   animationDuration: number;
   animated: boolean;
   maxValue: number;
+  rimColor: Color;
+  barColor: Color;
   rimWidth: number;
   spinBarColor: any;
   startAngle: number;

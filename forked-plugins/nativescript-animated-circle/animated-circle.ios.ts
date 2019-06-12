@@ -53,6 +53,19 @@ export class AnimatedCircle extends Common {
     this._ios.progressValue = Number(value / 100);
   }
 
+  get rimColor(): Color {
+    return this._ios.alternativeColor;
+  }
+  set rimColor(value: Color) {
+    this._ios.alternativeColor = value.ios;
+  }
+  get barColor(): Color {
+    return this._ios.progressColor;
+  }
+  set barColor(value: Color) {
+    this._ios.progressColor = value.ios;
+  }
+
   /**
    * The "remaining" circle color
    */
