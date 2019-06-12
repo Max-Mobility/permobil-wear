@@ -24,21 +24,16 @@ export class Common extends View {
   constructor() {
     super();
   }
-
   get rimColor(): Color {
-    console.log('get rim color');
     return this.style.rimColor;
   }
   set rimColor(value: Color) {
-    console.log('set rim color', value);
     this.style.rimColor = value;
   }
   get barColor(): Color {
-    console.log('get bar color');
     return this.style.barColor;
   }
   set barColor(value: Color) {
-    console.log('set bar color', value);
     this.style.barColor = value;
   }
 }

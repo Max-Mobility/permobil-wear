@@ -149,7 +149,6 @@ export class AnimatedCircle extends Common {
   }
 
   [rimColorProperty.setNative](value: any) {
-    console.log('set rim color', value);
     this._rimColor = value;
     this._updateAnimatedCircle();
   }
@@ -159,7 +158,6 @@ export class AnimatedCircle extends Common {
   }
 
   [barColorProperty.setNative](value: any) {
-    console.log('set bar color', value);
     this._barColor = value;
     this._updateAnimatedCircle();
   }
@@ -253,6 +251,7 @@ export class AnimatedCircle extends Common {
         this.android.setValue(this.progress);
       }
       this.android.setMaxValue(this.maxValue);
+      console.log('rim color', this.rimColor);
       if (this.rimColor) {
         this.android.setRimColor(this.rimColor.argb);
       }
@@ -272,6 +271,7 @@ export class AnimatedCircle extends Common {
       if (this.rimWidth) {
         this.android.setRimWidth(this.rimWidth);
       }
+      console.log('bar color', this.barColor);
       if (this.barColor) {
         this.android.setBarColor([this.barColor.argb]);
       }

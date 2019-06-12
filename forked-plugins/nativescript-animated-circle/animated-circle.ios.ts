@@ -1,4 +1,8 @@
-import { Common } from './animated-circle.common';
+import {
+  Common,
+  rimColorProperty,
+  barColorProperty
+} from './animated-circle.common';
 import { Color } from 'tns-core-modules/color';
 import * as utils from 'tns-core-modules/utils/utils';
 
@@ -50,17 +54,17 @@ export class AnimatedCircle extends Common {
   }
 
   /**
-   * The fill color of the percentage completed
+   * The "remaining" circle color
    */
-  set barColor(value: any) {
-    this._ios.progressColor = value.ios;
+  [rimColorProperty.setNative](value: any) {
+    this._ios.alternativeColor = value.ios;
   }
 
   /**
-   * The "remaining" circle color
+   * The fill color of the percentage completed
    */
-  set rimColor(value: any) {
-    this._ios.alternativeColor = value.ios;
+  [barColorProperty.setNative](value: any) {
+    this._ios.progressColor = value.ios;
   }
 
   /**
