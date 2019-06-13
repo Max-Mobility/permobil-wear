@@ -107,11 +107,13 @@ hooks
 node_modules
 *~
 package-lock.json
+*.css
 *.js
 **/*.js
 .DS_Store
 **/platforms/
 /**/platforms/
+**/*.d.ts
 
 # Dont exclude
 !apps/smartdrive-app/app/typings
@@ -120,9 +122,6 @@ package-lock.json
 !libs/core/packet/packet_bindings.js
 !**/webpack.config.js
 !sketch_running_on_nrf52_neopixel.js
-
-!ns-themes/**.js
-
 !forked-plugins/nativescript-animated-circle/platforms
 !forked-plugins/nativescript-animated-circle/typings
-*.css
+

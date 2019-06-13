@@ -1,6 +1,5 @@
 ﻿import { Sentry } from 'nativescript-sentry';
 import * as application from 'tns-core-modules/application';
-import './utils/async-await';
 
 console.time('App_Start_Time');
 
