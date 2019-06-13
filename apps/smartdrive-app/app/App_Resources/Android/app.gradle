@@ -12,8 +12,8 @@ android {
     applicationId = "com.permobil.smartdrive.wearos"
     minSdkVersion 26 // WearOS 2.0 minimum SDK is 25 - https://developer.android.com/training/wearables/apps/packaging.html
     targetSdkVersion 28
-    versionCode 10002
-    versionName "0.1.0"
+    versionCode 10003
+    versionName "0.2.0"
   }  
   aaptOptions {  
     additionalParameters "--no-version-vectors"  
