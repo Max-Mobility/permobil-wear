@@ -43,7 +43,7 @@
     "lodash": "~4.17.11",
     "nativescript-android-sensors": "~1.4.2",
     "nativescript-gif": "~4.0.2",
-    "nativescript-insomnia": "^1.2.2",
+    "nativescript-insomnia": "~1.2.3",
     "nativescript-localstorage": "~2.0.0",
     "nativescript-lottie": "~3.0.2",
     "nativescript-ng-ripple": "~3.0.0-beta.1",
