@@ -599,6 +599,7 @@ export class MainViewModel extends Observable {
   }
 
   onTrainingTap() {
+    keepAwake();
     this.isTraining = true;
     this.powerAssistState = PowerAssist.State.Training;
     this.updatePowerAssistRing();
@@ -606,6 +607,7 @@ export class MainViewModel extends Observable {
   }
 
   onExitTrainingModeTap() {
+    allowSleepAgain();
     this.isTraining = false;
     this.powerAssistState = PowerAssist.State.Inactive;
     this.updatePowerAssistRing();
