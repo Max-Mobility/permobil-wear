@@ -10,14 +10,7 @@ import {
   SmartDrive,
   SqliteService
 } from '@permobil/core';
-import {
-  closestIndexTo,
-  eachDay,
-  format,
-  isSameDay,
-  isToday,
-  subDays
-} from 'date-fns';
+import { closestIndexTo, format, isSameDay, isToday, subDays } from 'date-fns';
 import { ReflectiveInjector } from 'injection-js';
 import clamp from 'lodash/clamp';
 import last from 'lodash/last';
@@ -43,6 +36,7 @@ import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
 import { Page, View } from 'tns-core-modules/ui/page';
 import { Repeater } from 'tns-core-modules/ui/repeater';
+import { PowerAssist, SmartDriveData } from '../../namespaces';
 import {
   currentSystemTime,
   currentSystemTimeMeridiem,
@@ -53,96 +47,6 @@ import {
 const ambientTheme = require('../../scss/theme-ambient.scss').toString();
 const defaultTheme = require('../../scss/theme-default.scss').toString();
 const retroTheme = require('../../scss/theme-retro.scss').toString();
-
-namespace PowerAssist {
-  export const InactiveRingColor = new Color('#000000');
-  export const InactiveButtonColor = new Color('#2fa52f');
-  export const InactiveButtonText = 'Activate Power Assist';
-
-  export const ActiveRingColor = new Color('#006ea4');
-  export const ActiveButtonColor = new Color('#a52f2f');
-  export const ActiveButtonText = 'Deactivate Power Assist';
-
-  export const TrainingRingColor = new Color('#2fa52f');
-  export const TrainingButtonColor = new Color('#2fa52f');
-  export const TrainingButtonText = 'Exit Training Mode';
-
-  export const TappedRingColor = new Color('#a52f2f');
-  export const ConnectedRingColor = new Color('#006ea4');
-  export const DisconnectedRingColor = new Color('#a52f2f');
-
-  export enum State {
-    Inactive,
-    Disconnected,
-    Connected,
-    Training
-  }
-}
-
-namespace SmartDriveData {
-  export namespace Info {
-    export const TableName = 'SmartDriveInfo';
-    export const IdName = 'id';
-    export const DateName = 'date';
-    export const BatteryName = 'battery';
-    export const DriveDistanceName = 'drive_distance';
-    export const CoastDistanceName = 'coast_distance';
-    export const Fields = [
-      DateName,
-      BatteryName,
-      DriveDistanceName,
-      CoastDistanceName
-    ];
-
-    export function getDateValue(date: any) {
-      return format(date, 'YYYY/MM/DD');
-    }
-
-    export function getPastDates(numDates: number) {
-      const now = new Date();
-      return eachDay(subDays(now, numDates), now);
-    }
-
-    export function newInfo(
-      id: number,
-      date: any,
-      battery: number,
-      drive: number,
-      coast: number
-    ) {
-      return {
-        [SmartDriveData.Info.IdName]: id,
-        [SmartDriveData.Info.DateName]: SmartDriveData.Info.getDateValue(date),
-        [SmartDriveData.Info.BatteryName]: +battery,
-        [SmartDriveData.Info.DriveDistanceName]: +drive,
-        [SmartDriveData.Info.CoastDistanceName]: +coast
-      };
-    }
-  }
-
-  export namespace Errors {
-    export const TableName = 'SmartDriveErrors';
-    export const IdName = 'id';
-    export const TimestampName = 'timestamp';
-    export const ErrorCodeName = 'error_code';
-    export const ErrorIdName = 'error_id';
-    export const Fields = [TimestampName, ErrorCodeName, ErrorIdName];
-
-    export function getTimestamp() {
-      // 'x' is Milliseconds timetsamp format
-      return format(new Date(), 'x');
-    }
-
-    export function newError(errorType: number, errorId: number) {
-      return {
-        [SmartDriveData.Errors
-          .TimestampName]: SmartDriveData.Errors.getTimestamp(),
-        [SmartDriveData.Errors.ErrorCodeName]: errorType,
-        [SmartDriveData.Errors.ErrorIdName]: errorId
-      };
-    }
-  }
-}
 
 export class MainViewModel extends Observable {
   @Prop() smartDriveCurrentBatteryPercentage: number = 0;
