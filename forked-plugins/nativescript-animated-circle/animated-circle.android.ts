@@ -78,6 +78,24 @@ export class AnimatedCircle extends Common {
     super.disposeNativeView();
   }
 
+  get _childrenCount(): number {
+    return this.content ? 1 : 0;
+  }
+  _onContentChanged(oldView: View, newView: View) {
+    //
+  }
+  _addChildFromBuilder(name: string, value: any) {
+    if (value instanceof View) {
+      this.content = value;
+    }
+  }
+  public eachChildView(callback: (child: View) => boolean) {
+    const content = this.content;
+    if (content) {
+      callback(content);
+    }
+  }
+
   onLoaded(): void {
     super.onLoaded();
     if (this._childViews && this._childViews.size) {
@@ -87,15 +105,6 @@ export class AnimatedCircle extends Common {
           this._layout.addView(value.nativeView);
         }
       });
-    }
-  }
-
-  _addChildFromBuilder(name: string, value: View): void {
-    if (!this._childViews) {
-      this._childViews = new Map<number, View>();
-    }
-    if (!value.parent) {
-      this._childViews.set(value._domId, value);
     }
   }
 
