@@ -1,0 +1,12 @@
+@import 'variables';
+
+label {
+  color: $ambient-white;
+}
+
+.hr-blue {
+  background-color: $ambient-white;
+  width: 100%;
+  height: 2;
+  margin: 0;
+}

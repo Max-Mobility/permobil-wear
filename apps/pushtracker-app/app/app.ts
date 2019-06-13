@@ -1,14 +1,24 @@
-/*
-In NativeScript, the app.ts file is the entry point to your application.
-You can use this file to perform app-level initialization, but the primary
-purpose of the file is to pass control to the app’s first module.
-*/
-
+import { Sentry } from 'nativescript-sentry';
 import * as application from 'tns-core-modules/application';
 
-application.run({ moduleName: 'app-root' });
+console.time('App_Start_Time');
 
-/*
-Do not place any code after the application has been started as it will not
-be executed on iOS.
-*/
+// setup application level events
+application.on(
+    application.uncaughtErrorEvent,
+    (args: application.UnhandledErrorEventData) => {
+        Sentry.captureException(args.error);
+    }
+);
+
+application.on(
+    application.discardedErrorEvent,
+    (args: application.DiscardedErrorEventData) => {
+        Sentry.captureException(args.error);
+    }
+);
+
+console.timeEnd('App_Start_Time');
+
+// start the app
+application.run({ moduleName: 'app-root' });
