@@ -11,18 +11,6 @@ $deactivated-color: #B9B9B9;
 $disconnected-color: #B9B9B9;
 $training-color: #B9B9B9;
 
-.activated {
-	background-color: $black;
-}
-
-.deactivated {
-	background-color: $black;
-}
-
-.training {
-	background-color: $black;
-}
-
 .batteryIconStack {
   background-color: transparent;
 }
@@ -66,10 +54,13 @@ $training-color: #B9B9B9;
   vertical-align: top;
 }
 
-.powerAssistBtn {
+
+.powerAssist-active,
+.powerAssist-deactive,
+.powerAssist-training {
+    @extend .power-assist-btn;
   color: $ambient-white;
-  horizontal-align: $center;
-  vertical-align: center;
+  background-color: $black;
 }
 
 .currentTime {

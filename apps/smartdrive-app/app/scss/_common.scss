@@ -14,12 +14,12 @@ Page {
 }
 
 /** Buttons **/
-.btn-transparent {
-  background-color: transparent;
-  border-color: transparent;
-  border-width: 1;
-  android-elevation: 0;
-  android-dynamic-elevation-offset: 2;
+.power-assist-btn {
+	border-radius: 50%;
+	width: 100%;
+	height: 40%;
+  horizontal-align: $center;
+  vertical-align: center;
 }
 
 .circle-image-btn {
@@ -56,6 +56,5 @@ Page {
 
 /** Battery Icon on Main page for Power Assist **/
 .batteryIcon {
-  border-radius: 9;
   background-color: $black;
 }

@@ -51,6 +51,10 @@ import {
   showOffScreenLayout
 } from '../../utils';
 
+const ambientTheme = require('../../scss/theme-ambient.scss').toString();
+const defaultTheme = require('../../scss/theme-default.scss').toString();
+const retroTheme = require('../../scss/theme-retro.scss').toString();
+
 namespace PowerAssist {
   export const InactiveRingColor = new Color('#000000');
   export const InactiveButtonColor = new Color('#2fa52f');
@@ -266,10 +270,7 @@ export class MainViewModel extends Observable {
     // handle ambient mode callbacks
     application.on('enterAmbient', args => {
       Log.D('*** enterAmbient ***');
-      themes.applyThemeCss(
-        require('../../scss/theme-ambient.css').toString(),
-        '../../scss/theme-ambient.css'
-      );
+      themes.applyThemeCss(ambientTheme, 'theme-ambient.scss');
 
       if (this.pager) {
         const children = this.pager._childrenViews;
@@ -283,10 +284,7 @@ export class MainViewModel extends Observable {
     // handle ambient mode callbacks
     application.on('exitAmbient', args => {
       Log.D('*** exitAmbient ***');
-      themes.applyThemeCss(
-        require('../../scss/theme-default.css').toString(),
-        '../../scss/theme-default.css'
-      );
+      themes.applyThemeCss(defaultTheme, 'theme-default.scss');
 
       if (this.pager) {
         const children = this.pager._childrenViews;
@@ -516,7 +514,7 @@ export class MainViewModel extends Observable {
   }
 
   onAppDisplayed(args?: any) {
-    Log.D('App displayed', args);
+    Log.D('App displayed');
   }
 
   onAppLowMemory(args?: any) {
