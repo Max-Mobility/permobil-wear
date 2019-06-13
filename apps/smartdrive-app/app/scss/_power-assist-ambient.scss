@@ -1,9 +1,27 @@
 @import 'variables';
 
 $sd-battery-color: #B9B9B9;
-$sd-battery-rim-color: #000000;
+$sd-battery-rim-color: $black;
 $watch-battery-color: #B9B9B9;
-$watch-battery-rim-color: #000000;
+$watch-battery-rim-color: $black;
+
+$connected-color: #B9B9B9;
+$activated-color: #B9B9B9;
+$deactivated-color: #B9B9B9;
+$disconnected-color: #B9B9B9;
+$training-color: #B9B9B9;
+
+.activated {
+	background-color: $black;
+}
+
+.deactivated {
+	background-color: $black;
+}
+
+.training {
+	background-color: $black;
+}
 
 .batteryIconStack {
   background-color: transparent;
@@ -49,7 +67,6 @@ $watch-battery-rim-color: #000000;
 }
 
 .powerAssistBtn {
-  background-color: $black;
   color: $ambient-white;
   horizontal-align: $center;
   vertical-align: center;

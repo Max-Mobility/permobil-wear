@@ -8,27 +8,76 @@
   xmlns:RL="nativescript-ng-ripple/ripple-view" navigatingTo="navigatingTo" actionBarHidden="true">
   <GridLayout rows="*, *" columns="*">
 
-    <pager:Pager loaded="{{ onPagerLoaded }}" orientation="vertical" height="100%" width="100%" col="0" row="0" rowSpan="2" id="pager" transformer="none" pagesCount="4" showNativePageIndicator="false" disableSwipe="{{ powerAssistActive || isTraining }}" visibility="{{ isChangeSettingsLayoutEnabled ? 'collapsed' : 'visible' }}">
+    <pager:Pager loaded="{{ onPagerLoaded }}" orientation="vertical" height="100%" width="100%" col="0" row="0" rowSpan="2" id="pager" transformer="none" pagesCount="4" showNativePageIndicator="false" disableSwipe="{{ powerAssistActive || isTraining }}" visibility="{{ isChangeSettingsLayoutEnabled ? 'collapsed':'visible' }}">
       // Activate Power Assist Screen
       <pager:PagerItem>
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
           // Power Assist Circle
-          <nac:AnimatedCircle id="powerAssistCircle" rowSpan="3" colSpan="3" class="powerAssistCircle" width="100%" height="100%" animated="true" animateFrom="0" rimColor="{{ powerAssistRingColor }}" barColor="{{ powerAssistRingColor }}" clockwise="true" rimWidth="12" progress="100" visibility="{{ (powerAssistActive || isTraining) ? 'visible' : 'collapsed' }}" loaded="{{ onPowerAssistCircleLoaded }}"/>
+          <nac:AnimatedCircle id="powerAssistCircle"  loaded="{{ onPowerAssistCircleLoaded }}"
+							  rowSpan="3" colSpan="3"
+							  class="powerAssistCircle"
+							  width="100%" height="100%"
+							  animated="true" animateFrom="0"
+							  rimColor="{{ powerAssistRingColor }}"
+							  barColor="{{ powerAssistRingColor }}"
+							  clockwise="true" rimWidth="12" progress="100"
+							  visibility="{{ (powerAssistActive || isTraining) ? 'visible':'collapsed' }}">
+          </nac:AnimatedCircle>
          // SmartDrive Battery Circle
-          <nac:AnimatedCircle id="smartDriveBatteryCircle" loaded="{{ onSmartDriveCircleLoaded }}" rowSpan="3" colSpan="3" class="sdBatteryCircle" width="90%" height="90%" animated="true" animateFrom="0" clockwise="true" rimWidth="2" barWidth="8" progress="{{ smartDriveCurrentBatteryPercentage }}">
+         <nac:AnimatedCircle id="smartDriveBatteryCircle" loaded="{{ onSmartDriveCircleLoaded }}"
+							 rowSpan="3" colSpan="3"
+							 class="sdBatteryCircle"
+							 width="90%" height="90%"
+							 animated="true" animateFrom="0" clockwise="true"
+							 rimWidth="2" barWidth="8"
+							 progress="{{ smartDriveCurrentBatteryPercentage }}">
           </nac:AnimatedCircle>
          // Watch Battery Circle
-          <nac:AnimatedCircle id="watchBatteryCircle" loaded="{{ onWatchCircleLoaded }}" rowSpan="3" colSpan="3" class="watchBatteryCircle" width="84%" height="84%" animated="true" animateFrom="0" clockwise="true" rimWidth="2" barWidth="8" progress="{{ watchCurrentBatteryPercentage }}">
+         <nac:AnimatedCircle id="watchBatteryCircle" loaded="{{ onWatchCircleLoaded }}"
+							 rowSpan="3" colSpan="3"
+							 class="watchBatteryCircle"
+							 width="84%" height="84%"
+							 animated="true" animateFrom="0" clockwise="true"
+							 rimWidth="2" barWidth="8"
+							 progress="{{ watchCurrentBatteryPercentage }}">
             <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
-              <Label row="1" col="1" class="topValue" horizontalAlignment="center" text="{{ estimatedDistanceDisplay }}" textWrap="true" visibility="{{ motorOn ? 'collapsed' : 'visible' }}"/>
-              <Label row="2" col="1" class="topValueDescription" text="{{ estimatedDistanceDescription }}" textWrap="true" visibility="{{ motorOn ? 'collapsed' : 'visible' }}"/>
-              <Label row="1" col="1" class="topValue" horizontalAlignment="center" text="{{ currentSpeedDisplay }}" textWrap="true" visibility="{{ motorOn ? 'visible' : 'collapsed' }}"/>
-              <Label row="2" col="1" class="topValueDescription" text="{{ currentSpeedDescription }}" textWrap="true" visibility="{{ motorOn ? 'visible' : 'collapsed' }}"/>
-              <Button row="3" col="1" class="powerAssistBtn" width="100%" height="40%" borderRadius="50%" backgroundColor="{{ powerAssistBtnColor }}" text="{{ powerAssistBtnText }}" tap="{{ activatePowerAssistTap }}" visibility="{{ (!isTraining && !motorOn) ? 'visible' : 'collapsed' }}"/>
-              <Button row="3" col="1" class="powerAssistBtn" width="100%" height="40%" borderRadius="50%" backgroundColor="#a52f2f" text="STOP" tap="{{ stopSmartDrive }}" visibility="{{ motorOn ? 'visible' : 'collapsed' }}"/>
-              <Button row="3" col="1" class="powerAssistBtn" width="100%" height="40%" borderRadius="50%" backgroundColor="#2fa52f" text="Exit Training Mode" tap="{{ onExitTrainingModeTap }}" visibility="{{ isTraining ? 'visible' : 'collapsed' }}" />
-              <Label row="4" col="1" class="currentTime" text="{{ currentTime }}" textWrap="true" />
-              <Label row="5" col="1" class="currentTimeMeridiem" text="{{ currentTimeMeridiem }}" textWrap="true" />
+              <Label row="1" col="1" class="topValue" horizontalAlignment="center" textWrap="true"
+					 text="{{ estimatedDistanceDisplay }}"
+					 visibility="{{ motorOn ? 'collapsed':'visible' }}"/>
+              <Label row="2" col="1" class="topValueDescription" textWrap="true"
+					 text="{{ estimatedDistanceDescription }}"
+					 visibility="{{ motorOn ? 'collapsed':'visible' }}"/>
+              <Label row="1" col="1" class="topValue" horizontalAlignment="center" textWrap="true"
+					 text="{{ currentSpeedDisplay }}"
+					 visibility="{{ motorOn ? 'visible':'collapsed' }}"/>
+              <Label row="2" col="1" class="topValueDescription" textWrap="true"
+					 text="{{ currentSpeedDescription }}"
+					 visibility="{{ motorOn ? 'visible':'collapsed' }}"/>
+              <Button row="3" col="1" class="deactivated powerAssistBtn"
+					  width="100%" height="40%" borderRadius="50%"
+					  text="Activate Power Assist"
+					  tap="{{ enablePowerAssist }}"
+					  visibility="{{ (!powerAssistActive && !isTraining) ? 'visible':'collapsed' }}"/>
+              <Button row="3" col="1" class="activated powerAssistBtn"
+					  width="100%" height="40%" borderRadius="50%"
+					  text="Deactivate Power Assist"
+					  tap="{{ disablePowerAssist }}"
+					  visibility="{{ (powerAssistActive && !motorOn) ? 'visible':'collapsed' }}"/>
+              <Button row="3" col="1" class="activated powerAssistBtn"
+					  width="100%" height="40%" borderRadius="50%"
+					  backgroundColor="#a52f2f"
+					  text="STOP"
+					  tap="{{ stopSmartDrive }}"
+					  visibility="{{ motorOn ? 'visible':'collapsed' }}"/>
+              <Button row="3" col="1" class="training powerAssistBtn"
+					  width="100%" height="40%" borderRadius="50%"
+					  text="Exit Training Mode"
+					  tap="{{ onExitTrainingModeTap }}"
+					  visibility="{{ isTraining ? 'visible':'collapsed' }}" />
+              <Label row="4" col="1" class="currentTime"
+					 text="{{ currentTime }}" textWrap="true" />
+              <Label row="5" col="1" class="currentTimeMeridiem"
+					 text="{{ currentTimeMeridiem }}" textWrap="true" />
             </GridLayout>
           </nac:AnimatedCircle>
 
@@ -122,7 +171,7 @@
     </pager:Pager>
 
     // Settings Layout "Page" -- need to wrap this in a component
-    <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled && !isChangeSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
+    <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isSettingsLayoutEnabled && !isChangeSettingsLayoutEnabled ? 'visible':'collapsed' }}">
       <wol:WearOsLayout height="100%" width="100%">
         <ScrollView height="100%">
           <GridLayout rows="*,*,*,*,*,*,*" columns="*">
@@ -174,7 +223,7 @@
     </sdl:SwipeDismissLayout>
 
     // Settings Layout "Page" -- need to wrap this in a component
-    <sdl:SwipeDismissLayout id="changeSettingsPage" row="0" rowSpan="2" col="0" height="100%" width="100%" loaded="{{ onChangeSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isChangeSettingsLayoutEnabled ? 'visible' : 'collapsed' }}">
+    <sdl:SwipeDismissLayout id="changeSettingsPage" row="0" rowSpan="2" col="0" height="100%" width="100%" loaded="{{ onChangeSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isChangeSettingsLayoutEnabled ? 'visible':'collapsed' }}">
       <GridLayout rows="auto, *, auto" columns="auto, *, auto" width="100%" height="100%">     
         // Increase the config value
         <RL:Ripple row="0" col="1" rippleColor="#ddd" class="increase-btn">
@@ -208,7 +257,7 @@
     </sdl:SwipeDismissLayout>
 
 	// Error History "Page" -- need to wrap this in a component
-    <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onErrorHistoryLayoutLoaded }}" class="page" translateX="500" visibility="{{ isErrorHistoryLayoutEnabled ? 'visible' : 'collapsed' }}">
+    <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onErrorHistoryLayoutLoaded }}" class="page" translateX="500" visibility="{{ isErrorHistoryLayoutEnabled ? 'visible':'collapsed' }}">
       <wol:WearOsLayout height="100%" width="100%">
         <ScrollView>
           <StackLayout>

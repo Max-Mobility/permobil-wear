@@ -5,6 +5,24 @@ $sd-battery-rim-color: #696969;
 $watch-battery-color: #009ac7;
 $watch-battery-rim-color: #696969;
 
+$connected-color: #006ea4;
+$activated-color: #a52f2f;
+$deactivated-color: #2fa52f;
+$disconnected-color: #a52f2f;
+$training-color: #2fa52f;
+
+.activated {
+	background-color: $activated-color;
+}
+
+.deactivated {
+	background-color: $activated-color;
+}
+
+.training {
+	background-color: $training-color;
+}
+
 .batteryIconStack {
   background-color: $black;
 }
@@ -49,7 +67,6 @@ $watch-battery-rim-color: #696969;
 }
 
 .powerAssistBtn {
-  background-color: #2fa52f;
   color: $white;
   horizontal-align: $center;
   vertical-align: center;
