@@ -189,8 +189,6 @@ export class MainViewModel extends Observable {
       Log.D('*** exitAmbient ***');
       themes.applyThemeCss(defaultTheme, 'theme-default.scss');
 
-      // themes.applyTheme('../../scss/theme-default.css');
-
       if (this.pager) {
         const children = this.pager._childrenViews;
         for (let i = 0; i < children.size; i++) {
