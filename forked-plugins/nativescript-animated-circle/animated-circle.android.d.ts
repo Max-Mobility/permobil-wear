@@ -26,8 +26,11 @@ export declare class AnimatedCircle extends Common {
   createNativeView(): globalAndroid.widget.RelativeLayout;
   initNativeView(): void;
   disposeNativeView(): void;
+  readonly _childrenCount: number;
+  _onContentChanged(oldView: View, newView: View): void;
+  _addChildFromBuilder(name: string, value: any): void;
+  eachChildView(callback: (child: View) => boolean): void;
   onLoaded(): void;
-  _addChildFromBuilder(name: string, value: View): void;
   readonly android: any;
   progress: number;
   animateFrom: number;

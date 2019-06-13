@@ -20,7 +20,7 @@ export const barColorProperty = new InheritedCssProperty<Style, Color>({
   valueConverter: value => new Color(value)
 });
 
-export class Common extends View {
+export class Common extends ContentView {
   constructor() {
     super();
   }

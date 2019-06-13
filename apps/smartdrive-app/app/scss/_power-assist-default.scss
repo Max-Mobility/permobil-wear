@@ -57,13 +57,13 @@ $training-color: #2fa52f;
 .powerAssist-active {
     @extend .power-assist-btn;
   color: $white;
-  color: $activated-color;
+  background-color: $activated-color;
 }
 
 .powerAssist-deactive {
     @extend .power-assist-btn;
   color: $white;
-  color: $deactivated-color;
+  background-color: $deactivated-color;
 }
 
 .powerAssist-training {
