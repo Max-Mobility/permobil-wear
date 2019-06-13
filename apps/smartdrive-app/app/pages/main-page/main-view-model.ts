@@ -23,7 +23,6 @@ import clamp from 'lodash/clamp';
 import last from 'lodash/last';
 import once from 'lodash/once';
 import throttle from 'lodash/throttle';
-import { SensorDelay } from 'nativescript-android-sensors';
 import { AnimatedCircle } from 'nativescript-animated-circle';
 import { allowSleepAgain, keepAwake } from 'nativescript-insomnia';
 import { Pager } from 'nativescript-pager';
@@ -286,6 +285,8 @@ export class MainViewModel extends Observable {
       Log.D('*** exitAmbient ***');
       themes.applyThemeCss(defaultTheme, 'theme-default.scss');
 
+      // themes.applyTheme('../../scss/theme-default.css');
+
       if (this.pager) {
         const children = this.pager._childrenViews;
         for (let i = 0; i < children.size; i++) {
@@ -346,8 +347,10 @@ export class MainViewModel extends Observable {
     );
 
     // register for watch battery updates
-    // use tns-platform-dclarations to access native APIs (e.g. android.content.Intent)
-    const batteryReceiverCallback = (androidContext, intent) => {
+    const batteryReceiverCallback = (
+      androidContext: android.content.Context,
+      intent: android.content.Intent
+    ) => {
       // get the info from the event
       const level = intent.getIntExtra(
         android.os.BatteryManager.EXTRA_LEVEL,
