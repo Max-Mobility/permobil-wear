@@ -113,7 +113,6 @@ package-lock.json
 .DS_Store
 **/platforms/
 /**/platforms/
-**/*.d.ts
 
 # Dont exclude
 !apps/smartdrive-app/app/typings
