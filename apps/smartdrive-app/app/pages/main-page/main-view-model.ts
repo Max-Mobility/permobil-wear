@@ -56,18 +56,11 @@ const retroTheme = require('../../scss/theme-retro.scss').toString();
 
 namespace PowerAssist {
   export const InactiveRingColor = new Color('#000000');
-  export const InactiveButtonColor = new Color('#2fa52f');
-  export const InactiveButtonText = 'Activate Power Assist';
 
   export const ActiveRingColor = new Color('#006ea4');
-  export const ActiveButtonColor = new Color('#a52f2f');
-  export const ActiveButtonText = 'Deactivate Power Assist';
 
   export const TrainingRingColor = new Color('#2fa52f');
-  export const TrainingButtonColor = new Color('#2fa52f');
-  export const TrainingButtonText = 'Exit Training Mode';
 
-  export const TappedRingColor = new Color('#a52f2f');
   export const ConnectedRingColor = new Color('#006ea4');
   export const DisconnectedRingColor = new Color('#a52f2f');
 
@@ -148,8 +141,6 @@ export class MainViewModel extends Observable {
   @Prop() smartDriveCurrentBatteryPercentage: number = 0;
   @Prop() watchCurrentBatteryPercentage: number = 0;
   @Prop() watchIsCharging: boolean = false;
-  @Prop() powerAssistBtnText: string = PowerAssist.InactiveButtonText;
-  @Prop() powerAssistBtnColor: Color = PowerAssist.InactiveButtonColor;
   @Prop() powerAssistRingColor: Color = PowerAssist.InactiveRingColor;
   @Prop() estimatedDistance: number = 0.0;
   @Prop() estimatedDistanceDisplay: string = '0.0';
@@ -198,6 +189,11 @@ export class MainViewModel extends Observable {
    * Boolean to track if the SmartDrive motor is on.
    */
   @Prop() public motorOn = false;
+
+  /**
+   * Boolean to track if the user has tapped (for indication).
+   */
+  @Prop() public hasTapped = false;
 
   /**
    * Data to bind to the Battery Usage Chart repeater.
@@ -249,6 +245,7 @@ export class MainViewModel extends Observable {
    */
   private pager: Pager;
   private powerAssistRing: AnimatedCircle;
+  private tapRing: AnimatedCircle;
   private watchBatteryRing: AnimatedCircle;
   private smartDriveBatteryRing: AnimatedCircle;
   private _settingsLayout: SwipeDismissLayout;
@@ -558,6 +555,13 @@ export class MainViewModel extends Observable {
     (this.powerAssistRing as any).android.setInnerContourSize(0);
   }
 
+  onTapCircleLoaded(args: any) {
+    const page = args.object as Page;
+    this.tapRing = page.getViewById('tapCircle') as AnimatedCircle;
+    (this.tapRing as any).android.setOuterContourSize(0);
+    (this.tapRing as any).android.setInnerContourSize(0);
+  }
+
   onSmartDriveCircleLoaded(args: any) {
     const page = args.object as Page;
     this.smartDriveBatteryRing = page.getViewById(
@@ -615,10 +619,10 @@ export class MainViewModel extends Observable {
   }
 
   handleTap(timestamp: number) {
-    this.updatePowerAssistRing(PowerAssist.TappedRingColor);
+    this.hasTapped = true;
     // timeout for updating the power assist ring
     setTimeout(() => {
-      this.updatePowerAssistRing();
+      this.hasTapped = false;
     }, this.tapLockoutTimeMs / 2);
     // now send
     if (
@@ -995,32 +999,6 @@ export class MainViewModel extends Observable {
           break;
       }
     }
-    /*
-    if (this.powerAssistRing) {
-      (this.powerAssistRing as any).animate({
-        backgroundColor: this.powerAssistRingColor,
-        duration: 200
-      });
-    }
-	  */
-  }
-
-  updatePowerAssistButton() {
-    switch (this.powerAssistState) {
-      case PowerAssist.State.Connected:
-      case PowerAssist.State.Disconnected:
-        this.powerAssistBtnText = PowerAssist.ActiveButtonText;
-        this.powerAssistBtnColor = PowerAssist.ActiveButtonColor;
-        break;
-      case PowerAssist.State.Inactive:
-        this.powerAssistBtnText = PowerAssist.InactiveButtonText;
-        this.powerAssistBtnColor = PowerAssist.InactiveButtonColor;
-        break;
-      case PowerAssist.State.Training:
-        this.powerAssistBtnText = PowerAssist.TrainingButtonText;
-        this.powerAssistBtnColor = PowerAssist.TrainingButtonColor;
-        break;
-    }
   }
 
   blinkPowerAssistRing() {
@@ -1051,7 +1029,6 @@ export class MainViewModel extends Observable {
     this.powerAssistState = PowerAssist.State.Disconnected;
     this.powerAssistActive = true;
     this.updatePowerAssistRing();
-    this.updatePowerAssistButton();
     return this.connectToSavedSmartDrive()
       .then(didConnect => {
         if (didConnect) {
@@ -1064,7 +1041,6 @@ export class MainViewModel extends Observable {
           this.powerAssistState = PowerAssist.State.Inactive;
           this.powerAssistActive = false;
           this.updatePowerAssistRing();
-          this.updatePowerAssistButton();
         }
       })
       .catch(err => {
@@ -1072,7 +1048,6 @@ export class MainViewModel extends Observable {
         this.powerAssistState = PowerAssist.State.Inactive;
         this.powerAssistActive = false;
         this.updatePowerAssistRing();
-        this.updatePowerAssistButton();
       });
   }
 
@@ -1085,7 +1060,6 @@ export class MainViewModel extends Observable {
       clearInterval(this._ringTimerId);
     }
     this.updatePowerAssistRing();
-    this.updatePowerAssistButton();
     // turn off the smartdrive
     return this.stopSmartDrive()
       .then(() => {

@@ -21,7 +21,16 @@
 							  rimColor="{{ powerAssistRingColor }}"
 							  barColor="{{ powerAssistRingColor }}"
 							  clockwise="true" rimWidth="12" progress="100"
-							  visibility="{{ (powerAssistActive || isTraining) ? 'visible':'collapsed' }}">
+							  visibility="{{ ((powerAssistActive || isTraining) && !hasTapped) ? 'visible':'collapsed' }}">
+          </nac:AnimatedCircle>
+		  // Tap indication circle
+          <nac:AnimatedCircle id="tapCircle"  loaded="{{ onTapCircleLoaded }}"
+							  rowSpan="3" colSpan="3"
+							  class="tapCircle"
+							  width="100%" height="100%"
+							  rimWidth="12" progress="100"
+							  animated="true" animateFrom="0"
+							  visibility="{{ hasTapped ? 'visible':'collapsed' }}">
           </nac:AnimatedCircle>
          // SmartDrive Battery Circle
          <nac:AnimatedCircle id="smartDriveBatteryCircle" loaded="{{ onSmartDriveCircleLoaded }}"

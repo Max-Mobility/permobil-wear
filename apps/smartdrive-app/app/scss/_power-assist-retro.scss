@@ -10,12 +10,22 @@ $activated-color: #a52f2f;
 $deactivated-color: #2fa52f;
 $disconnected-color: #a52f2f;
 $training-color: #2fa52f;
+$tap-color: #a52f2f;
 
 .batteryIconStack {
   background-color: $black;
 }
 
 .powerAssistCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 100%;
+  height: 100%;
+}
+
+.tapCircle {
+  bar-color: $tap-color;
+  rim-color: $tap-color;
   background-color: transparent;
   fill-color: transparent;
   width: 100%;
