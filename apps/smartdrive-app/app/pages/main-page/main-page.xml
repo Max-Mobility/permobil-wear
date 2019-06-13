@@ -53,23 +53,19 @@
               <Label row="2" col="1" class="topValueDescription" textWrap="true"
 					 text="{{ currentSpeedDescription }}"
 					 visibility="{{ motorOn ? 'visible':'collapsed' }}"/>
-              <Button row="3" col="1" class="deactivated powerAssistBtn"
-					  width="100%" height="40%" borderRadius="50%"
+              <Button row="3" col="1" class="powerAssist-deactive"
 					  text="Activate Power Assist"
 					  tap="{{ enablePowerAssist }}"
 					  visibility="{{ (!powerAssistActive && !isTraining) ? 'visible':'collapsed' }}"/>
-              <Button row="3" col="1" class="activated powerAssistBtn"
-					  width="100%" height="40%" borderRadius="50%"
+              <Button row="3" col="1" class="powerAssist-active"
 					  text="Deactivate Power Assist"
 					  tap="{{ disablePowerAssist }}"
 					  visibility="{{ (powerAssistActive && !motorOn) ? 'visible':'collapsed' }}"/>
-              <Button row="3" col="1" class="activated powerAssistBtn"
-					  width="100%" height="40%" borderRadius="50%"
-					  backgroundColor="#a52f2f"
-					  text="STOP"
+              <Button row="3" col="1" class="powerAssist-active"
+					  text="Stop"
 					  tap="{{ stopSmartDrive }}"
 					  visibility="{{ motorOn ? 'visible':'collapsed' }}"/>
-              <Button row="3" col="1" class="training powerAssistBtn"
+              <Button row="3" col="1" class="powerAssist-training"
 					  width="100%" height="40%" borderRadius="50%"
 					  text="Exit Training Mode"
 					  tap="{{ onExitTrainingModeTap }}"
