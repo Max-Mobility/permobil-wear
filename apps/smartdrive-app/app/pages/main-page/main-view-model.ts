@@ -636,7 +636,7 @@ export class MainViewModel extends Observable {
   }
 
   updateChartData() {
-    //Log.D('Updating Chart Data / Display');
+    // Log.D('Updating Chart Data / Display');
     return this.getUsageInfoFromDatabase(7)
       .then(sdData => {
         // we've asked for one more day than needed so that we can
@@ -1383,7 +1383,7 @@ export class MainViewModel extends Observable {
     }
     return this.getRecentInfoFromDatabase(1)
       .then(infos => {
-        //Log.D('recent infos', infos);
+        // Log.D('recent infos', infos);
         if (!infos || !infos.length) {
           // record the data if we have it
           if (driveDistance > 0 && coastDistance > 0) {
@@ -1487,7 +1487,7 @@ export class MainViewModel extends Observable {
           const objDate = new Date(obj.date);
           const index = closestIndexTo(objDate, dates);
           const usageDate = dates[index];
-          //Log.D('recent info:', o);
+          // Log.D('recent info:', o);
           if (index > -1 && isSameDay(objDate, usageDate)) {
             usageInfo[index] = obj;
           }
