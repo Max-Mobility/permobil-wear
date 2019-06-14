@@ -86,10 +86,11 @@ export class MainViewModel extends Observable {
   lastTapTime: number;
   lastAccelZ: number = null;
   tapLockoutTimeMs: number = 200;
+  tapTimeoutId: any = null;
   maxTapSensitivity: number = 3.5;
   minTapSensitivity: number = 1.5;
-  SENSOR_DELAY_US: number = 25 * 1000;
-  MAX_REPORTING_INTERVAL_US: number = 50 * 1000;
+  SENSOR_DELAY_US: number = 40 * 1000;
+  MAX_REPORTING_INTERVAL_US: number = 20 * 1000;
   minRangeFactor: number = 2.0 / 100.0; // never estimate less than 2 mi per full charge
   maxRangeFactor: number = 12.0 / 100.0; // never estimate more than 12 mi per full charge
 
@@ -324,23 +325,6 @@ export class MainViewModel extends Observable {
       timeReceiverCallback
     );
 
-    // Now set up the sensor service:
-    // this._sensorService.on(
-    //   SensorService.AccuracyChanged,
-    //   (args: AccuracyChangedEventData) => {
-    //     const sensor = args.data.sensor;
-    //     const accuracy = args.data.accuracy;
-    //     if (sensor.getType() === android.hardware.Sensor.TYPE_HEART_RATE) {
-    //       this.heartRateAccuracy = accuracy;
-    //       // save the heart rate
-    //       appSettings.setNumber(
-    //         DataKeys.HEART_RATE,
-    //         parseInt(this.heartRate, 10)
-    //       );
-    //     }
-    //   }
-    // );
-
     this._sensorService.on(
       SensorService.SensorChanged,
       (args: SensorChangedEventData) => {
@@ -566,6 +550,23 @@ export class MainViewModel extends Observable {
     (this.watchBatteryRing as any).android.setInnerContourSize(0);
   }
 
+  tapAxisIsPrimary(accel: any) {
+    const max = Math.max(
+      Math.abs(accel.z),
+      Math.max(Math.abs(accel.x), Math.abs(accel.y))
+    );
+    const xPercent = Math.abs(accel.x / max);
+    const yPercent = Math.abs(accel.y / max);
+    const zPercent = Math.abs(accel.z / max);
+    const outOfAxisThreshold = 0.5;
+    return (
+      max > this.minTapSensitivity &&
+      zPercent > 0.9 &&
+      xPercent < outOfAxisThreshold &&
+      yPercent < outOfAxisThreshold
+    );
+  }
+
   handleAccel(acceleration: any, timestamp: number) {
     // ignore tapping if we're not in the right mode
     if (!this.powerAssistActive && !this.isTraining) {
@@ -577,25 +578,34 @@ export class MainViewModel extends Observable {
     }
     // now get the z-axis acceleration
     let acc = acceleration.z;
-    const diff = acc - this.lastAccelZ;
+    let diff = acc - this.lastAccelZ;
     this.lastAccelZ = acc;
+    // block motions where the primary axis of movement isn't the
+    // z-axis
+    if (!this.tapAxisIsPrimary(acceleration)) {
+      return;
+    }
+    // block high frequency tapping
+    if (this.lastTapTime !== null) {
+      const timeDiffNs = timestamp - this.lastTapTime;
+      const timeDiffThreshold = this.tapLockoutTimeMs * 1000 * 1000; // convert to ns
+      if (timeDiffNs < timeDiffThreshold) {
+        return;
+      }
+    }
+    // respond to both axes for tapping if the motor is on
     if (this.motorOn) {
-      // respond to both axes for tapping if the motor is on
+      diff = Math.abs(diff);
       acc = Math.abs(acc);
     }
     const threshold =
       this.maxTapSensitivity -
       (this.maxTapSensitivity - this.minTapSensitivity) *
         (this.settings.tapSensitivity / 100.0);
-    // get time diff in ms - stamps are in ns
-    const timeDiffMs = (timestamp - this.lastTapTime) / (1000 * 1000);
-    // block high frequency tapping
-    if (timeDiffMs < this.tapLockoutTimeMs) {
-      return;
-    }
     // must have a high enough abs(accel.z) and it must be a jerk
     // movement - high difference between previous accel and current
     // accel
+    console.log(acc, threshold, diff, threshold);
     if (acc > threshold && diff > threshold) {
       // record that there has been a tap
       this.lastTapTime = timestamp;
@@ -607,7 +617,10 @@ export class MainViewModel extends Observable {
   handleTap(timestamp: number) {
     this.hasTapped = true;
     // timeout for updating the power assist ring
-    setTimeout(() => {
+    if (this.tapTimeoutId) {
+      clearTimeout(this.tapTimeoutId);
+    }
+    this.tapTimeoutId = setTimeout(() => {
       this.hasTapped = false;
     }, this.tapLockoutTimeMs / 2);
     // now send
@@ -1532,7 +1545,7 @@ export class MainViewModel extends Observable {
         return this.getTodaysUsageInfoFromDatabase();
       })
       .then(u => {
-        console.log('Got usage:', u);
+        // console.log('Got usage:', u);
         if (u[SmartDriveData.Info.IdName]) {
           // there was a record, so we need to update it. we add the
           // already used battery plus the amount of new battery
