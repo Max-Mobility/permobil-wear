@@ -45,8 +45,9 @@ export class NetworkService extends Observable {
 
   /**
    * Request the network and timeout if no network found after
-   * timeoutMs. Can specify the capabilities (default INTERNET |
-   * NOT_METERED) and the transport types (default WIFI).
+   * timeoutMs (default 10 seconds). Can specify the capabilities
+   * (default INTERNET | NOT_METERED) and the transport types (default
+   * WIFI).
    */
   requestNetwork(args: {
     timeoutMs?: number;
