@@ -73,7 +73,7 @@ export class SqliteService {
         else return ``;
       });
       const queryStrings = Object.keys(queries).map(q => {
-        if (_exists(queries, q)) return `${q}=${queries[q]}`;
+        if (_exists(queries, q)) return `${q}="${queries[q]}"`;
         else return ``;
       });
       const dbUpdateString =
@@ -97,7 +97,7 @@ export class SqliteService {
      */
     return this.getDatabase().then(db => {
       const queryStrings = Object.keys(queries).map(q => {
-        if (_exists(queries, q)) return `${q}=${queries[q]}`;
+        if (_exists(queries, q)) return `${q}="${queries[q]}"`;
         else return ``;
       });
       const dbDeleteString =

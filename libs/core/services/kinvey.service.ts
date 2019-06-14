@@ -26,8 +26,11 @@ export class KinveyService {
   }
 
   private reformatForDb(o) {
-    o.id = undefined;
-    o.uuid = undefined;
+    // remove fields we don't want in the db
+    delete o.id;
+    delete o.uuid;
+    delete o.has_been_sent;
+    // set watch_uuid for log
     o.watch_uuid = device.uuid;
   }
 
@@ -62,6 +65,7 @@ export class KinveyService {
 
   sendError(error: any, id?: string) {
     this.reformatForDb(error);
+    console.log(JSON.stringify(error));
     if (id) return this.put(KinveyService.api_error_db, error, id);
     else return this.post(KinveyService.api_error_db, error);
   }

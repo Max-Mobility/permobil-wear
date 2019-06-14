@@ -640,7 +640,7 @@ export class BluetoothService {
       );
       BluetoothService.SmartDrives.push(sd);
     }
-    Log.D(`Found or made SD: ${sd}`);
+    // Log.D(`Found or made SD: ${sd}`);
     if (device.device) {
       sd.device = device.device;
     }

@@ -484,16 +484,14 @@ export class MainViewModel extends Observable {
     );
   }
   onNetworkAvailable(args: any) {
-    Log.D('Network available - sending errors');
+    // Log.D('Network available - sending errors');
     return this.sendErrorsToServer(1)
       .then(ret => {
-        Log.D('Error rets', ret);
-        Log.D('Network available - sending info');
+        // Log.D('Network available - sending info');
         return this.sendInfosToServer(1);
       })
       .then(ret => {
-        Log.D('Info rets', ret);
-        Log.D('Have sent data to server - unregistering from network');
+        // Log.D('Have sent data to server - unregistering from network');
         // unregister network since we're done sending that data now
         this._networkService.unregisterNetwork();
       })
@@ -511,7 +509,7 @@ export class MainViewModel extends Observable {
   doWhileCharged() {
     if (this.watchIsCharging) {
       // request network here
-      Log.D('Watch charging - requesting network');
+      // Log.D('Watch charging - requesting network');
       this._networkService.requestNetwork({
         timeoutMs: this.CHARGING_WORK_PERIOD_MS / 2
       });
@@ -1401,12 +1399,10 @@ export class MainViewModel extends Observable {
         const lastErrorId = obj && obj[3];
         // make sure this isn't an error we've seen before
         if (errorId !== lastErrorId) {
+          const newError = SmartDriveData.Errors.newError(errorCode, errorId);
           // now save the error into the table
           return this._sqliteService
-            .insertIntoTable(
-              SmartDriveData.Errors.TableName,
-              SmartDriveData.Errors.newError(errorCode, errorId)
-            )
+            .insertIntoTable(SmartDriveData.Errors.TableName, newError)
             .catch(err => {
               new Toasty(
                 `Failed Saving SmartDrive Error: ${err}`,
@@ -1432,7 +1428,10 @@ export class MainViewModel extends Observable {
       .getAll({
         tableName: SmartDriveData.Errors.TableName,
         orderBy: SmartDriveData.Errors.IdName,
-        ascending: false,
+        queries: {
+          [SmartDriveData.Errors.HasBeenSentName]: '0'
+        },
+        ascending: true,
         limit: numErrors
       })
       .then(errors => {
@@ -1441,14 +1440,30 @@ export class MainViewModel extends Observable {
           const promises = errors.map(e => {
             // @ts-ignore
             e = SmartDriveData.Errors.loadError(...e);
-            Log.D('error uuid', e[SmartDriveData.Errors.UuidName]);
             return this._kinveyService.sendError(
               e,
               e[SmartDriveData.Errors.UuidName]
             );
           });
-          // TODO: need to either mark data as sent or remove it
-          // from db
+          return Promise.all(promises);
+        }
+      })
+      .then(rets => {
+        if (rets && rets.length) {
+          const promises = rets
+            .map(r => r.content.toJSON())
+            .map(r => {
+              const id = r['_id'];
+              return this._sqliteService.updateInTable(
+                SmartDriveData.Errors.TableName,
+                {
+                  [SmartDriveData.Errors.HasBeenSentName]: '1'
+                },
+                {
+                  [SmartDriveData.Errors.UuidName]: id
+                }
+              );
+            });
           return Promise.all(promises);
         }
       })
@@ -1532,7 +1547,8 @@ export class MainViewModel extends Observable {
             {
               [SmartDriveData.Info.BatteryName]: updatedBattery,
               [SmartDriveData.Info.DriveDistanceName]: updatedDriveDistance,
-              [SmartDriveData.Info.CoastDistanceName]: updatedCoastDistance
+              [SmartDriveData.Info.CoastDistanceName]: updatedCoastDistance,
+              [SmartDriveData.Info.HasBeenSentName]: '0'
             },
             {
               [SmartDriveData.Info.IdName]: u.id
@@ -1567,13 +1583,10 @@ export class MainViewModel extends Observable {
     return this._sqliteService
       .getLast(SmartDriveData.Info.TableName, SmartDriveData.Info.IdName)
       .then(e => {
-        const id = e && e[0];
         const date = new Date((e && e[1]) || null);
-        const battery = e && e[2];
-        const drive = e && e[3];
-        const coast = e && e[4];
-        if (isToday(date)) {
-          return SmartDriveData.Info.newInfo(id, date, battery, drive, coast);
+        if (e && e[1] && isToday(date)) {
+          // @ts-ignore
+          return SmartDriveData.Info.loadInfo(...e);
         } else {
           return SmartDriveData.Info.newInfo(undefined, new Date(), 0, 0, 0);
         }
@@ -1620,22 +1633,54 @@ export class MainViewModel extends Observable {
     });
   }
 
+  getUnsentInfoFromDatabase(numEntries: number) {
+    return this._sqliteService.getAll({
+      tableName: SmartDriveData.Info.TableName,
+      queries: {
+        [SmartDriveData.Info.HasBeenSentName]: '0'
+      },
+      orderBy: SmartDriveData.Info.IdName,
+      ascending: true,
+      limit: numEntries
+    });
+  }
+
   sendInfosToServer(numInfo: number) {
-    return this.getRecentInfoFromDatabase(numInfo)
+    return this.getUnsentInfoFromDatabase(numInfo)
       .then(infos => {
         if (infos && infos.length) {
           // now send them one by one
           const promises = infos.map(i => {
             // @ts-ignore
             i = SmartDriveData.Info.loadInfo(...i);
-            Log.D('info uuid', i[SmartDriveData.Info.UuidName]);
+            // update info date here
+            i[SmartDriveData.Info.DateName] = new Date(
+              i[SmartDriveData.Info.DateName]
+            );
             return this._kinveyService.sendInfo(
               i,
               i[SmartDriveData.Info.UuidName]
             );
           });
-          // TODO: need to either mark data as sent or remove it
-          // from db
+          return Promise.all(promises);
+        }
+      })
+      .then(rets => {
+        if (rets && rets.length) {
+          const promises = rets
+            .map(r => r.content.toJSON())
+            .map(r => {
+              const id = r['_id'];
+              return this._sqliteService.updateInTable(
+                SmartDriveData.Info.TableName,
+                {
+                  [SmartDriveData.Info.HasBeenSentName]: '1'
+                },
+                {
+                  [SmartDriveData.Info.UuidName]: id
+                }
+              );
+            });
           return Promise.all(promises);
         }
       })
