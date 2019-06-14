@@ -36,7 +36,7 @@ export class KinveyService {
     console.log(url);
     return request({
       url: url,
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: this._auth
