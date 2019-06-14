@@ -1,4 +1,8 @@
 @import 'variables';
+@import 'common';
+@import 'charts-ambient';
+@import 'change-settings-ambient';
+@import 'settings-list-ambient';
 
 label {
   color: $ambient-white;
