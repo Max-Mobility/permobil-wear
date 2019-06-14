@@ -8,11 +8,13 @@ export namespace SmartDriveData {
     export const BatteryName = 'battery';
     export const DriveDistanceName = 'drive_distance';
     export const CoastDistanceName = 'coast_distance';
+    export const UuidName = 'uuid';
     export const Fields = [
       DateName,
       BatteryName,
       DriveDistanceName,
-      CoastDistanceName
+      CoastDistanceName,
+      UuidName
     ];
 
     export function getDateValue(date: any) {
@@ -36,7 +38,26 @@ export namespace SmartDriveData {
         [SmartDriveData.Info.DateName]: SmartDriveData.Info.getDateValue(date),
         [SmartDriveData.Info.BatteryName]: +battery,
         [SmartDriveData.Info.DriveDistanceName]: +drive,
-        [SmartDriveData.Info.CoastDistanceName]: +coast
+        [SmartDriveData.Info.CoastDistanceName]: +coast,
+        [SmartDriveData.Info.UuidName]: java.util.UUID.randomUUID().toString()
+      };
+    }
+
+    export function loadInfo(
+      id: number,
+      date: any,
+      battery: number,
+      drive: number,
+      coast: number,
+      uuid: string
+    ) {
+      return {
+        [SmartDriveData.Info.IdName]: id,
+        [SmartDriveData.Info.DateName]: SmartDriveData.Info.getDateValue(date),
+        [SmartDriveData.Info.BatteryName]: +battery,
+        [SmartDriveData.Info.DriveDistanceName]: +drive,
+        [SmartDriveData.Info.CoastDistanceName]: +coast,
+        [SmartDriveData.Info.UuidName]: uuid
       };
     }
   }
@@ -47,11 +68,26 @@ export namespace SmartDriveData {
     export const TimestampName = 'timestamp';
     export const ErrorCodeName = 'error_code';
     export const ErrorIdName = 'error_id';
-    export const Fields = [TimestampName, ErrorCodeName, ErrorIdName];
+    export const UuidName = 'uuid';
+    export const Fields = [TimestampName, ErrorCodeName, ErrorIdName, UuidName];
 
     export function getTimestamp() {
       // 'x' is Milliseconds timetsamp format
       return format(new Date(), 'x');
+    }
+
+    export function loadError(
+      timestamp: any,
+      errorType: number,
+      errorId: number,
+      uuid: string
+    ) {
+      return {
+        [SmartDriveData.Errors.TimestampName]: timestamp,
+        [SmartDriveData.Errors.ErrorCodeName]: errorType,
+        [SmartDriveData.Errors.ErrorIdName]: errorId,
+        [SmartDriveData.Errors.UuidName]: uuid
+      };
     }
 
     export function newError(errorType: number, errorId: number) {
@@ -59,7 +95,8 @@ export namespace SmartDriveData {
         [SmartDriveData.Errors
           .TimestampName]: SmartDriveData.Errors.getTimestamp(),
         [SmartDriveData.Errors.ErrorCodeName]: errorType,
-        [SmartDriveData.Errors.ErrorIdName]: errorId
+        [SmartDriveData.Errors.ErrorIdName]: errorId,
+        [SmartDriveData.Errors.UuidName]: java.util.UUID.randomUUID().toString()
       };
     }
   }

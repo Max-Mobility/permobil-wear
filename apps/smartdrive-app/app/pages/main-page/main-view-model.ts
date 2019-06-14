@@ -1,7 +1,9 @@
 import {
   BluetoothService,
   DataKeys,
+  KinveyService,
   Log,
+  NetworkService,
   Prop,
   SensorChangedEventData,
   SensorService,
@@ -167,9 +169,13 @@ export class MainViewModel extends Observable {
   private _bluetoothService: BluetoothService;
   private _sensorService: SensorService;
   private _sqliteService: SqliteService;
+  private _networkService: NetworkService;
+  private _kinveyService: KinveyService;
 
   private _throttledSmartDriveSaveFn: any = null;
   private _onceSendSmartDriveSettings: any = null;
+
+  private chargingWorkTimeoutId: any = null;
 
   constructor() {
     super();
@@ -222,6 +228,11 @@ export class MainViewModel extends Observable {
     this._bluetoothService = injector.get(BluetoothService);
     this._sensorService = injector.get(SensorService);
     this._sqliteService = injector.get(SqliteService);
+    this._networkService = injector.get(NetworkService);
+    this._kinveyService = injector.get(KinveyService);
+
+    // register for network service events
+    this.registerNetworkEventHandlers();
 
     console.time('SQLite_Init');
     // create / load tables for smartdrive data
@@ -278,8 +289,13 @@ export class MainViewModel extends Observable {
         plugged === android.os.BatteryManager.BATTERY_PLUGGED_AC ||
         plugged === android.os.BatteryManager.BATTERY_PLUGGED_USB ||
         plugged === android.os.BatteryManager.BATTERY_PLUGGED_WIRELESS;
-      // do work that we need while charging
-      setTimeout(this.doWhileCharged.bind(this), this.CHARGING_WORK_PERIOD_MS);
+      if (this.watchIsCharging && this.chargingWorkTimeoutId === null) {
+        // do work that we need while charging
+        this.chargingWorkTimeoutId = setTimeout(
+          this.doWhileCharged.bind(this),
+          this.CHARGING_WORK_PERIOD_MS
+        );
+      }
     };
 
     application.android.registerBroadcastReceiver(
@@ -375,6 +391,11 @@ export class MainViewModel extends Observable {
     );
   }
 
+  fullStop() {
+    Log.D('Disabling power assist');
+    this.disablePowerAssist();
+  }
+
   /**
    * Application lifecycle event handlers
    */
@@ -428,7 +449,9 @@ export class MainViewModel extends Observable {
 
   onAppLowMemory(args?: any) {
     Log.D('App low memory', args);
-    this.fullStop();
+    // TODO: determine if we need to stop for this - we see this
+    // even even when the app is using very little memory
+    //this.fullStop();
   }
 
   onAppUncaughtError(args?: any) {
@@ -436,20 +459,76 @@ export class MainViewModel extends Observable {
     this.fullStop();
   }
 
-  fullStop() {
-    Log.D('Disabling power assist');
-    this.disablePowerAssist();
+  /**
+   * Network manager event handlers
+   */
+  registerNetworkEventHandlers() {
+    this._networkService.on(
+      NetworkService.network_available_event,
+      this.onNetworkAvailable.bind(this)
+    );
+    this._networkService.on(
+      NetworkService.network_lost_event,
+      this.onNetworkLost.bind(this)
+    );
+  }
+
+  unregisterNetworkEventHandlers() {
+    this._networkService.off(
+      NetworkService.network_available_event,
+      this.onNetworkAvailable.bind(this)
+    );
+    this._networkService.off(
+      NetworkService.network_lost_event,
+      this.onNetworkLost.bind(this)
+    );
+  }
+  onNetworkAvailable(args: any) {
+    Log.D('Network available - sending errors');
+    return this.sendErrorsToServer(1)
+      .then(ret => {
+        Log.D('Error rets', ret);
+        Log.D('Network available - sending info');
+        return this.sendInfosToServer(1);
+      })
+      .then(ret => {
+        Log.D('Info rets', ret);
+        Log.D('Have sent data to server - unregistering from network');
+        // unregister network since we're done sending that data now
+        this._networkService.unregisterNetwork();
+      })
+      .catch(e => {
+        Log.E('Error sending data to server', e);
+        // unregister network since we're done sending that data now
+        this._networkService.unregisterNetwork();
+      });
+  }
+
+  onNetworkLost(args: any) {
+    Log.D('Network Lost!');
   }
 
   doWhileCharged() {
-    // TODO: send errors to kinvey here
-    // TODO: send usage data to kinvey here
     if (this.watchIsCharging) {
+      // request network here
+      Log.D('Watch charging - requesting network');
+      this._networkService.requestNetwork({
+        timeoutMs: this.CHARGING_WORK_PERIOD_MS / 2
+      });
       // re-schedule any work that may still need to be done
-      setTimeout(this.doWhileCharged.bind(this), this.CHARGING_WORK_PERIOD_MS);
+      this.chargingWorkTimeoutId = setTimeout(
+        this.doWhileCharged.bind(this),
+        this.CHARGING_WORK_PERIOD_MS
+      );
+    } else {
+      // clear the timeout id since we're not re-spawning it
+      this.chargingWorkTimeoutId = null;
     }
   }
 
+  /**
+   * View Loaded event handlers
+   */
   onPagerLoaded(args: any) {
     const page = args.object as Page;
     this.pager = page.getViewById('pager') as Pager;
@@ -1348,6 +1427,36 @@ export class MainViewModel extends Observable {
       });
   }
 
+  sendErrorsToServer(numErrors: number) {
+    return this._sqliteService
+      .getAll({
+        tableName: SmartDriveData.Errors.TableName,
+        orderBy: SmartDriveData.Errors.IdName,
+        ascending: false,
+        limit: numErrors
+      })
+      .then(errors => {
+        if (errors && errors.length) {
+          // now send them one by one
+          const promises = errors.map(e => {
+            // @ts-ignore
+            e = SmartDriveData.Errors.loadError(...e);
+            Log.D('error uuid', e[SmartDriveData.Errors.UuidName]);
+            return this._kinveyService.sendError(
+              e,
+              e[SmartDriveData.Errors.UuidName]
+            );
+          });
+          // TODO: need to either mark data as sent or remove it
+          // from db
+          return Promise.all(promises);
+        }
+      })
+      .catch(e => {
+        Log.E('Error sending errors to server:', e);
+      });
+  }
+
   getRecentErrors(numErrors: number) {
     return this._sqliteService
       .getAll({
@@ -1485,7 +1594,7 @@ export class MainViewModel extends Observable {
       .then(objs => {
         objs.map(o => {
           // @ts-ignore
-          const obj = SmartDriveData.Info.newInfo(...o);
+          const obj = SmartDriveData.Info.loadInfo(...o);
           const objDate = new Date(obj.date);
           const index = closestIndexTo(objDate, dates);
           const usageDate = dates[index];
@@ -1509,5 +1618,29 @@ export class MainViewModel extends Observable {
       ascending: false,
       limit: numRecentEntries
     });
+  }
+
+  sendInfosToServer(numInfo: number) {
+    return this.getRecentInfoFromDatabase(numInfo)
+      .then(infos => {
+        if (infos && infos.length) {
+          // now send them one by one
+          const promises = infos.map(i => {
+            // @ts-ignore
+            i = SmartDriveData.Info.loadInfo(...i);
+            Log.D('info uuid', i[SmartDriveData.Info.UuidName]);
+            return this._kinveyService.sendInfo(
+              i,
+              i[SmartDriveData.Info.UuidName]
+            );
+          });
+          // TODO: need to either mark data as sent or remove it
+          // from db
+          return Promise.all(promises);
+        }
+      })
+      .catch(e => {
+        Log.E('Error sending infos to server:', e);
+      });
   }
 }

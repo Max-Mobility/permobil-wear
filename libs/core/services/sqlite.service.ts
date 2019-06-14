@@ -87,6 +87,28 @@ export class SqliteService {
     });
   }
 
+  public delete(tableName: string, queries: any) {
+    /**
+     *  expects queries to be an object of the form:
+     *   {
+     *     "columnId": <value>,
+     *     ...
+     *   }
+     */
+    return this.getDatabase().then(db => {
+      const queryStrings = Object.keys(queries).map(q => {
+        if (_exists(queries, q)) return `${q}=${queries[q]}`;
+        else return ``;
+      });
+      const dbDeleteString =
+        `DELETE FROM ${tableName} ` + `WHERE ${queryStrings.join(' and ')}`;
+      return db.execSQL(dbDeleteString).then(ret => {
+        db.close();
+        return ret;
+      });
+    });
+  }
+
   public getLast(tableName: string, idName: string) {
     return this.getDatabase().then(db => {
       return db
