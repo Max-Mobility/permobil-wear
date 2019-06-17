@@ -55,6 +55,7 @@ export class SmartDrive extends DeviceBase {
   public settings = new SmartDrive.Settings();
 
   // not serialized
+  public device: any = null; // the actual bluetooth device associated with this smartdrive
   public rssi: number = null; // the received signal strength indicator (how close is it?)
   public otaState: SD_OTA_State = SD_OTA_State.not_started;
   public bleOTAProgress: number = 0;
@@ -1051,6 +1052,12 @@ export class SmartDrive extends DeviceBase {
   }
 
   public handleConnect(data?: any) {
+    // register for HIGH_PRIORITY connection
+    if (this.device) {
+      this.device.requestConnectionPriority(
+        android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_HIGH
+      );
+    }
     // update state
     this.connected = true;
     this.notifying = false;
