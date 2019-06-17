@@ -1,4 +1,4 @@
-const Buffer = require("buffer").Buffer;
+const Buffer = require("buffer").Buffer; // ADDED AFTER GENERATING
 // The Module object: Our interface to the outside world. We import
 // and export values on it. There are various ways Module can be used:
 // 1. Not defined. We create it here
@@ -104,7 +104,7 @@ if (ENVIRONMENT_IS_NODE) {
     return ret;
   };
 
-	/* CHANGED AFTER GENERATING: 
+	/* CHANGED AFTER GENERATING:
   if (process['argv'].length > 1) {
     Module['thisProgram'] = process['argv'][1].replace(/\\/g, '/');
   }
@@ -116,14 +116,14 @@ if (ENVIRONMENT_IS_NODE) {
     module['exports'] = Module;
   }
 
-	/* CHANGED AFTER GENERATING:
+		/* CHANGED AFTER GENERATING:
   process['on']('uncaughtException', function(ex) {
     // suppress ExitStatus exceptions from showing an error
     if (!(ex instanceof ExitStatus)) {
       throw ex;
     }
   });
-	*/
+		*/
 	/* CHANGED AFTER GENERATING:
   // Currently node will swallow unhandled rejections, but this behavior is
   // deprecated, and in the future it will exit with error status.
@@ -4272,7 +4272,7 @@ function __ZN44EmscriptenBindingInitializer_packet_bindingsC2Ev($0) {
  $265 = (__ZN10emscripten5enum_IN10SmartDrive11ControlModeEE5valueEPKcS2_($264,1683,2)|0);
  (__ZN10emscripten5enum_IN10SmartDrive11ControlModeEE5valueEPKcS2_($265,1605,3)|0);
  __ZN10emscripten5enum_IN10SmartDrive12ThrottleModeEEC2EPKc($230,1692);
- $266 = (__ZN10emscripten5enum_IN10SmartDrive12ThrottleModeEE5valueEPKcS2_($230,1705,1)|0);
+ $266 = (__ZN10emscripten5enum_IN10SmartDrive12ThrottleModeEE5valueEPKcS2_($230,1705,0)|0);
  (__ZN10emscripten5enum_IN10SmartDrive12ThrottleModeEE5valueEPKcS2_($266,1712,1)|0);
  __ZN10emscripten12value_objectIN10SmartDrive8SettingsEEC2EPKc($231,1721);
  $267 = (__ZN10emscripten12value_objectIN10SmartDrive8SettingsEE5fieldIS2_NS1_11ControlModeEEERS3_PKcMT_T0_($231,1740,0)|0);

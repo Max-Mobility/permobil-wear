@@ -593,7 +593,7 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
     ;
 
   emscripten::enum_<SmartDrive::ThrottleMode>("ThrottleMode")
-    .value("Active", SmartDrive::ThrottleMode::Latching)
+    .value("Active", SmartDrive::ThrottleMode::Active)
     .value("Latching", SmartDrive::ThrottleMode::Latching)
     ;
 
