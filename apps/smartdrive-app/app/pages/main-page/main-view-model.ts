@@ -146,6 +146,8 @@ export class MainViewModel extends Observable {
    */
   private settings = new SmartDrive.Settings();
   private tempSettings = new SmartDrive.Settings();
+  private throttleSettings = new SmartDrive.ThrottleSettings();
+  private tempThrottleSettings = new SmartDrive.ThrottleSettings();
   private _smartDrive: SmartDrive;
   private _savedSmartDriveAddress: string = null;
   private _ringTimerId = null;
@@ -837,6 +839,7 @@ export class MainViewModel extends Observable {
   onChangeSettingsItemTap(args) {
     // copy the current settings into temporary store
     this.tempSettings.copy(this.settings);
+    this.tempThrottleSettings.copy(this.throttleSettings);
     const tappedId = args.object.id as string;
     switch (tappedId.toLowerCase()) {
       case 'maxspeed':
@@ -853,6 +856,12 @@ export class MainViewModel extends Observable {
         break;
       case 'units':
         this.changeSettingKeyString = 'Units';
+        break;
+      case 'throttleMode':
+        this.changeSettingKeyString = 'Throttle Mode';
+        break;
+      case 'throttleSpeed':
+        this.changeSettingKeyString = 'Throttle Speed';
         break;
       default:
         break;
@@ -881,6 +890,12 @@ export class MainViewModel extends Observable {
         return;
       case 'Units':
         this.changeSettingKeyValue = `${this.tempSettings.units}`;
+        return;
+      case 'Throttle Mode':
+        this.changeSettingKeyValue = `${this.tempThrottleSettings.throttleMode}`;
+        return;
+      case 'Throttle Speed':
+        this.changeSettingKeyValue = `${this.tempThrottleSettings.maxSpeed}`;
         return;
       default:
         break;
@@ -929,6 +944,7 @@ export class MainViewModel extends Observable {
     this.isChangeSettingsLayoutEnabled = false;
     // SAVE THE VALUE to local data for the setting user has selected
     this.settings.copy(this.tempSettings);
+    this.throttleSettings.copy(this.tempThrottleSettings);
     this.saveSettings();
     // now update any display that needs settings:
     this.updateSettingsDisplay();
@@ -936,11 +952,13 @@ export class MainViewModel extends Observable {
 
   onIncreaseSettingsTap() {
     this.tempSettings.increase(this.changeSettingKeyString);
+    this.tempThrottleSettings.increase(this.changeSettingKeyString);
     this.updateSettingsChangeDisplay();
   }
 
   onDecreaseSettingsTap(args) {
     this.tempSettings.decrease(this.changeSettingKeyString);
+    this.tempThrottleSettings.decrease(this.changeSettingKeyString);
     this.updateSettingsChangeDisplay();
   }
 
@@ -968,6 +986,10 @@ export class MainViewModel extends Observable {
     this.settings.controlMode =
       appSettings.getString(DataKeys.SD_CONTROL_MODE) || 'MX2+';
     this.settings.units = appSettings.getString(DataKeys.SD_UNITS) || 'English';
+    this.throttleSettings.throttleMode =
+      appSettings.getString(DataKeys.SD_THROTTLE_MODE) || 'Active';
+    this.throttleSettings.maxSpeed =
+      appSettings.getNumber(DataKeys.SD_THROTTLE_SPEED) || 70;
   }
 
   saveSettings() {
@@ -979,6 +1001,14 @@ export class MainViewModel extends Observable {
     );
     appSettings.setString(DataKeys.SD_CONTROL_MODE, this.settings.controlMode);
     appSettings.setString(DataKeys.SD_UNITS, this.settings.units);
+    appSettings.setString(
+      DataKeys.SD_THROTTLE_MODE,
+      this.throttleSettings.throttleMode
+    );
+    appSettings.setNumber(
+      DataKeys.SD_THROTTLE_SPEED,
+      this.throttleSettings.maxSpeed
+    );
   }
 
   updatePowerAssistRing(color?: any) {

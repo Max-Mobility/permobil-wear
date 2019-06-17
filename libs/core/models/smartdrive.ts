@@ -1444,7 +1444,7 @@ export namespace SmartDrive {
     increase(key: string, increment: number = 10): void {
       let index;
       switch (key) {
-        case 'Max Speed':
+        case 'Throttle Speed':
           this.maxSpeed = Math.min(this.maxSpeed + increment, 100);
           break;
         case 'Throttle Mode':
@@ -1464,7 +1464,7 @@ export namespace SmartDrive {
     decrease(key: string, increment: number = 10): void {
       let index;
       switch (key) {
-        case 'Max Speed':
+        case 'Throttle Speed':
           this.maxSpeed = Math.max(this.maxSpeed - increment, 10);
           break;
         case 'Throttle Mode':

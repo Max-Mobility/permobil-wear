@@ -11,5 +11,7 @@ export enum DataKeys {
   'SD_ACCELERATION' = 'sd.acceleration',
   'SD_TAP_SENSITIVITY' = 'sd.tap_sensitivity',
   'SD_CONTROL_MODE' = 'sd.control_mode',
-  'SD_UNITS' = 'sd.units'
+  'SD_UNITS' = 'sd.units',
+  'SD_THROTTLE_MODE' = 'sd.throttle_mode',
+  'SD_THROTTLE_SPEED' = 'sd.throttle_speed'
 }
