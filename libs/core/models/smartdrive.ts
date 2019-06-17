@@ -1122,6 +1122,14 @@ export class SmartDrive extends DeviceBase {
     }
   }
 
+  public getBleDisconnectError() {
+    /*
+	  const boundError = Packet.makeBoundData('PacketErrorType', 'BLEDisconnect');
+	  return bindingTypeToString('PacketErrorType', boundError);
+	  */
+    return 'BLEDisconnect';
+  }
+
   // private functions
   private _handleError(p: Packet) {
     // This is sent by the smartdrive whenever it encounters an error

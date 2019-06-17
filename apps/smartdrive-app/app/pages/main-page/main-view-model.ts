@@ -1296,6 +1296,12 @@ export class MainViewModel extends Observable {
   }
 
   async onSmartDriveDisconnect(args: any) {
+    if (this.motorOn) {
+      // record disconnect error - the SD should never be on when
+      // we disconnect!
+      const errorCode = this._smartDrive.getBleDisconnectError();
+      this.saveErrorToDatabase(errorCode, undefined);
+    }
     this.motorOn = false;
     if (this.powerAssistActive) {
       this.powerAssistState = PowerAssist.State.Disconnected;
@@ -1400,9 +1406,13 @@ export class MainViewModel extends Observable {
   /*
    * DATABASE FUNCTIONS
    */
-  saveErrorToDatabase(errorCode: number, errorId: number) {
+  saveErrorToDatabase(errorCode: string, errorId: number) {
+    if (errorId === undefined) {
+      // we use this when saving a local error
+      errorId = -1;
+    }
     // get the most recent error
-    this._sqliteService
+    return this._sqliteService
       .getLast(SmartDriveData.Errors.TableName, SmartDriveData.Errors.IdName)
       .then(obj => {
         // Log.D('From DB: ', obj);
@@ -1411,7 +1421,7 @@ export class MainViewModel extends Observable {
         const lastErrorCode = obj && obj[2];
         const lastErrorId = obj && obj[3];
         // make sure this isn't an error we've seen before
-        if (errorId !== lastErrorId) {
+        if (errorId === -1 || errorId !== lastErrorId) {
           const newError = SmartDriveData.Errors.newError(errorCode, errorId);
           // now save the error into the table
           return this._sqliteService

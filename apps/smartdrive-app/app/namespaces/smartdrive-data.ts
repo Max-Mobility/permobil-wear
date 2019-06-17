@@ -91,7 +91,7 @@ export namespace SmartDriveData {
     export function loadError(
       id: any,
       timestamp: any,
-      errorType: number,
+      errorType: string,
       errorId: number,
       uuid: string,
       has_been_sent: number
@@ -106,7 +106,7 @@ export namespace SmartDriveData {
       };
     }
 
-    export function newError(errorType: number, errorId: number) {
+    export function newError(errorType: string, errorId: number) {
       return {
         [SmartDriveData.Errors
           .TimestampName]: SmartDriveData.Errors.getTimestamp(),
