@@ -1052,12 +1052,6 @@ export class SmartDrive extends DeviceBase {
   }
 
   public handleConnect(data?: any) {
-    // register for HIGH_PRIORITY connection
-    if (this.device) {
-      this.device.requestConnectionPriority(
-        android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_HIGH
-      );
-    }
     // update state
     this.connected = true;
     this.notifying = false;
@@ -1065,6 +1059,16 @@ export class SmartDrive extends DeviceBase {
     // now that we're connected, subscribe to the characteristics
     this.startNotifyCharacteristics(SmartDrive.Characteristics)
       .then(() => {
+        // register for HIGH_PRIORITY connection
+        if (this.device) {
+          try {
+            this.device.requestConnectionPriority(
+              android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_HIGH
+            );
+          } catch (err) {
+            console.error('could not request high priority connection', err);
+          }
+        }
         this.sendEvent(SmartDrive.smartdrive_connect_event);
       })
       .catch(err => {});
