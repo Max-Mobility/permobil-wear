@@ -469,10 +469,10 @@ export class MainViewModel extends Observable {
   }
   onNetworkAvailable(args: any) {
     // Log.D('Network available - sending errors');
-    return this.sendErrorsToServer(1)
+    return this.sendErrorsToServer(10)
       .then(ret => {
         // Log.D('Network available - sending info');
-        return this.sendInfosToServer(1);
+        return this.sendInfosToServer(10);
       })
       .then(ret => {
         // Log.D('Have sent data to server - unregistering from network');
@@ -1452,7 +1452,7 @@ export class MainViewModel extends Observable {
         tableName: SmartDriveData.Errors.TableName,
         orderBy: SmartDriveData.Errors.IdName,
         queries: {
-          [SmartDriveData.Errors.HasBeenSentName]: '0'
+          [SmartDriveData.Errors.HasBeenSentName]: 0
         },
         ascending: true,
         limit: numErrors
@@ -1480,7 +1480,7 @@ export class MainViewModel extends Observable {
               return this._sqliteService.updateInTable(
                 SmartDriveData.Errors.TableName,
                 {
-                  [SmartDriveData.Errors.HasBeenSentName]: '1'
+                  [SmartDriveData.Errors.HasBeenSentName]: 1
                 },
                 {
                   [SmartDriveData.Errors.UuidName]: id
@@ -1571,7 +1571,7 @@ export class MainViewModel extends Observable {
               [SmartDriveData.Info.BatteryName]: updatedBattery,
               [SmartDriveData.Info.DriveDistanceName]: updatedDriveDistance,
               [SmartDriveData.Info.CoastDistanceName]: updatedCoastDistance,
-              [SmartDriveData.Info.HasBeenSentName]: '0'
+              [SmartDriveData.Info.HasBeenSentName]: 0
             },
             {
               [SmartDriveData.Info.IdName]: u.id
@@ -1660,7 +1660,7 @@ export class MainViewModel extends Observable {
     return this._sqliteService.getAll({
       tableName: SmartDriveData.Info.TableName,
       queries: {
-        [SmartDriveData.Info.HasBeenSentName]: '0'
+        [SmartDriveData.Info.HasBeenSentName]: 0
       },
       orderBy: SmartDriveData.Info.IdName,
       ascending: true,
@@ -1697,7 +1697,7 @@ export class MainViewModel extends Observable {
               return this._sqliteService.updateInTable(
                 SmartDriveData.Info.TableName,
                 {
-                  [SmartDriveData.Info.HasBeenSentName]: '1'
+                  [SmartDriveData.Info.HasBeenSentName]: 1
                 },
                 {
                   [SmartDriveData.Info.UuidName]: id

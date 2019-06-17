@@ -23,12 +23,15 @@ export class SqliteService {
     });
   }
 
-  public makeTable(tableName: string, idName: string, keys: string[]) {
+  public makeTable(tableName: string, idName: string, keys: any[]) {
+    const keyString = keys.map(k => {
+      return `${k.name} ${k.type}`;
+    });
     return this.getDatabase().then(db => {
       const dbCreationString =
         `CREATE TABLE IF NOT EXISTS ${tableName} ` +
         `(${idName} INTEGER PRIMARY KEY AUTOINCREMENT, ` +
-        `${keys.join(' TEXT, ')})`;
+        `${keyString.join(', ')})`;
       return db.execSQL(dbCreationString).then(ret => {
         db.close();
         return ret;
@@ -67,20 +70,25 @@ export class SqliteService {
      *   }
      */
     return this.getDatabase().then(db => {
+      const parameters = [];
       const setsStrings = Object.keys(sets);
       const setValues = setsStrings.map(s => {
-        if (_exists(sets, s)) return `${s}=${sets[s]}`;
-        else return ``;
+        if (_exists(sets, s)) {
+          parameters.push(sets[s]);
+          return `${s}=?`;
+        } else return ``;
       });
       const queryStrings = Object.keys(queries).map(q => {
-        if (_exists(queries, q)) return `${q}="${queries[q]}"`;
-        else return ``;
+        if (_exists(queries, q)) {
+          parameters.push(queries[q]);
+          return `${q}=?`;
+        } else return ``;
       });
       const dbUpdateString =
         `UPDATE ${tableName} ` +
         `SET ${setValues.join(', ')} ` +
         `WHERE ${queryStrings.join(' and ')}`;
-      return db.execSQL(dbUpdateString).then(ret => {
+      return db.execSQL(dbUpdateString, parameters).then(ret => {
         db.close();
         return ret;
       });
@@ -96,13 +104,16 @@ export class SqliteService {
      *   }
      */
     return this.getDatabase().then(db => {
+      const parameters = [];
       const queryStrings = Object.keys(queries).map(q => {
-        if (_exists(queries, q)) return `${q}="${queries[q]}"`;
-        else return ``;
+        if (_exists(queries, q)) {
+          parameters.push(queries[q]);
+          return `${q}=?`;
+        } else return ``;
       });
       const dbDeleteString =
         `DELETE FROM ${tableName} ` + `WHERE ${queryStrings.join(' and ')}`;
-      return db.execSQL(dbDeleteString).then(ret => {
+      return db.execSQL(dbDeleteString, parameters).then(ret => {
         db.close();
         return ret;
       });
@@ -139,10 +150,14 @@ export class SqliteService {
       const orderBy = args.orderBy;
       const ascending = args.ascending;
       let dbGetString = `SELECT * from ${tableName}`;
+      let parameters = undefined;
       if (queries) {
+        parameters = [];
         const queryStrings = Object.keys(queries).map(q => {
-          if (_exists(queries, q)) return `${q}=${queries[q]}`;
-          else return ``;
+          if (_exists(queries, q)) {
+            parameters.push(queries[q]);
+            return `${q}=?`;
+          } else return ``;
         });
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
@@ -154,7 +169,7 @@ export class SqliteService {
           dbGetString += ' DESC';
         }
       }
-      return db.get(dbGetString).then(ret => {
+      return db.get(dbGetString, parameters).then(ret => {
         db.close();
         return ret;
       });
@@ -182,10 +197,14 @@ export class SqliteService {
       const ascending = args.ascending;
       const limit = args.limit;
       let dbGetString = `SELECT * from ${tableName}`;
+      let parameters = undefined;
       if (queries) {
+        parameters = [];
         const queryStrings = Object.keys(queries).map(q => {
-          if (_exists(queries, q)) return `${q}=${queries[q]}`;
-          else return ``;
+          if (_exists(queries, q)) {
+            parameters.push(queries[q]);
+            return `${q}=?`;
+          } else return ``;
         });
         dbGetString += ` where ${queryStrings.join(' and ')}`;
       }
@@ -200,7 +219,7 @@ export class SqliteService {
       if (limit > 0) {
         dbGetString += ` LIMIT ${limit}`;
       }
-      return db.all(dbGetString).then(ret => {
+      return db.all(dbGetString, parameters).then(ret => {
         db.close();
         return ret;
       });

@@ -11,12 +11,12 @@ export namespace SmartDriveData {
     export const UuidName = 'uuid';
     export const HasBeenSentName = 'has_been_sent';
     export const Fields = [
-      DateName,
-      BatteryName,
-      DriveDistanceName,
-      CoastDistanceName,
-      UuidName,
-      HasBeenSentName
+      { name: DateName, type: 'TEXT' },
+      { name: BatteryName, type: 'smallint' },
+      { name: DriveDistanceName, type: 'bigint' },
+      { name: CoastDistanceName, type: 'bigint' },
+      { name: UuidName, type: 'TEXT' },
+      { name: HasBeenSentName, type: 'bit' }
     ];
 
     export function getDateValue(date: any) {
@@ -76,11 +76,11 @@ export namespace SmartDriveData {
     export const UuidName = 'uuid';
     export const HasBeenSentName = 'has_been_sent';
     export const Fields = [
-      TimestampName,
-      ErrorCodeName,
-      ErrorIdName,
-      UuidName,
-      HasBeenSentName
+      { name: TimestampName, type: 'TEXT' },
+      { name: ErrorCodeName, type: 'TEXT' },
+      { name: ErrorIdName, type: 'int' },
+      { name: UuidName, type: 'TEXT' },
+      { name: HasBeenSentName, type: 'bit' }
     ];
 
     export function getTimestamp() {
