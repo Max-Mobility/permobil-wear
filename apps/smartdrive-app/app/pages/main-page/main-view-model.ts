@@ -857,10 +857,10 @@ export class MainViewModel extends Observable {
       case 'units':
         this.changeSettingKeyString = 'Units';
         break;
-      case 'throttleMode':
+      case 'throttlemode':
         this.changeSettingKeyString = 'Throttle Mode';
         break;
-      case 'throttleSpeed':
+      case 'throttlespeed':
         this.changeSettingKeyString = 'Throttle Speed';
         break;
       default:
