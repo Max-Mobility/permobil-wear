@@ -53,6 +53,7 @@ export class SmartDrive extends DeviceBase {
   public driveDistance: number = 0; // cumulative total distance the smartDrive has driven
   public coastDistance: number = 0; // cumulative total distance the smartDrive has gone
   public settings = new SmartDrive.Settings();
+  public throttleSettings = new SmartDrive.ThrottleSettings();
 
   // not serialized
   public device: any = null; // the actual bluetooth device associated with this smartdrive
@@ -874,6 +875,33 @@ export class SmartDrive extends DeviceBase {
     );
   }
 
+  public sendThrottleSettings(mode: string, max_speed: number): Promise<any> {
+    const throttleSettings = super.sendThrottleSettings(mode, max_speed);
+    return this.sendPacket(
+      'Command',
+      'SetThrottleSettings',
+      'throttleSettings',
+      null,
+      throttleSettings
+    );
+  }
+
+  public sendThrottleSettingsObject(
+    settings: SmartDrive.ThrottleSettings
+  ): Promise<any> {
+    const _throttleSettings = super.sendThrottleSettings(
+      settings.throttleMode,
+      settings.maxSpeed / 100.0
+    );
+    return this.sendPacket(
+      'Command',
+      'SetThrottleSettings',
+      'throttleSettings',
+      null,
+      _throttleSettings
+    );
+  }
+
   public sendPacket(
     Type: string,
     SubType: string,
@@ -1241,6 +1269,7 @@ export class SmartDrive extends DeviceBase {
 }
 
 export namespace SmartDrive {
+  // Standard SmartDrive Settings:
   export class Settings extends Observable {
     // settings classes
     static ControlMode = class {
@@ -1385,6 +1414,91 @@ export namespace SmartDrive {
         this.acceleration !== s.acceleration ||
         this.maxSpeed !== s.maxSpeed ||
         this.tapSensitivity !== s.tapSensitivity
+      );
+    }
+  }
+
+  // Standard SmartDrive Settings:
+  export class ThrottleSettings extends Observable {
+    // settings classes
+    static ThrottleMode = class {
+      static Options: string[] = ['Active', 'Latching'];
+
+      static Active = 'Active';
+      static Latching = 'Latching';
+
+      static fromSettings(s: any): string {
+        const o = bindingTypeToString('ThrottleMode', s.ThrottleMode);
+        return SmartDrive.ThrottleSettings.ThrottleMode[o];
+      }
+    };
+
+    // public members
+    throttleMode: string = SmartDrive.ThrottleSettings.ThrottleMode.Active;
+    maxSpeed = 70;
+
+    constructor() {
+      super();
+    }
+
+    increase(key: string, increment: number = 10): void {
+      let index;
+      switch (key) {
+        case 'Max Speed':
+          this.maxSpeed = Math.min(this.maxSpeed + increment, 100);
+          break;
+        case 'Throttle Mode':
+          index = SmartDrive.ThrottleSettings.ThrottleMode.Options.indexOf(
+            this.throttleMode
+          );
+          index = mod(
+            index + 1,
+            SmartDrive.ThrottleSettings.ThrottleMode.Options.length
+          );
+          this.throttleMode =
+            SmartDrive.ThrottleSettings.ThrottleMode.Options[index];
+          break;
+      }
+    }
+
+    decrease(key: string, increment: number = 10): void {
+      let index;
+      switch (key) {
+        case 'Max Speed':
+          this.maxSpeed = Math.max(this.maxSpeed - increment, 10);
+          break;
+        case 'Throttle Mode':
+          index = SmartDrive.ThrottleSettings.ThrottleMode.Options.indexOf(
+            this.throttleMode
+          );
+          index = mod(
+            index - 1,
+            SmartDrive.ThrottleSettings.ThrottleMode.Options.length
+          );
+          this.throttleMode =
+            SmartDrive.ThrottleSettings.ThrottleMode.Options[index];
+          break;
+      }
+    }
+
+    fromSettings(s: any): void {
+      // from c++ settings bound array to c++ class
+      this.throttleMode = SmartDrive.ThrottleSettings.ThrottleMode.fromSettings(
+        s
+      );
+      // these floats are [0,1] on smartdrive
+      this.maxSpeed = Math.round(s.MaxSpeed * 100.0);
+    }
+
+    copy(s: any) {
+      // from a ThrottleSettings class exactly like this
+      this.throttleMode = s.throttleMode;
+      this.maxSpeed = s.maxSpeed;
+    }
+
+    diff(s: any): boolean {
+      return (
+        this.throttleMode !== s.throttleMode || this.maxSpeed !== s.maxSpeed
       );
     }
   }

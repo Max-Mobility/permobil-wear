@@ -115,6 +115,23 @@ export class DeviceBase extends Observable {
     return settings;
   }
 
+  public sendThrottleSettings(mode: string, max_speed: number): Promise<any> {
+    const p = new Packet();
+    const settings = p.data('throttleSettings');
+    // convert mode
+    // don't have to convert mode since we don't alias it in any way
+    // clamp numbers
+    const clamp = n => {
+      return Math.max(0, Math.min(n, 1.0));
+    };
+    max_speed = clamp(max_speed);
+    // now fill in the packet
+    settings.ThrottleMode = Packet.makeBoundData('ThrottleMode', mode);
+    settings.MaxSpeed = max_speed;
+    p.destroy();
+    return settings;
+  }
+
   /**
    * Notify events by name and optionally pass data
    */
