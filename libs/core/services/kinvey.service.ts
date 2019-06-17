@@ -36,7 +36,6 @@ export class KinveyService {
 
   post(db: string, content: any) {
     const url = KinveyService.api_base + KinveyService.api_data_endpoint + db;
-    console.log(url);
     return request({
       url: url,
       method: 'POST',
@@ -51,7 +50,6 @@ export class KinveyService {
   put(db: string, content: any, id: any) {
     const url =
       KinveyService.api_base + KinveyService.api_data_endpoint + db + `/${id}`;
-    console.log(url);
     return request({
       url: url,
       method: 'PUT',
@@ -65,7 +63,6 @@ export class KinveyService {
 
   sendError(error: any, id?: string) {
     this.reformatForDb(error);
-    console.log(JSON.stringify(error));
     if (id) return this.put(KinveyService.api_error_db, error, id);
     else return this.post(KinveyService.api_error_db, error);
   }
