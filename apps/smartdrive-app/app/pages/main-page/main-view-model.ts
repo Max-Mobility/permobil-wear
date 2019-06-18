@@ -877,13 +877,13 @@ export class MainViewModel extends Observable {
   updateSettingsChangeDisplay() {
     switch (this.changeSettingKeyString) {
       case 'Max Speed':
-        this.changeSettingKeyValue = `${this.tempSettings.maxSpeed}%`;
+        this.changeSettingKeyValue = `${this.tempSettings.maxSpeed} %`;
         break;
       case 'Acceleration':
-        this.changeSettingKeyValue = `${this.tempSettings.acceleration}%`;
+        this.changeSettingKeyValue = `${this.tempSettings.acceleration} %`;
         break;
       case 'Tap Sensitivity':
-        this.changeSettingKeyValue = `${this.tempSettings.tapSensitivity}%`;
+        this.changeSettingKeyValue = `${this.tempSettings.tapSensitivity} %`;
         break;
       case 'Control Mode':
         this.changeSettingKeyValue = `${this.tempSettings.controlMode}`;
@@ -895,7 +895,7 @@ export class MainViewModel extends Observable {
         this.changeSettingKeyValue = `${this.tempThrottleSettings.throttleMode}`;
         return;
       case 'Throttle Speed':
-        this.changeSettingKeyValue = `${this.tempThrottleSettings.maxSpeed}`;
+        this.changeSettingKeyValue = `${this.tempThrottleSettings.maxSpeed} %`;
         return;
       default:
         break;
