@@ -4,11 +4,12 @@ import { request } from 'tns-core-modules/http';
 
 @Injectable()
 export class KinveyService {
-  public static api_base = 'https://baas.kinvey.com';
-  public static api_data_endpoint = '/appdata/kid_SyIIDJjdM/';
-  public static api_error_db = 'SmartDriveErrors';
-  public static api_info_db = 'SmartDriveUsage';
-  public static api_activity_db = 'PushTrackerActivity';
+  public static api_base = 'https://baas.kinvey.com/appdata/';
+  public static api_data_endpoint = 'kid_SyIIDJjdM';
+  public static api_error_db = '/SmartDriveErrors';
+  public static api_info_db = '/SmartDriveUsage';
+  public static api_settings_db = '/SmartDriveSettings';
+  public static api_activity_db = '/PushTrackerActivity';
 
   private _auth: string = null;
 

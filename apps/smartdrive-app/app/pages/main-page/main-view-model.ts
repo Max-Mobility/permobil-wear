@@ -83,6 +83,7 @@ export class MainViewModel extends Observable {
    * Boolean to track the error history swipe layout visibility.
    */
   @Prop() isErrorHistoryLayoutEnabled = false;
+  @Prop() isAboutLayoutEnabled = false;
 
   /**
    *
@@ -141,6 +142,13 @@ export class MainViewModel extends Observable {
    */
   @Prop() public errorHistoryData = new ObservableArray();
 
+  @Prop() public mcuVersion: string = '---';
+  @Prop() public bleVersion: string = '---';
+  @Prop() public sdSerialNumber: string = '---';
+  @Prop() public watchSerialNumber: string = '---';
+  @Prop() public appVersion: string = '---';
+  @Prop() public databaseId: string = KinveyService.api_data_endpoint;
+
   /**
    * State Management for Sensor Monitoring / Data Collection
    */
@@ -169,6 +177,7 @@ export class MainViewModel extends Observable {
   private pager: Pager;
   private settingsScrollView: ScrollView;
   private errorsScrollView: ScrollView;
+  private aboutScrollView: ScrollView;
   private powerAssistRing: AnimatedCircle;
   private tapRing: AnimatedCircle;
   private watchBatteryRing: AnimatedCircle;
@@ -176,6 +185,7 @@ export class MainViewModel extends Observable {
   private _settingsLayout: SwipeDismissLayout;
   public _changeSettingsLayout: SwipeDismissLayout;
   private _errorHistoryLayout: SwipeDismissLayout;
+  private _aboutLayout: SwipeDismissLayout;
   private _vibrator: Vibrate = new Vibrate();
   private _sentryService: SentryService;
   private _bluetoothService: BluetoothService;
@@ -191,6 +201,8 @@ export class MainViewModel extends Observable {
 
   constructor() {
     super();
+
+    this.watchSerialNumber = device.uuid;
 
     // handle ambient mode callbacks
     application.on('enterAmbient', args => {
@@ -700,7 +712,14 @@ export class MainViewModel extends Observable {
     }
   }
 
-  onAboutTap() {}
+  onAboutTap() {
+    if (this.aboutScrollView) {
+      // reset to to the top when entering the page
+      this.aboutScrollView.scrollToVerticalOffset(0, true);
+    }
+    showOffScreenLayout(this._aboutLayout);
+    this.isAboutLayoutEnabled = true;
+  }
 
   onUpdatesTap() {
     showSuccess('No updates available.', 4);
@@ -752,6 +771,20 @@ export class MainViewModel extends Observable {
       this.isErrorHistoryLayoutEnabled = false;
       // clear the error history data when it's not being displayed to save on memory
       this.errorHistoryData.splice(0, this.errorHistoryData.length);
+    });
+  }
+
+  onAboutLayoutLoaded(args) {
+    // show the chart
+    this._aboutLayout = args.object as SwipeDismissLayout;
+    this.aboutScrollView = this._aboutLayout.getViewById(
+      'aboutScrollView'
+    ) as ScrollView;
+    this._aboutLayout.on(SwipeDismissLayout.dimissedEvent, args => {
+      // Log.D('dismissedEvent', args.object);
+      // hide the offscreen layout when dismissed
+      hideOffScreenLayout(this._aboutLayout, { x: 500, y: 0 });
+      this.isAboutLayoutEnabled = false;
     });
   }
 
@@ -864,12 +897,12 @@ export class MainViewModel extends Observable {
   showErrorHistory() {
     // clear out any pre-loaded data
     this.errorHistoryData.splice(0, this.errorHistoryData.length);
-    // load the error data
     if (this.errorsScrollView) {
       // reset to to the top when entering the page
       this.errorsScrollView.scrollToVerticalOffset(0, true);
     }
     // TODO: say that we're loading
+    // load the error data
     this.getRecentErrors(10).then(recents => {
       // TODO: hide loading indicator
       this.errorHistoryData.push(...recents);
@@ -1478,6 +1511,10 @@ export class MainViewModel extends Observable {
   async onSmartDriveVersion(args: any) {
     // Log.D('onSmartDriveVersion event');
     const mcuVersion = args.data.mcu;
+
+    // update version displays
+    this.mcuVersion = this._smartDrive.mcu_version_string;
+    this.bleVersion = this._smartDrive.ble_version_string;
 
     // save the updated SmartDrive version info
     appSettings.setNumber(

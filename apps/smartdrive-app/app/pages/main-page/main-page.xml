@@ -301,6 +301,63 @@
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
 
+	// About "Page" -- need to wrap this in a component
+    <sdl:SwipeDismissLayout row="0" rowSpan="2" col="0" loaded="{{ onAboutLayoutLoaded }}" class="page" translateX="500" visibility="{{ isAboutLayoutEnabled ? 'visible':'collapsed' }}">
+      <wol:WearOsLayout height="100%" width="100%">
+        <StackLayout height="100%">
+          <Label text="Information" class="chart-title" textWrap="true" />
+          <Label text="" row="1" col="0" class="hr-blue" />
+          // TODO: might want to switch to listview here depending how many items are going to be in this list
+          <ScrollView height="100%" id="aboutScrollView">
+			<StackLayout>
+              <RL:Ripple rippleColor="#ddd">
+				<GridLayout rows="auto, auto" columns="15, *">
+                  <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                  <Label row="0" col="1" text="SmartDrive MCU Version" class="settings-label" textWrap="true" />
+                  <Label row="1" col="1" text="{{ mcuVersion }}" class="settings-label" textWrap="true" />
+				</GridLayout>
+              </RL:Ripple>
+              <RL:Ripple rippleColor="#ddd">
+				<GridLayout rows="auto, auto" columns="15, *">
+                  <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                  <Label row="0" col="1" text="SmartDrive BLE Version" class="settings-label" textWrap="true" />
+                  <Label row="1" col="1" text="{{ bleVersion }}" class="settings-label" textWrap="true" />
+				</GridLayout>
+              </RL:Ripple>
+              <RL:Ripple rippleColor="#ddd">
+				<GridLayout rows="auto, auto" columns="15, *">
+                  <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                  <Label row="0" col="1" text="SmartDrive Serial Number" class="settings-label" textWrap="true" />
+                  <Label row="1" col="1" text="{{ sdSerialNumber }}" class="settings-label" textWrap="true" />
+				</GridLayout>
+              </RL:Ripple>
+              <RL:Ripple rippleColor="#ddd">
+				<GridLayout rows="auto, auto" columns="15, *">
+                  <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                  <Label row="0" col="1" text="TicWatch Serial Number" class="settings-label" textWrap="true" />
+                  <Label row="1" col="1" text="{{ watchSerialNumber }}" class="settings-label" textWrap="true" />
+				</GridLayout>
+              </RL:Ripple>
+              <RL:Ripple rippleColor="#ddd">
+				<GridLayout rows="auto, auto" columns="15, *">
+                  <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                  <Label row="0" col="1" text="App Version" class="settings-label" textWrap="true" />
+                  <Label row="1" col="1" text="{{ appVersion }}" class="settings-label" textWrap="true" />
+				</GridLayout>
+              </RL:Ripple>
+              <RL:Ripple rippleColor="#ddd">
+				<GridLayout rows="auto, auto" columns="15, *">
+                  <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                  <Label row="0" col="1" text="Database ID" class="settings-label" textWrap="true" />
+                  <Label row="1" col="1" text="{{ databaseId }}" class="settings-label" textWrap="true" />
+				</GridLayout>
+              </RL:Ripple>
+			</StackLayout>
+          </ScrollView>
+        </StackLayout>
+      </wol:WearOsLayout>
+    </sdl:SwipeDismissLayout>
+
   </GridLayout>
 
 </Page>
