@@ -1435,7 +1435,7 @@ export namespace SmartDrive {
 
     // public members
     throttleMode: string = SmartDrive.ThrottleSettings.ThrottleMode.Active;
-    maxSpeed = 70;
+    maxSpeed = 30;
 
     constructor() {
       super();
