@@ -921,8 +921,8 @@ export class SmartDrive extends DeviceBase {
       }
       p.data(dataKey, boundData);
       const transmitData = p.toUint8Array();
+      // console.log('sending:', p.toString());
       p.destroy();
-      // console.log(`sending ${transmitData}`);
 
       return this._bluetoothService.write({
         peripheralUUID: this.address,

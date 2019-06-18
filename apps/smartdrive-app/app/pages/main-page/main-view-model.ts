@@ -1295,20 +1295,27 @@ export class MainViewModel extends Observable {
 
   sendSmartDriveSettings() {
     // send the current settings to the SD
-    return this._smartDrive.sendSettingsObject(this.settings).catch(err => {
-      // make sure we retry this while we're connected
-      this._onceSendSmartDriveSettings = once(this.sendSmartDriveSettings);
-      // indicate failure
-      Log.E('send settings failed', err);
-      new Toasty(
-        'Failed to send settings to ' +
-          this._savedSmartDriveAddress +
-          ' ' +
-          err,
-        ToastDuration.SHORT,
-        ToastPosition.CENTER
-      ).show();
-    });
+    return this._smartDrive
+      .sendSettingsObject(this.settings)
+      .then(() => {
+        return this._smartDrive.sendThrottleSettingsObject(
+          this.throttleSettings
+        );
+      })
+      .catch(err => {
+        // make sure we retry this while we're connected
+        this._onceSendSmartDriveSettings = once(this.sendSmartDriveSettings);
+        // indicate failure
+        Log.E('send settings failed', err);
+        new Toasty(
+          'Failed to send settings to ' +
+            this._savedSmartDriveAddress +
+            ' ' +
+            err,
+          ToastDuration.SHORT,
+          ToastPosition.CENTER
+        ).show();
+      });
   }
 
   /*
