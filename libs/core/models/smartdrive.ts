@@ -1385,6 +1385,17 @@ export namespace SmartDrive {
       }
     }
 
+    toObj(): any {
+      return {
+        controlMode: this.controlMode,
+        units: this.units,
+        ezOn: this.ezOn,
+        acceleration: this.acceleration,
+        maxSpeed: this.maxSpeed,
+        tapSensitivity: this.tapSensitivity
+      };
+    }
+
     fromSettings(s: any): void {
       // from c++ settings bound array to c++ class
       this.controlMode = SmartDrive.Settings.ControlMode.fromSettings(s);
@@ -1479,6 +1490,13 @@ export namespace SmartDrive {
             SmartDrive.ThrottleSettings.ThrottleMode.Options[index];
           break;
       }
+    }
+
+    toObj(): any {
+      return {
+        throttleMode: this.throttleMode,
+        maxSpeed: this.maxSpeed
+      };
     }
 
     fromSettings(s: any): void {

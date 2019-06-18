@@ -79,4 +79,10 @@ export class KinveyService {
     if (id) return this.put(KinveyService.api_activity_db, activity, id);
     else return this.post(KinveyService.api_activity_db, activity);
   }
+
+  sendSettings(settings: any, id?: string) {
+    this.reformatForDb(settings);
+    if (id) return this.put(KinveyService.api_settings_db, settings, id);
+    else return this.post(KinveyService.api_settings_db, settings);
+  }
 }

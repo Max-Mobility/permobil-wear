@@ -162,6 +162,7 @@ export class MainViewModel extends Observable {
   private tempSettings = new SmartDrive.Settings();
   private throttleSettings = new SmartDrive.ThrottleSettings();
   private tempThrottleSettings = new SmartDrive.ThrottleSettings();
+  private hasSentSettings: boolean = false;
   private _smartDrive: SmartDrive;
   private _savedSmartDriveAddress: string = null;
   private _ringTimerId = null;
@@ -517,6 +518,10 @@ export class MainViewModel extends Observable {
       .then(ret => {
         // Log.D('Network available - sending info');
         return this.sendInfosToServer(10);
+      })
+      .then(ret => {
+        // Log.D('Network available - sending settings');
+        return this.sendSettingsToServer();
       })
       .then(ret => {
         // Log.D('Have sent data to server - unregistering from network');
@@ -1043,6 +1048,7 @@ export class MainViewModel extends Observable {
     // SAVE THE VALUE to local data for the setting user has selected
     this.settings.copy(this.tempSettings);
     this.throttleSettings.copy(this.tempThrottleSettings);
+    this.hasSentSettings = false;
     this.saveSettings();
     // now update any display that needs settings:
     this.updateSettingsDisplay();
@@ -1088,9 +1094,16 @@ export class MainViewModel extends Observable {
       appSettings.getString(DataKeys.SD_THROTTLE_MODE) || 'Active';
     this.throttleSettings.maxSpeed =
       appSettings.getNumber(DataKeys.SD_THROTTLE_SPEED) || 70;
+    this.hasSentSettings = appSettings.getBoolean(
+      DataKeys.SD_SETTINGS_DIRTY_FLAG
+    );
   }
 
   saveSettings() {
+    appSettings.setBoolean(
+      DataKeys.SD_SETTINGS_DIRTY_FLAG,
+      this.hasSentSettings
+    );
     appSettings.setNumber(DataKeys.SD_MAX_SPEED, this.settings.maxSpeed);
     appSettings.setNumber(DataKeys.SD_ACCELERATION, this.settings.acceleration);
     appSettings.setNumber(
@@ -1581,55 +1594,6 @@ export class MainViewModel extends Observable {
       });
   }
 
-  sendErrorsToServer(numErrors: number) {
-    return this._sqliteService
-      .getAll({
-        tableName: SmartDriveData.Errors.TableName,
-        orderBy: SmartDriveData.Errors.IdName,
-        queries: {
-          [SmartDriveData.Errors.HasBeenSentName]: 0
-        },
-        ascending: true,
-        limit: numErrors
-      })
-      .then(errors => {
-        if (errors && errors.length) {
-          // now send them one by one
-          const promises = errors.map(e => {
-            // @ts-ignore
-            e = SmartDriveData.Errors.loadError(...e);
-            return this._kinveyService.sendError(
-              e,
-              e[SmartDriveData.Errors.UuidName]
-            );
-          });
-          return Promise.all(promises);
-        }
-      })
-      .then(rets => {
-        if (rets && rets.length) {
-          const promises = rets
-            .map(r => r.content.toJSON())
-            .map(r => {
-              const id = r['_id'];
-              return this._sqliteService.updateInTable(
-                SmartDriveData.Errors.TableName,
-                {
-                  [SmartDriveData.Errors.HasBeenSentName]: 1
-                },
-                {
-                  [SmartDriveData.Errors.UuidName]: id
-                }
-              );
-            });
-          return Promise.all(promises);
-        }
-      })
-      .catch(e => {
-        Log.E('Error sending errors to server:', e);
-      });
-  }
-
   getRecentErrors(numErrors: number, offset: number = 0) {
     let errors = [];
     return this._sqliteService
@@ -1804,6 +1768,79 @@ export class MainViewModel extends Observable {
       ascending: true,
       limit: numEntries
     });
+  }
+
+  /**
+   * Network Functions
+   */
+  sendSettingsToServer() {
+    if (!this.hasSentSettings) {
+      const settingsObj = {
+        settings: this.settings.toObj(),
+        throttleSettings: this.throttleSettings.toObj()
+      };
+      return this._kinveyService
+        .sendSettings(settingsObj)
+        .then(() => {
+          this.hasSentSettings = true;
+          appSettings.setBoolean(
+            DataKeys.SD_SETTINGS_DIRTY_FLAG,
+            this.hasSentSettings
+          );
+        })
+        .catch(err => {});
+    } else {
+      return Promise.resolve();
+    }
+  }
+
+  sendErrorsToServer(numErrors: number) {
+    return this._sqliteService
+      .getAll({
+        tableName: SmartDriveData.Errors.TableName,
+        orderBy: SmartDriveData.Errors.IdName,
+        queries: {
+          [SmartDriveData.Errors.HasBeenSentName]: 0
+        },
+        ascending: true,
+        limit: numErrors
+      })
+      .then(errors => {
+        if (errors && errors.length) {
+          // now send them one by one
+          const promises = errors.map(e => {
+            // @ts-ignore
+            e = SmartDriveData.Errors.loadError(...e);
+            return this._kinveyService.sendError(
+              e,
+              e[SmartDriveData.Errors.UuidName]
+            );
+          });
+          return Promise.all(promises);
+        }
+      })
+      .then(rets => {
+        if (rets && rets.length) {
+          const promises = rets
+            .map(r => r.content.toJSON())
+            .map(r => {
+              const id = r['_id'];
+              return this._sqliteService.updateInTable(
+                SmartDriveData.Errors.TableName,
+                {
+                  [SmartDriveData.Errors.HasBeenSentName]: 1
+                },
+                {
+                  [SmartDriveData.Errors.UuidName]: id
+                }
+              );
+            });
+          return Promise.all(promises);
+        }
+      })
+      .catch(e => {
+        Log.E('Error sending errors to server:', e);
+      });
   }
 
   sendInfosToServer(numInfo: number) {

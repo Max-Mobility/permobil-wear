@@ -1,6 +1,7 @@
 export enum DataKeys {
   'USER_IDENTIFIER' = 'user_identifier',
   'HEART_RATE' = 'heart_rate',
+  'SD_SETTINGS_DIRTY_FLAG' = 'sd.settings.dirty-flag',
   'SD_DISTANCE_CASE' = 'sd.distance.case',
   'SD_DISTANCE_DRIVE' = 'sd.distance.drive',
   'SD_VERSION_MCU' = 'sd.version.mcu',
