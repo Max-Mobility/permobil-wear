@@ -222,6 +222,8 @@ export class MainViewModel extends Observable {
     // handle ambient mode callbacks
     application.on('updateAmbient', args => {
       Log.D('updateAmbient', args.data, currentSystemTime());
+      this.currentTime = currentSystemTime();
+      this.currentTimeMeridiem = currentSystemTimeMeridiem();
     });
 
     // handle application lifecycle events
