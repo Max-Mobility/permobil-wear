@@ -740,6 +740,8 @@ export class MainViewModel extends Observable {
       // hide the offscreen layout when dismissed
       hideOffScreenLayout(this._errorHistoryLayout, { x: 500, y: 0 });
       this.isErrorHistoryLayoutEnabled = false;
+      // clear the error history data when it's not being displayed to save on memory
+      this.errorHistoryData.splice(0, this.errorHistoryData.length);
     });
   }
 
