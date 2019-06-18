@@ -1,10 +1,10 @@
-<Page xmlns="http://schemas.nativescript.org/tns.xsd" 
-  xmlns:nac="nativescript-animated-circle" 
-  xmlns:wol="nativescript-wear-os/packages/wear-os-layout" 
-  xmlns:lv="nativescript-wear-os/packages/listview" 
-  xmlns:pager="nativescript-pager" 
-  xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout" 
-  xmlns:box="nativescript-wear-os/packages/box-inset-layout" 
+<Page xmlns="http://schemas.nativescript.org/tns.xsd"
+  xmlns:nac="nativescript-animated-circle"
+  xmlns:wol="nativescript-wear-os/packages/wear-os-layout"
+  xmlns:lv="nativescript-wear-os/packages/listview"
+  xmlns:pager="nativescript-pager"
+  xmlns:sdl="nativescript-wear-os/packages/swipe-dismiss-layout"
+  xmlns:box="nativescript-wear-os/packages/box-inset-layout"
   xmlns:RL="nativescript-ng-ripple/ripple-view" navigatingTo="navigatingTo" actionBarHidden="true">
   <GridLayout rows="*, *" columns="*">
 

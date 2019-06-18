@@ -416,6 +416,8 @@ export class MainViewModel extends Observable {
       'Device Language: ' + device.language,
       'UUID: ' + device.uuid
     );
+
+    themes.applyThemeCss(defaultTheme, 'theme-default.scss');
   }
 
   fullStop() {
