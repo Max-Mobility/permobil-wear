@@ -79,7 +79,9 @@ public:
 
   struct ThrottleSettings {
     ThrottleMode throttleMode; /** Bitmask of boolean settings.      */
-    uint8_t      padding[3];
+    uint8_t      padding1;
+    uint8_t      padding2;
+    uint8_t      padding3;
     float        maxSpeed;     /** Slider setting, range: [0.1, 1.0] */
   };
   static const int throttleSettingsLength = sizeof(ThrottleSettings);
@@ -609,7 +611,9 @@ EMSCRIPTEN_BINDINGS(packet_bindings) {
 
   emscripten::value_object<SmartDrive::ThrottleSettings>("ThrottleSettings")
     .field("ThrottleMode", &SmartDrive::ThrottleSettings::throttleMode)
-    .field("Padding", &SmartDrive::ThrottleSettings::padding)
+    .field("Padding1", &SmartDrive::ThrottleSettings::padding1)
+    .field("Padding2", &SmartDrive::ThrottleSettings::padding2)
+    .field("Padding3", &SmartDrive::ThrottleSettings::padding3)
     .field("MaxSpeed", &SmartDrive::ThrottleSettings::maxSpeed)
     ;
 
