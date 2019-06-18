@@ -165,6 +165,7 @@ export class MainViewModel extends Observable {
   /**
    * User interaction objects
    */
+  private wakeLock: any = null;
   private pager: Pager;
   private settingsScrollView: ScrollView;
   private errorsScrollView: ScrollView;
@@ -218,6 +219,16 @@ export class MainViewModel extends Observable {
         }
       }
     });
+
+    // initialize the wake lock here
+    const context = android.content.Context;
+    const powerManager = application.android.context.getSystemService(
+      context.POWER_SERVICE
+    );
+    this.wakeLock = powerManager.newWakeLock(
+      android.os.PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
+      'com.permobil.smartdrive.wearos::WakeLock'
+    );
 
     // handle ambient mode callbacks
     application.on('updateAmbient', args => {
@@ -701,6 +712,7 @@ export class MainViewModel extends Observable {
   }
 
   onTrainingTap() {
+    this.wakeLock.acquire();
     keepAwake();
     this.isTraining = true;
     this.powerAssistState = PowerAssist.State.Training;
@@ -709,6 +721,7 @@ export class MainViewModel extends Observable {
   }
 
   onExitTrainingModeTap() {
+    if (this.wakeLock.isHeld()) this.wakeLock.release();
     allowSleepAgain();
     this.isTraining = false;
     this.powerAssistState = PowerAssist.State.Inactive;
@@ -1102,6 +1115,7 @@ export class MainViewModel extends Observable {
       showFailure('You must wear the watch to activate power assist.');
       return;
     }
+    this.wakeLock.acquire();
     keepAwake();
     this.powerAssistState = PowerAssist.State.Disconnected;
     this.powerAssistActive = true;
@@ -1114,21 +1128,16 @@ export class MainViewModel extends Observable {
             this.RING_TIMER_INTERVAL_MS
           );
         } else {
-          allowSleepAgain();
-          this.powerAssistState = PowerAssist.State.Inactive;
-          this.powerAssistActive = false;
-          this.updatePowerAssistRing();
+          this.disablePowerAssist();
         }
       })
       .catch(err => {
-        allowSleepAgain();
-        this.powerAssistState = PowerAssist.State.Inactive;
-        this.powerAssistActive = false;
-        this.updatePowerAssistRing();
+        this.disablePowerAssist();
       });
   }
 
   disablePowerAssist() {
+    if (this.wakeLock.isHeld()) this.wakeLock.release();
     allowSleepAgain();
     this.powerAssistState = PowerAssist.State.Inactive;
     this.powerAssistActive = false;
