@@ -39,6 +39,7 @@ import { action } from 'tns-core-modules/ui/dialogs';
 import { Page, View } from 'tns-core-modules/ui/page';
 import { Repeater } from 'tns-core-modules/ui/repeater';
 import { PowerAssist, SmartDriveData } from '../../namespaces';
+import { ScrollView, ScrollEventData } from 'tns-core-modules/ui/scroll-view';
 import {
   currentSystemTime,
   currentSystemTimeMeridiem,
@@ -160,6 +161,8 @@ export class MainViewModel extends Observable {
    * User interaction objects
    */
   private pager: Pager;
+  private settingsScrollView: ScrollView;
+  private errorsScrollView: ScrollView;
   private powerAssistRing: AnimatedCircle;
   private tapRing: AnimatedCircle;
   private watchBatteryRing: AnimatedCircle;
@@ -710,6 +713,9 @@ export class MainViewModel extends Observable {
    */
   onSettingsLayoutLoaded(args) {
     this._settingsLayout = args.object as SwipeDismissLayout;
+    this.settingsScrollView = this._settingsLayout.getViewById(
+      'settingsScrollView'
+    ) as ScrollView;
     this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
       // Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
@@ -721,6 +727,9 @@ export class MainViewModel extends Observable {
   onErrorHistoryLayoutLoaded(args) {
     // show the chart
     this._errorHistoryLayout = args.object as SwipeDismissLayout;
+    this.errorsScrollView = this._errorHistoryLayout.getViewById(
+      'errorsScrollView'
+    ) as ScrollView;
     this._errorHistoryLayout.on(SwipeDismissLayout.dimissedEvent, args => {
       // Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
@@ -826,12 +835,25 @@ export class MainViewModel extends Observable {
 
   showErrorHistory() {
     // load the error data
-    this.getRecentErrors(10);
+    if (this.errorsScrollView) {
+      // reset to to the top when entering the page
+      this.errorsScrollView.scrollToVerticalOffset(0, true);
+    }
+    // TODO: say that we're loading
+    this.getRecentErrors(10).then(recents => {
+      if (!recents || !recents.length) {
+        // TODO: say that there were no errors
+      }
+    });
     showOffScreenLayout(this._errorHistoryLayout);
     this.isErrorHistoryLayoutEnabled = true;
   }
 
   onSettingsTap() {
+    if (this.settingsScrollView) {
+      // reset to to the top when entering the page
+      this.settingsScrollView.scrollToVerticalOffset(0, true);
+    }
     showOffScreenLayout(this._settingsLayout);
     this.isSettingsLayoutEnabled = true;
   }
