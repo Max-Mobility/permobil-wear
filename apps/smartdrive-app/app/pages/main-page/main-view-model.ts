@@ -1095,8 +1095,8 @@ export class MainViewModel extends Observable {
   enablePowerAssist() {
     // only enable power assist if we're on the user's wrist
     if (!this.watchBeingWorn) {
-      //showFailure('You must wear the watch to activate power assist.');
-      //return;
+      showFailure('You must wear the watch to activate power assist.');
+      return;
     }
     keepAwake();
     this.powerAssistState = PowerAssist.State.Disconnected;
