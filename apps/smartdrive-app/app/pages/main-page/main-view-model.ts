@@ -34,12 +34,17 @@ import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
 import { Color } from 'tns-core-modules/color';
 import { Observable } from 'tns-core-modules/data/observable';
+import {
+  ObservableArray,
+  ChangedData
+} from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
 import { action } from 'tns-core-modules/ui/dialogs';
 import { Page, View } from 'tns-core-modules/ui/page';
 import { Repeater } from 'tns-core-modules/ui/repeater';
 import { PowerAssist, SmartDriveData } from '../../namespaces';
 import { ScrollView, ScrollEventData } from 'tns-core-modules/ui/scroll-view';
+import { ItemEventData } from 'tns-core-modules/ui/list-view';
 import {
   currentSystemTime,
   currentSystemTimeMeridiem,
@@ -134,7 +139,7 @@ export class MainViewModel extends Observable {
   /**
    * Data to bind to the Error History repeater
    */
-  @Prop() public errorHistoryData;
+  @Prop() public errorHistoryData = new ObservableArray();
 
   /**
    * State Management for Sensor Monitoring / Data Collection
@@ -833,7 +838,20 @@ export class MainViewModel extends Observable {
     // calculating the Max Value for the chart and some sizing checks
   }
 
+  onLoadMoreErrors(args: ItemEventData) {
+    // TODO: show loading indicator
+    this.getRecentErrors(10, this.errorHistoryData.length).then(recents => {
+      // TODO: hide loading indicator
+      this.errorHistoryData.push(...recents);
+      if (!this.errorHistoryData.length) {
+        // TODO: say that there were no errors
+      }
+    });
+  }
+
   showErrorHistory() {
+    // clear out any pre-loaded data
+    this.errorHistoryData.splice(0, this.errorHistoryData.length);
     // load the error data
     if (this.errorsScrollView) {
       // reset to to the top when entering the page
@@ -841,7 +859,9 @@ export class MainViewModel extends Observable {
     }
     // TODO: say that we're loading
     this.getRecentErrors(10).then(recents => {
-      if (!recents || !recents.length) {
+      // TODO: hide loading indicator
+      this.errorHistoryData.push(...recents);
+      if (!this.errorHistoryData.length) {
         // TODO: say that there were no errors
       }
     });
@@ -1075,8 +1095,8 @@ export class MainViewModel extends Observable {
   enablePowerAssist() {
     // only enable power assist if we're on the user's wrist
     if (!this.watchBeingWorn) {
-      showFailure('You must wear the watch to activate power assist.');
-      return;
+      //showFailure('You must wear the watch to activate power assist.');
+      //return;
     }
     keepAwake();
     this.powerAssistState = PowerAssist.State.Disconnected;
@@ -1554,25 +1574,30 @@ export class MainViewModel extends Observable {
       });
   }
 
-  getRecentErrors(numErrors: number) {
+  getRecentErrors(numErrors: number, offset: number = 0) {
+    let errors = [];
     return this._sqliteService
       .getAll({
         tableName: SmartDriveData.Errors.TableName,
         orderBy: SmartDriveData.Errors.IdName,
         ascending: false,
-        limit: numErrors
+        limit: numErrors,
+        offset: offset
       })
       .then(rows => {
-        this.errorHistoryData = rows.map(obj => {
-          return {
-            time: format(new Date(obj && +obj[1]), 'YYYY-MM-DD HH:mm'),
-            code: obj && obj[2]
-          };
-        });
+        if (rows && rows.length) {
+          errors = rows.map(r => {
+            return {
+              time: format(new Date(r && +r[1]), 'YYYY-MM-DD HH:mm'),
+              code: r && r[2]
+            };
+          });
+        }
+        return errors;
       })
       .catch(err => {
         Log.E(`couldn't get errors`, err);
-        return [];
+        return errors;
       });
   }
 

@@ -182,6 +182,7 @@ export class SqliteService {
     orderBy?: string;
     ascending?: boolean;
     limit?: number;
+    offset?: number;
   }) {
     /**
      *  expects queries to be an object of the form:
@@ -196,6 +197,7 @@ export class SqliteService {
       const orderBy = args.orderBy;
       const ascending = args.ascending;
       const limit = args.limit;
+      const offset = args.offset;
       let dbGetString = `SELECT * from ${tableName}`;
       let parameters = undefined;
       if (queries) {
@@ -218,6 +220,9 @@ export class SqliteService {
       }
       if (limit > 0) {
         dbGetString += ` LIMIT ${limit}`;
+      }
+      if (orderBy && offset) {
+        dbGetString += ` OFFSET ${offset}`;
       }
       return db.all(dbGetString, parameters).then(ret => {
         db.close();
