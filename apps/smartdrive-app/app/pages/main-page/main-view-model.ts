@@ -202,7 +202,16 @@ export class MainViewModel extends Observable {
   constructor() {
     super();
 
+    // update about page info
     this.watchSerialNumber = device.uuid;
+    const packageManager = application.android.context.getPackageManager();
+    const packageInfo = packageManager.getPackageInfo(
+      application.android.context.getPackageName(),
+      0
+    );
+    const versionName = packageInfo.versionName;
+    const versionCode = packageInfo.versionCode;
+    this.appVersion = versionName;
 
     // handle ambient mode callbacks
     application.on('enterAmbient', args => {
