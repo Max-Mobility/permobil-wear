@@ -360,7 +360,6 @@ export class MainViewModel extends Observable {
           android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT
         ) {
           this.watchBeingWorn = (parsedData.d as any).state !== 0.0;
-          // Log.D('WatchBeingWorn: ' + this.watchBeingWorn);
           if (!this.watchBeingWorn && this.powerAssistActive) {
             // disable power assist if the watch is taken off!
             this.disablePowerAssist();
@@ -399,7 +398,6 @@ export class MainViewModel extends Observable {
   }
 
   fullStop() {
-    Log.D('Disabling power assist');
     this.disablePowerAssist();
   }
 
@@ -628,7 +626,6 @@ export class MainViewModel extends Observable {
     // must have a high enough abs(accel.z) and it must be a jerk
     // movement - high difference between previous accel and current
     // accel
-    console.log(acc, threshold, diff, threshold);
     if (acc > threshold && diff > threshold) {
       // record that there has been a tap
       this.lastTapTime = timestamp;
@@ -703,9 +700,7 @@ export class MainViewModel extends Observable {
     }
   }
 
-  onLedSettingsTap() {
-    Log.D('LED Settings tapped.');
-  }
+  onAboutTap() {}
 
   onUpdatesTap() {
     showSuccess('No updates available.', 4);
@@ -1652,7 +1647,6 @@ export class MainViewModel extends Observable {
         return this.getTodaysUsageInfoFromDatabase();
       })
       .then(u => {
-        // console.log('Got usage:', u);
         if (u[SmartDriveData.Info.IdName]) {
           // there was a record, so we need to update it. we add the
           // already used battery plus the amount of new battery
@@ -1722,7 +1716,6 @@ export class MainViewModel extends Observable {
     const usageInfo = dates.map(d => {
       return SmartDriveData.Info.newInfo(null, d, 0, 0, 0);
     });
-    // console.log('usage info', usageInfo);
     return this.getRecentInfoFromDatabase(6)
       .then(objs => {
         objs.map(o => {
@@ -1739,7 +1732,7 @@ export class MainViewModel extends Observable {
         return usageInfo;
       })
       .catch(err => {
-        console.log('error getting rececnt info:', err);
+        console.log('error getting recent info:', err);
         return usageInfo;
       });
   }

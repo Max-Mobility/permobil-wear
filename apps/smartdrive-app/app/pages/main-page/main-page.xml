@@ -152,15 +152,15 @@
                 </GridLayout>
               </RL:Ripple>
               <RL:Ripple row="1" rippleColor="#ddd">
-                <GridLayout rows="*" columns="15, *" tap="{{ onLedSettingsTap }}">
-                  <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-                  <Label col="1" text="LED Settings" class="settings-label" textWrap="true" />
-                </GridLayout>
-              </RL:Ripple>
-              <RL:Ripple row="2" rippleColor="#ddd">
                 <GridLayout rows="*" columns="15, *" tap="{{ onUpdatesTap }}">
                   <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
                   <Label col="1" text="Updates" class="settings-label" textWrap="true" />
+                </GridLayout>
+              </RL:Ripple>
+              <RL:Ripple row="2" rippleColor="#ddd">
+                <GridLayout rows="*" columns="15, *" tap="{{ onAboutTap }}">
+                  <Label col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
+                  <Label col="1" text="About" class="settings-label" textWrap="true" />
                 </GridLayout>
               </RL:Ripple>
               <RL:Ripple row="3" rippleColor="#ddd">
