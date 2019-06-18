@@ -645,7 +645,7 @@ export class MainViewModel extends Observable {
     }
     this.tapTimeoutId = setTimeout(() => {
       this.hasTapped = false;
-    }, this.tapLockoutTimeMs / 2);
+    }, (this.tapLockoutTimeMs * 3) / 2);
     // now send
     if (
       this.powerAssistActive &&
