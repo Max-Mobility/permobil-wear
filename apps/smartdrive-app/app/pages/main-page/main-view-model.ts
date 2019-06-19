@@ -1316,13 +1316,18 @@ export class MainViewModel extends Observable {
   }
 
   saveNewSmartDrive(): Promise<any> {
-    this.pairSmartDriveText = 'Scanning';
-    let scanDisplayId = setInterval(() => {
-      this.pairSmartDriveText += '.';
-    }, 1000);
-    // scan for smartdrives
+    let scanDisplayId = null;
+    // ensure bluetoothservice is functional
     return this._bluetoothService
-      .scanForSmartDrives(3)
+      .initialize()
+      .then(() => {
+        this.pairSmartDriveText = 'Scanning';
+        scanDisplayId = setInterval(() => {
+          this.pairSmartDriveText += '.';
+        }, 1000);
+        // scan for smartdrives
+        return this._bluetoothService.scanForSmartDrives(3);
+      })
       .then(() => {
         clearInterval(scanDisplayId);
         this.pairSmartDriveText = 'Pair SmartDrive';
