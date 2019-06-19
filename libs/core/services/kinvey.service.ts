@@ -4,8 +4,10 @@ import { request } from 'tns-core-modules/http';
 
 @Injectable()
 export class KinveyService {
-  public static api_base = 'https://baas.kinvey.com/appdata/';
-  public static api_data_endpoint = 'kid_SyIIDJjdM';
+  public static api_base = 'https://baas.kinvey.com';
+  public static api_file_route = '/blob/';
+  public static api_data_route = '/appdata/';
+  public static api_app_key = 'kid_SyIIDJjdM';
   public static api_error_db = '/SmartDriveErrors';
   public static api_info_db = '/SmartDriveUsage';
   public static api_settings_db = '/SmartDriveSettings';
@@ -35,8 +37,70 @@ export class KinveyService {
     o.watch_uuid = device.uuid;
   }
 
+  getFile(
+    fileId?: string,
+    queries?: any,
+    limit?: number,
+    sort?: any,
+    skip?: any
+  ) {
+    let url =
+      KinveyService.api_base +
+      KinveyService.api_file_route +
+      KinveyService.api_app_key;
+    if (fileId) {
+      url += `/${fileId}`;
+    }
+    const argObj = {
+      query: queries,
+      limit: limit,
+      sort: sort,
+      skip: skip
+    };
+    const args = Object.keys(argObj).filter(a => argObj[a]);
+    if (args.length) {
+      url += '?' + args.map(a => `${a}=${JSON.stringify(argObj[a])}`).join('&');
+    }
+    return request({
+      url: url,
+      method: 'GET',
+      headers: {
+        Authorization: this._auth
+      }
+    });
+  }
+
+  getEntry(db: string, queries?: any, limit?: number, sort?: any, skip?: any) {
+    let url =
+      KinveyService.api_base +
+      KinveyService.api_data_route +
+      KinveyService.api_app_key +
+      db;
+    const argObj = {
+      query: queries,
+      limit: limit,
+      sort: sort,
+      skip: skip
+    };
+    const args = Object.keys(argObj).filter(a => argObj[a]);
+    if (args.length) {
+      url += '?' + args.map(a => `${a}=${JSON.stringify(argObj[a])}`).join('&');
+    }
+    return request({
+      url: url,
+      method: 'GET',
+      headers: {
+        Authorization: this._auth
+      }
+    });
+  }
+
   post(db: string, content: any) {
-    const url = KinveyService.api_base + KinveyService.api_data_endpoint + db;
+    const url =
+      KinveyService.api_base +
+      KinveyService.api_data_route +
+      KinveyService.api_app_key +
+      db;
     return request({
       url: url,
       method: 'POST',
@@ -50,7 +114,11 @@ export class KinveyService {
 
   put(db: string, content: any, id: any) {
     const url =
-      KinveyService.api_base + KinveyService.api_data_endpoint + db + `/${id}`;
+      KinveyService.api_base +
+      KinveyService.api_data_route +
+      KinveyService.api_app_key +
+      db +
+      `/${id}`;
     return request({
       url: url,
       method: 'PUT',

@@ -5,6 +5,9 @@ $mcu-progress-rim-color: #696969;
 $ble-progress-color: #009ac7;
 $ble-progress-rim-color: #696969;
 
+$download-progress-color: #009ac7;
+$download-progress-rim-color: #696969;
+
 $activated-color: #db4537;
 $deactivated-color: #00a73c;
 
@@ -24,6 +27,15 @@ $deactivated-color: #00a73c;
   height: 90%;
   bar-color: $ble-progress-color;
   rim-color: $ble-progress-rim-color;
+}
+
+.updateDownloadProgressCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 100%;
+  height: 100%;
+  bar-color: $download-progress-color;
+  rim-color: $download-progress-rim-color;
 }
 
 .topValue {

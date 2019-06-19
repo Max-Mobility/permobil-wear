@@ -247,39 +247,59 @@
     <sdl:SwipeDismissLayout height="100%" width="100%" row="0" rowSpan="2" col="0" loaded="{{ onUpdatesLayoutLoaded }}" class="page" translateX="500" visibility="{{ isUpdatesLayoutEnabled ? 'visible':'collapsed' }}">
       <wol:WearOsLayout height="100%" width="100%" disableInsetConstraint="true">
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
-         // SmartDrive MCU OTA Progress Circle
-         <nac:AnimatedCircle id="mcuProgressCircle" loaded="{{ onMcuCircleLoaded }}"
+         // SmartDrive Update Progress Circle
+         <nac:AnimatedCircle id="updateProgressCircle" loaded="{{ onUpdateCircleLoaded }}"
 							 rowSpan="3" colSpan="3"
-							 class="mcuProgressCircle"
+							 class="bleProgressCircle"
 							 width="100%" height="100%"
 							 animated="true" animateFrom="0" clockwise="true"
 							 rimWidth="2" barWidth="8"
-							 progress="{{ smartDrive.mcuOTAProgress }}">
-          </nac:AnimatedCircle>
-         // SmartDrive BLE OTA Progress Circle
-         <nac:AnimatedCircle id="bleProgressCircle" loaded="{{ onBleCircleLoaded }}"
-							 rowSpan="3" colSpan="3"
-							 class="bleProgressCircle"
-							 width="90%" height="90%"
-							 animated="true" animateFrom="0" clockwise="true"
-							 rimWidth="2" barWidth="8"
-							 progress="{{ smartDrive.bleOTAProgress }}">
+							 progress="{{ smartDrive.otaProgress }}"
+							 visibility="{{ hasUpdateData ? 'visible' : 'collapsed' }}">
             <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
               <Label row="1" col="1" class="topValue" horizontalAlignment="center" textWrap="true"
 					 text="{{ smartDrive.otaState }}"/>
               <Label row="2" col="1" class="topValueDescription" textWrap="true"
 					 text="Update Status"/>
-              <Button row="3" col="1" class="powerAssist-active"
+			  <Button row="3" col="1" class="powerAssist-deactive"
+					  text="Start"
+					  tap="{{ startUpdates }}"
+					  visibility="{{ !smartDrive.isUpdating ? 'visible' : 'collapsed' }}"/>
+			  <Button row="3" col="1" class="powerAssist-active"
 					  text="Cancel"
-					  tap="{{ smartDrive.canceclOTA }}"/>
+					  tap="{{ cancelUpdates }}"
+					  visibility="{{ smartDrive.isUpdating ? 'visible' : 'collapsed' }}"/>
+			  <ListView items="{{ smartDrive.otaActions }}"
+						visibility="{{ smartDrive.isUpdating ? 'visible' : 'collapsed' }}">
+				<ListView.itemTemplate>
+				  <Button row="3" col="1" class="powerAssist-deactive"
+						  text="{{ this }}"
+						  tap="{{ onUpdateAction }}"/>
+				</ListView.itemTemplate>
+			  </ListView>
               <Label row="4" col="1" class="currentTime"
 					 text="{{ currentTime }}" textWrap="true" />
               <Label row="5" col="1" class="currentTimeMeridiem"
 					 text="{{ currentTimeMeridiem }}" textWrap="true" />
             </GridLayout>
           </nac:AnimatedCircle>
+          // Update download progress circle
+          <nac:AnimatedCircle id="updateDownloadProgressCircle"
+							  loaded="{{ onUpdateDownloadProgressCircleLoaded }}"
+							  rowSpan="3" colSpan="3"
+							  class="updateDownloadProgressCircle"
+							  width="100%" height="100%"
+							  animated="true" animateFrom="0" clockwise="true"
+							  rimWidth="2" barWidth="8" progress="50"
+							  visibility="{{ !hasUpdateData ? 'visible' : 'collapsed' }}">
+            <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
+			  <Button row="3" col="1" class="powerAssist-deactive"
+					  text="Check for Updates"
+					  tap="{{ checkForUpdates }}"/>
+			</GridLayout>
+		  </nac:AnimatedCircle>
         </GridLayout>
-      </wol:WearOsLayout>
+	  </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
 
     // Settings Layout "Page" -- need to wrap this in a component

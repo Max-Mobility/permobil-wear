@@ -63,6 +63,7 @@ export class SmartDrive extends DeviceBase {
   public mcuOTAProgress: number = 0;
   public notifying: boolean = false;
   public driving: boolean = false;
+  public isUpdating: boolean = false;
 
   // private members
   private doBLEUpdate: boolean = false;
@@ -228,6 +229,7 @@ export class SmartDrive extends DeviceBase {
     // wait to get ble version
     // wait to get mcu version
     // check versions
+    this.isUpdating = false;
     return new Promise((resolve, reject) => {
       if (!bleFirmware || !mcuFirmware || !bleFWVersion || !mcuFWVersion) {
         const msg = `Bad version (${bleFWVersion}, ${mcuFWVersion}), or firmware (${bleFirmware}, ${mcuFirmware})!`;
@@ -337,6 +339,7 @@ export class SmartDrive extends DeviceBase {
           otaIntervalID = timer.setInterval(runOTA, 250);
         };
         const otaStartHandler = () => {
+          this.isUpdating = true;
           // set the progresses
           this.bleOTAProgress = 0;
           this.mcuOTAProgress = 0;
@@ -354,6 +357,7 @@ export class SmartDrive extends DeviceBase {
           }, otaTimeout);
         };
         const otaForceHandler = () => {
+          this.isUpdating = true;
           startedOTA = true;
           this.doMCUUpdate = true;
           this.doBLEUpdate = true;
@@ -372,6 +376,7 @@ export class SmartDrive extends DeviceBase {
           this.otaState = SmartDrive.OTAState.canceling;
         };
         const otaTimeoutHandler = () => {
+          this.isUpdating = false;
           startedOTA = false;
           stopOTA('OTA Timeout', false, true);
           this.otaState = SmartDrive.OTAState.timeout;
@@ -414,18 +419,21 @@ export class SmartDrive extends DeviceBase {
         };
         const otaMCUReadyHandler = data => {
           startedOTA = true;
+          this.isUpdating = true;
           this.otaActions = ['ota.action.pause', 'ota.action.cancel'];
           console.log(`Got MCU OTAReady from ${this.address}`);
           this.otaState = SmartDrive.OTAState.updating_mcu;
         };
         const otaBLEReadyHandler = data => {
           startedOTA = true;
+          this.isUpdating = true;
           this.otaActions = ['ota.action.pause', 'ota.action.cancel'];
           console.log(`Got BLE OTAReady from ${this.address}`);
           this.otaState = SmartDrive.OTAState.updating_ble;
         };
         const otaReadyHandler = data => {
           startedOTA = true;
+          this.isUpdating = true;
           this.otaActions = ['ota.action.pause', 'ota.action.cancel'];
           console.log(`Got OTAReady from ${this.address}`);
           if (this.otaState === SmartDrive.OTAState.awaiting_mcu_ready) {
@@ -521,6 +529,7 @@ export class SmartDrive extends DeviceBase {
           success: boolean = false,
           doRetry: boolean = false
         ) => {
+          this.isUpdating = false;
           startedOTA = false;
           cancelOTA = true;
           this.otaActions = [];

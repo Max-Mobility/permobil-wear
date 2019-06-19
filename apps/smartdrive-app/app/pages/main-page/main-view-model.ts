@@ -31,6 +31,7 @@ import {
 } from 'nativescript-wear-os/packages/dialogs';
 import * as application from 'tns-core-modules/application';
 import * as appSettings from 'tns-core-modules/application-settings';
+import { request, getFile } from 'tns-core-modules/http';
 import { Color } from 'tns-core-modules/color';
 import { Observable } from 'tns-core-modules/data/observable';
 import {
@@ -71,6 +72,7 @@ export class MainViewModel extends Observable {
   @Prop() powerAssistActive: boolean = false;
   @Prop() isTraining: boolean = false;
   @Prop() pairSmartDriveText: string = 'Pair SmartDrive';
+  @Prop() hasUpdateData: boolean = false;
   /**
    * Boolean to track the settings swipe layout visibility.
    */
@@ -152,7 +154,7 @@ export class MainViewModel extends Observable {
   @Prop() public sdSerialNumber: string = '---';
   @Prop() public watchSerialNumber: string = '---';
   @Prop() public appVersion: string = '---';
-  @Prop() public databaseId: string = KinveyService.api_data_endpoint;
+  @Prop() public databaseId: string = KinveyService.api_data_route;
 
   /**
    * State Management for Sensor Monitoring / Data Collection
@@ -188,8 +190,8 @@ export class MainViewModel extends Observable {
   private tapRing: AnimatedCircle;
   private watchBatteryRing: AnimatedCircle;
   private smartDriveBatteryRing: AnimatedCircle;
-  private mcuProgressRing: AnimatedCircle;
-  private bleProgressRing: AnimatedCircle;
+  private updateProgressRing: AnimatedCircle;
+  private updateDownloadProgressRing: AnimatedCircle;
   private _settingsLayout: SwipeDismissLayout;
   public _changeSettingsLayout: SwipeDismissLayout;
   private _errorHistoryLayout: SwipeDismissLayout;
@@ -789,15 +791,6 @@ export class MainViewModel extends Observable {
     this.isAboutLayoutEnabled = true;
   }
 
-  onUpdatesTap() {
-    if (this.smartDrive) {
-      showOffScreenLayout(this._updatesLayout);
-      this.isUpdatesLayoutEnabled = true;
-    } else {
-      showFailure('No SmartDrive paired to the app!');
-    }
-  }
-
   onTrainingTap() {
     this.wakeLock.acquire();
     keepAwake();
@@ -818,7 +811,18 @@ export class MainViewModel extends Observable {
   /**
    * Updates Page Handlers
    */
+  onUpdatesTap() {
+    if (this.smartDrive) {
+      showOffScreenLayout(this._updatesLayout);
+      this.isUpdatesLayoutEnabled = true;
+      this.checkForUpdates();
+    } else {
+      showFailure('No SmartDrive paired to the app!');
+    }
+  }
+
   onUpdatesLayoutLoaded(args) {
+    this.checkForUpdates();
     this._updatesLayout = args.object as SwipeDismissLayout;
     this._updatesLayout.on(SwipeDismissLayout.dimissedEvent, args => {
       // Log.D('dismissedEvent', args.object);
@@ -828,22 +832,80 @@ export class MainViewModel extends Observable {
     });
   }
 
-  onMcuProgressCircleLoaded(args: any) {
+  onUpdateDownloadProgressCircleLoaded(args: any) {
     const page = args.object as Page;
-    this.mcuProgressRing = page.getViewById(
-      'mcuProgressCircle'
+    this.updateDownloadProgressRing = page.getViewById(
+      'updateDownloadProgressCircle'
     ) as AnimatedCircle;
-    (this.mcuProgressRing as any).android.setOuterContourSize(0);
-    (this.mcuProgressRing as any).android.setInnerContourSize(0);
+    (this.updateDownloadProgressRing as any).android.setOuterContourSize(0);
+    (this.updateDownloadProgressRing as any).android.setInnerContourSize(0);
   }
 
-  onBleProgressCircleLoaded(args: any) {
+  onUpdateProgressCircleLoaded(args: any) {
     const page = args.object as Page;
-    this.bleProgressRing = page.getViewById(
-      'bleProgressCircle'
+    this.updateProgressRing = page.getViewById(
+      'updateProgressCircle'
     ) as AnimatedCircle;
-    (this.bleProgressRing as any).android.setOuterContourSize(0);
-    (this.bleProgressRing as any).android.setInnerContourSize(0);
+    (this.updateProgressRing as any).android.setOuterContourSize(0);
+    (this.updateProgressRing as any).android.setInnerContourSize(0);
+  }
+
+  checkForUpdates() {
+    this.hasUpdateData = false;
+    // TODO: check versions against what we have in the db!
+    const query = {
+      $or: [
+        { _filename: 'SmartDriveBLE.ota' },
+        { _filename: 'SmartDriveMCU.ota' }
+      ],
+      firmware_file: true
+    };
+    return this._kinveyService
+      .getFile(undefined, query)
+      .then(response => {
+        let promises = [];
+        // TODO: check versions against what we have in the db!
+        const fileUrls = response.content
+          .toJSON()
+          .map(f => f['_downloadURL'])
+          .map(u => {
+            // make sure they're https!
+            if (!u.startsWith('https')) {
+              return u.replace('http', 'https');
+            }
+          });
+        if (fileUrls && fileUrls.length) {
+          // Log.D('got fileurls', fileUrls);
+          promises = fileUrls.map(url => getFile(url));
+        }
+        return Promise.all(promises);
+      })
+      .then(files => {
+        // TODO: save update data to database
+        if (files && files.length) {
+          // Log.D('got files');
+          this.hasUpdateData = true;
+        }
+      })
+      .catch(err => {
+        Log.E("Couldn't get files:", err);
+      });
+  }
+
+  startUpdates() {
+    if (this.smartDrive) {
+      // disable swipe close of the updates layout
+      //(this._updatesLayout as any).swipeable = false;
+    }
+  }
+
+  cancelUpdates() {
+    // re-enable swipe close of the updates layout
+    (this._updatesLayout as any).swipeable = true;
+  }
+
+  onUpdateAction(args: any) {
+    Log.D('update action:', args);
   }
 
   /**
