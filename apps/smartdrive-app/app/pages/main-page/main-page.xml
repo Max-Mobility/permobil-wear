@@ -245,7 +245,7 @@
 
 	// Updates "Page" -- need to wrap this in a component
     <sdl:SwipeDismissLayout height="100%" width="100%" row="0" rowSpan="2" col="0" loaded="{{ onUpdatesLayoutLoaded }}" class="page" translateX="500" visibility="{{ isUpdatesLayoutEnabled ? 'visible':'collapsed' }}">
-      <wol:WearOsLayout height="100%" width="100%">
+      <wol:WearOsLayout height="100%" width="100%" disableInsetConstraint="true">
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
          // SmartDrive MCU OTA Progress Circle
          <nac:AnimatedCircle id="mcuProgressCircle" loaded="{{ onMcuCircleLoaded }}"
