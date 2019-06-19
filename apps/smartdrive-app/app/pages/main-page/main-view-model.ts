@@ -86,6 +86,11 @@ export class MainViewModel extends Observable {
   @Prop() isAboutLayoutEnabled = false;
 
   /**
+   * Boolean to track the updates swipe layout visibility.
+   */
+  @Prop() isUpdatesLayoutEnabled = false;
+
+  /**
    *
    * SmartDrive Related Data
    *
@@ -158,12 +163,12 @@ export class MainViewModel extends Observable {
   /**
    * SmartDrive Data / state management
    */
+  public smartDrive: SmartDrive;
   private settings = new SmartDrive.Settings();
   private tempSettings = new SmartDrive.Settings();
   private throttleSettings = new SmartDrive.ThrottleSettings();
   private tempThrottleSettings = new SmartDrive.ThrottleSettings();
   private hasSentSettings: boolean = false;
-  private _smartDrive: SmartDrive;
   private _savedSmartDriveAddress: string = null;
   private _ringTimerId = null;
   private RING_TIMER_INTERVAL_MS = 500;
@@ -183,10 +188,13 @@ export class MainViewModel extends Observable {
   private tapRing: AnimatedCircle;
   private watchBatteryRing: AnimatedCircle;
   private smartDriveBatteryRing: AnimatedCircle;
+  private mcuProgressRing: AnimatedCircle;
+  private bleProgressRing: AnimatedCircle;
   private _settingsLayout: SwipeDismissLayout;
   public _changeSettingsLayout: SwipeDismissLayout;
   private _errorHistoryLayout: SwipeDismissLayout;
   private _aboutLayout: SwipeDismissLayout;
+  private _updatesLayout: SwipeDismissLayout;
   private _vibrator: Vibrate = new Vibrate();
   private _sentryService: SentryService;
   private _bluetoothService: BluetoothService;
@@ -447,7 +455,7 @@ export class MainViewModel extends Observable {
     // load savedSmartDriveAddress from settings / memory
     const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
     if (savedSDAddr && savedSDAddr.length) {
-      this._savedSmartDriveAddress = savedSDAddr;
+      this.updateSmartDrive(savedSDAddr);
     }
 
     // load settings from memory
@@ -472,6 +480,13 @@ export class MainViewModel extends Observable {
   fullStop() {
     this.disableDeviceSensors();
     this.disablePowerAssist();
+  }
+
+  updateSmartDrive(address: string) {
+    this._savedSmartDriveAddress = address;
+    this.smartDrive = this._bluetoothService.getOrMakeSmartDrive({
+      address: address
+    });
   }
 
   /**
@@ -711,14 +726,14 @@ export class MainViewModel extends Observable {
     // now send
     if (
       this.powerAssistActive &&
-      this._smartDrive &&
-      this._smartDrive.ableToSend
+      this.smartDrive &&
+      this.smartDrive.ableToSend
     ) {
       if (this.motorOn) {
         this._vibrator.cancel();
         this._vibrator.vibrate((this.tapLockoutTimeMs * 3) / 4);
       }
-      this._smartDrive.sendTap().catch(err => Log.E('could not send tap', err));
+      this.smartDrive.sendTap().catch(err => Log.E('could not send tap', err));
     } else if (this.isTraining) {
       // vibrate for tapping while training
       this._vibrator.cancel();
@@ -728,8 +743,8 @@ export class MainViewModel extends Observable {
 
   stopSmartDrive() {
     // turn off the motor if SD is connected
-    if (this._smartDrive && this._smartDrive.ableToSend) {
-      return this._smartDrive
+    if (this.smartDrive && this.smartDrive.ableToSend) {
+      return this.smartDrive
         .stopMotor()
         .catch(err => Log.E('Could not stop motor', err));
     } else {
@@ -775,7 +790,12 @@ export class MainViewModel extends Observable {
   }
 
   onUpdatesTap() {
-    showSuccess('No updates available.', 4);
+    if (this.smartDrive) {
+      showOffScreenLayout(this._updatesLayout);
+      this.isUpdatesLayoutEnabled = true;
+    } else {
+      showFailure('No SmartDrive paired to the app!');
+    }
   }
 
   onTrainingTap() {
@@ -796,20 +816,39 @@ export class MainViewModel extends Observable {
   }
 
   /**
-   * Setings page handlers
+   * Updates Page Handlers
    */
-  onSettingsLayoutLoaded(args) {
-    this._settingsLayout = args.object as SwipeDismissLayout;
-    this.settingsScrollView = this._settingsLayout.getViewById(
-      'settingsScrollView'
-    ) as ScrollView;
-    this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
+  onUpdatesLayoutLoaded(args) {
+    this._updatesLayout = args.object as SwipeDismissLayout;
+    this._updatesLayout.on(SwipeDismissLayout.dimissedEvent, args => {
       // Log.D('dismissedEvent', args.object);
       // hide the offscreen layout when dismissed
-      hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
-      this.isSettingsLayoutEnabled = false;
+      hideOffScreenLayout(this._updatesLayout, { x: 500, y: 0 });
+      this.isUpdatesLayoutEnabled = false;
     });
   }
+
+  onMcuProgressCircleLoaded(args: any) {
+    const page = args.object as Page;
+    this.mcuProgressRing = page.getViewById(
+      'mcuProgressCircle'
+    ) as AnimatedCircle;
+    (this.mcuProgressRing as any).android.setOuterContourSize(0);
+    (this.mcuProgressRing as any).android.setInnerContourSize(0);
+  }
+
+  onBleProgressCircleLoaded(args: any) {
+    const page = args.object as Page;
+    this.bleProgressRing = page.getViewById(
+      'bleProgressCircle'
+    ) as AnimatedCircle;
+    (this.bleProgressRing as any).android.setOuterContourSize(0);
+    (this.bleProgressRing as any).android.setInnerContourSize(0);
+  }
+
+  /**
+   * Error History Page Handlers
+   */
 
   onErrorHistoryLayoutLoaded(args) {
     // show the chart
@@ -824,6 +863,22 @@ export class MainViewModel extends Observable {
       this.isErrorHistoryLayoutEnabled = false;
       // clear the error history data when it's not being displayed to save on memory
       this.errorHistoryData.splice(0, this.errorHistoryData.length);
+    });
+  }
+
+  /**
+   * Setings page handlers
+   */
+  onSettingsLayoutLoaded(args) {
+    this._settingsLayout = args.object as SwipeDismissLayout;
+    this.settingsScrollView = this._settingsLayout.getViewById(
+      'settingsScrollView'
+    ) as ScrollView;
+    this._settingsLayout.on(SwipeDismissLayout.dimissedEvent, args => {
+      // Log.D('dismissedEvent', args.object);
+      // hide the offscreen layout when dismissed
+      hideOffScreenLayout(this._settingsLayout, { x: 500, y: 0 });
+      this.isSettingsLayoutEnabled = false;
     });
   }
 
@@ -1193,7 +1248,7 @@ export class MainViewModel extends Observable {
         this.updatePowerAssistRing(PowerAssist.ConnectedRingColor);
       } else {
         if (this.powerAssistRingColor === PowerAssist.InactiveRingColor) {
-          if (this._smartDrive.ableToSend) {
+          if (this.smartDrive.ableToSend) {
             this.updatePowerAssistRing(PowerAssist.ConnectedRingColor);
           } else {
             this.updatePowerAssistRing(PowerAssist.DisconnectedRingColor);
@@ -1295,7 +1350,7 @@ export class MainViewModel extends Observable {
           // if user selected one of the smartdrives in the action dialog, attempt to connect to it
           if (addresses.indexOf(result) > -1) {
             // save the smartdrive here
-            this._savedSmartDriveAddress = result;
+            this.updateSmartDrive(result);
             appSettings.setString(DataKeys.SD_SAVED_ADDRESS, result);
             showSuccess(`Paired to SmartDrive ${result}`);
             return true;
@@ -1315,48 +1370,48 @@ export class MainViewModel extends Observable {
 
   connectToSmartDrive(smartDrive) {
     if (!smartDrive) return;
-    this._smartDrive = smartDrive;
+    this.smartDrive = smartDrive;
 
     // need to make sure we unregister disconnect event since it may have been registered
-    this._smartDrive.off(
+    this.smartDrive.off(
       SmartDrive.smartdrive_disconnect_event,
       this.onSmartDriveDisconnect,
       this
     );
     // set the event listeners for mcu_version_event and smartdrive_distance_event
-    this._smartDrive.on(
+    this.smartDrive.on(
       SmartDrive.smartdrive_connect_event,
       this.onSmartDriveConnect,
       this
     );
-    this._smartDrive.on(
+    this.smartDrive.on(
       SmartDrive.smartdrive_disconnect_event,
       this.onSmartDriveDisconnect,
       this
     );
-    this._smartDrive.on(
+    this.smartDrive.on(
       SmartDrive.smartdrive_mcu_version_event,
       this.onSmartDriveVersion,
       this
     );
-    this._smartDrive.on(
+    this.smartDrive.on(
       SmartDrive.smartdrive_distance_event,
       this.onDistance,
       this
     );
-    this._smartDrive.on(
+    this.smartDrive.on(
       SmartDrive.smartdrive_motor_info_event,
       this.onMotorInfo,
       this
     );
-    this._smartDrive.on(
+    this.smartDrive.on(
       SmartDrive.smartdrive_error_event,
       this.onSmartDriveError,
       this
     );
 
     // now connect to smart drive
-    return this._smartDrive
+    return this.smartDrive
       .connect()
       .then(() => {
         return true;
@@ -1395,33 +1450,33 @@ export class MainViewModel extends Observable {
   }
 
   async disconnectFromSmartDrive() {
-    if (this._smartDrive && this._smartDrive.connected) {
-      this._smartDrive.off(
+    if (this.smartDrive && this.smartDrive.connected) {
+      this.smartDrive.off(
         SmartDrive.smartdrive_connect_event,
         this.onSmartDriveConnect,
         this
       );
-      this._smartDrive.off(
+      this.smartDrive.off(
         SmartDrive.smartdrive_mcu_version_event,
         this.onSmartDriveVersion,
         this
       );
-      this._smartDrive.off(
+      this.smartDrive.off(
         SmartDrive.smartdrive_distance_event,
         this.onDistance,
         this
       );
-      this._smartDrive.off(
+      this.smartDrive.off(
         SmartDrive.smartdrive_motor_info_event,
         this.onMotorInfo,
         this
       );
-      this._smartDrive.off(
+      this.smartDrive.off(
         SmartDrive.smartdrive_error_event,
         this.onSmartDriveError,
         this
       );
-      this._smartDrive.disconnect().then(() => {
+      this.smartDrive.disconnect().then(() => {
         this.motorOn = false;
         this.powerAssistActive = false;
       });
@@ -1431,8 +1486,8 @@ export class MainViewModel extends Observable {
   retrySmartDriveConnection() {
     if (
       this.powerAssistActive &&
-      this._smartDrive &&
-      !this._smartDrive.connected
+      this.smartDrive &&
+      !this.smartDrive.connected
     ) {
       setTimeout(() => {
         this.connectToSavedSmartDrive();
@@ -1442,10 +1497,10 @@ export class MainViewModel extends Observable {
 
   sendSmartDriveSettings() {
     // send the current settings to the SD
-    return this._smartDrive
+    return this.smartDrive
       .sendSettingsObject(this.settings)
       .then(() => {
-        return this._smartDrive.sendThrottleSettingsObject(
+        return this.smartDrive.sendThrottleSettingsObject(
           this.throttleSettings
         );
       })
@@ -1476,7 +1531,7 @@ export class MainViewModel extends Observable {
     if (this.motorOn) {
       // record disconnect error - the SD should never be on when
       // we disconnect!
-      const errorCode = this._smartDrive.getBleDisconnectError();
+      const errorCode = this.smartDrive.getBleDisconnectError();
       this.saveErrorToDatabase(errorCode, undefined);
     }
     this.motorOn = false;
@@ -1485,7 +1540,7 @@ export class MainViewModel extends Observable {
       this.updatePowerAssistRing();
       this.retrySmartDriveConnection();
     }
-    this._smartDrive.off(
+    this.smartDrive.off(
       SmartDrive.smartdrive_disconnect_event,
       this.onSmartDriveDisconnect,
       this
@@ -1507,8 +1562,8 @@ export class MainViewModel extends Observable {
     const motorInfo = args.data.motorInfo;
 
     // update motor state
-    if (this.motorOn !== this._smartDrive.driving) {
-      if (this._smartDrive.driving) {
+    if (this.motorOn !== this.smartDrive.driving) {
+      if (this.smartDrive.driving) {
         this._vibrator.cancel();
         this._vibrator.vibrate(250); // vibrate for 250 ms
       } else {
@@ -1516,10 +1571,10 @@ export class MainViewModel extends Observable {
         this._vibrator.vibrate([0, 250, 50, 250]); // vibrate twice
       }
     }
-    this.motorOn = this._smartDrive.driving;
+    this.motorOn = this.smartDrive.driving;
     // determine if we've used more battery percentage
     const batteryChange =
-      this.smartDriveCurrentBatteryPercentage - this._smartDrive.battery;
+      this.smartDriveCurrentBatteryPercentage - this.smartDrive.battery;
     // only check against 1 so that we filter out charging and only
     // get decreases due to driving / while connected
     if (batteryChange === 1) {
@@ -1532,9 +1587,9 @@ export class MainViewModel extends Observable {
       });
     }
     // update battery percentage
-    this.smartDriveCurrentBatteryPercentage = this._smartDrive.battery;
+    this.smartDriveCurrentBatteryPercentage = this.smartDrive.battery;
     // save the updated smartdrive battery
-    appSettings.setNumber(DataKeys.SD_BATTERY, this._smartDrive.battery);
+    appSettings.setNumber(DataKeys.SD_BATTERY, this.smartDrive.battery);
     // update speed display
     this.currentSpeed = motorInfo.speed;
     this.updateSpeedDisplay();
@@ -1547,18 +1602,18 @@ export class MainViewModel extends Observable {
 
     // save to the database
     this._throttledSmartDriveSaveFn({
-      driveDistance: this._smartDrive.driveDistance,
-      coastDistance: this._smartDrive.coastDistance
+      driveDistance: this.smartDrive.driveDistance,
+      coastDistance: this.smartDrive.coastDistance
     });
 
     // save the updated distance
     appSettings.setNumber(
       DataKeys.SD_DISTANCE_CASE,
-      this._smartDrive.coastDistance
+      this.smartDrive.coastDistance
     );
     appSettings.setNumber(
       DataKeys.SD_DISTANCE_DRIVE,
-      this._smartDrive.driveDistance
+      this.smartDrive.driveDistance
     );
   }
 
@@ -1567,18 +1622,12 @@ export class MainViewModel extends Observable {
     const mcuVersion = args.data.mcu;
 
     // update version displays
-    this.mcuVersion = this._smartDrive.mcu_version_string;
-    this.bleVersion = this._smartDrive.ble_version_string;
+    this.mcuVersion = this.smartDrive.mcu_version_string;
+    this.bleVersion = this.smartDrive.ble_version_string;
 
     // save the updated SmartDrive version info
-    appSettings.setNumber(
-      DataKeys.SD_VERSION_MCU,
-      this._smartDrive.mcu_version
-    );
-    appSettings.setNumber(
-      DataKeys.SD_VERSION_BLE,
-      this._smartDrive.ble_version
-    );
+    appSettings.setNumber(DataKeys.SD_VERSION_MCU, this.smartDrive.mcu_version);
+    appSettings.setNumber(DataKeys.SD_VERSION_BLE, this.smartDrive.ble_version);
   }
 
   /*

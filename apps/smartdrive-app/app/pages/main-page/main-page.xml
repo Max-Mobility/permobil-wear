@@ -243,6 +243,45 @@
       </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>
 
+	// Updates "Page" -- need to wrap this in a component
+    <sdl:SwipeDismissLayout height="100%" width="100%" row="0" rowSpan="2" col="0" loaded="{{ onUpdatesLayoutLoaded }}" class="page" translateX="500" visibility="{{ isUpdatesLayoutEnabled ? 'visible':'collapsed' }}">
+      <wol:WearOsLayout height="100%" width="100%">
+        <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
+         // SmartDrive MCU OTA Progress Circle
+         <nac:AnimatedCircle id="mcuProgressCircle" loaded="{{ onMcuCircleLoaded }}"
+							 rowSpan="3" colSpan="3"
+							 class="mcuProgressCircle"
+							 width="100%" height="100%"
+							 animated="true" animateFrom="0" clockwise="true"
+							 rimWidth="2" barWidth="8"
+							 progress="{{ smartDrive.mcuOTAProgress }}">
+          </nac:AnimatedCircle>
+         // SmartDrive BLE OTA Progress Circle
+         <nac:AnimatedCircle id="bleProgressCircle" loaded="{{ onBleCircleLoaded }}"
+							 rowSpan="3" colSpan="3"
+							 class="bleProgressCircle"
+							 width="90%" height="90%"
+							 animated="true" animateFrom="0" clockwise="true"
+							 rimWidth="2" barWidth="8"
+							 progress="{{ smartDrive.bleOTAProgress }}">
+            <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
+              <Label row="1" col="1" class="topValue" horizontalAlignment="center" textWrap="true"
+					 text="{{ smartDrive.otaState }}"/>
+              <Label row="2" col="1" class="topValueDescription" textWrap="true"
+					 text="Update Status"/>
+              <Button row="3" col="1" class="powerAssist-active"
+					  text="Cancel"
+					  tap="{{ smartDrive.canceclOTA }}"/>
+              <Label row="4" col="1" class="currentTime"
+					 text="{{ currentTime }}" textWrap="true" />
+              <Label row="5" col="1" class="currentTimeMeridiem"
+					 text="{{ currentTimeMeridiem }}" textWrap="true" />
+            </GridLayout>
+          </nac:AnimatedCircle>
+        </GridLayout>
+      </wol:WearOsLayout>
+    </sdl:SwipeDismissLayout>
+
     // Settings Layout "Page" -- need to wrap this in a component
     <sdl:SwipeDismissLayout id="changeSettingsPage" row="0" rowSpan="2" col="0" height="100%" width="100%" loaded="{{ onChangeSettingsLayoutLoaded }}" class="page" translateX="500" visibility="{{ isChangeSettingsLayoutEnabled ? 'visible':'collapsed' }}">
       <GridLayout rows="auto, *, auto" columns="auto, *, auto" width="100%" height="100%">

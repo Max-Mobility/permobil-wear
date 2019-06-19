@@ -1,0 +1,64 @@
+@import 'variables';
+
+$mcu-progress-color: #B9B9B9;
+$mcu-progress-rim-color: $black;
+$ble-progress-color: #B9B9B9;
+$ble-progress-rim-color: $black;
+
+$activated-color: #B9B9B9;
+$deactivated-color: #B9B9B9;
+
+.mcuProgressCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 100%;
+  height: 100%;
+  bar-color: $mcu-progress-color;
+  rim-color: $mcu-progress-rim-color;
+}
+
+.bleProgressCircle {
+  background-color: transparent;
+  fill-color: transparent;
+  width: 90%;
+  height: 90%;
+  bar-color: $ble-progress-color;
+  rim-color: $ble-progress-rim-color;
+}
+
+.topValue {
+  color: $ambient-white;
+  font-size: 18;
+  horizontal-align: $center;
+  vertical-align: top;
+}
+
+.topValueDescription {
+  color: $ambient-white;
+  font-size: 10;
+  horizontal-align: $center;
+  vertical-align: top;
+}
+
+
+.powerAssist-active,
+.powerAssist-deactive,
+.powerAssist-training {
+    @extend .power-assist-btn;
+  color: $ambient-white;
+  background-color: $black;
+}
+
+.currentTime {
+  color: $ambient-white;
+  font-size: 18;
+  horizontal-align: $center;
+  vertical-align: bottom;
+}
+
+.currentTimeMeridiem {
+  color: $ambient-white;
+  font-size: 10;
+  horizontal-align: $center;
+  vertical-align: bottom;
+}
