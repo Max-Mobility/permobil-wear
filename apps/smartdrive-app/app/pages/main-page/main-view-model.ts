@@ -23,7 +23,6 @@ import { allowSleepAgain, keepAwake } from 'nativescript-insomnia';
 import { Pager } from 'nativescript-pager';
 import { Sentry } from 'nativescript-sentry';
 import * as themes from 'nativescript-themes';
-import { ToastDuration, ToastPosition, Toasty } from 'nativescript-toasty';
 import { Vibrate } from 'nativescript-vibrate';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
 import {
@@ -39,7 +38,7 @@ import {
   ChangedData
 } from 'tns-core-modules/data/observable-array';
 import { device } from 'tns-core-modules/platform';
-import { action } from 'tns-core-modules/ui/dialogs';
+import { action, alert } from 'tns-core-modules/ui/dialogs';
 import { Page, View } from 'tns-core-modules/ui/page';
 import { Repeater } from 'tns-core-modules/ui/repeater';
 import { PowerAssist, SmartDriveData } from '../../namespaces';
@@ -71,6 +70,7 @@ export class MainViewModel extends Observable {
   @Prop() currentTimeMeridiem;
   @Prop() powerAssistActive: boolean = false;
   @Prop() isTraining: boolean = false;
+  @Prop() pairSmartDriveText: string = 'Pair SmartDrive';
   /**
    * Boolean to track the settings swipe layout visibility.
    */
@@ -1052,6 +1052,13 @@ export class MainViewModel extends Observable {
     this.saveSettings();
     // now update any display that needs settings:
     this.updateSettingsDisplay();
+    // warning / indication to the user that they've updated their settings
+    alert({
+      title: 'Saved Settings',
+      message:
+        "CAUTION: You MUST consult the SmartDrive User's Manual on how changing the settings affects its operation and performance.",
+      okButtonText: 'OK'
+    });
   }
 
   onIncreaseSettingsTap() {
@@ -1217,16 +1224,16 @@ export class MainViewModel extends Observable {
   }
 
   saveNewSmartDrive(): Promise<any> {
-    new Toasty(
-      'Scanning for SmartDrives...',
-      ToastDuration.LONG,
-      ToastPosition.CENTER
-    ).show();
-
+    this.pairSmartDriveText = 'Scanning';
+    let scanDisplayId = setInterval(() => {
+      this.pairSmartDriveText += '.';
+    }, 1000);
     // scan for smartdrives
     return this._bluetoothService
       .scanForSmartDrives(3)
       .then(() => {
+        clearInterval(scanDisplayId);
+        this.pairSmartDriveText = 'Pair SmartDrive';
         Log.D(`Discovered ${BluetoothService.SmartDrives.length} SmartDrives`);
 
         // make sure we have smartdrives
@@ -1262,7 +1269,10 @@ export class MainViewModel extends Observable {
         });
       })
       .catch(error => {
+        clearInterval(scanDisplayId);
+        this.pairSmartDriveText = 'Pair SmartDrive';
         Log.E('could not scan', error);
+        showFailure(`Could not scan: ${error}`);
         return false;
       });
   }
@@ -1270,12 +1280,6 @@ export class MainViewModel extends Observable {
   connectToSmartDrive(smartDrive) {
     if (!smartDrive) return;
     this._smartDrive = smartDrive;
-
-    new Toasty(
-      'Connecting to ' + this._savedSmartDriveAddress,
-      ToastDuration.SHORT,
-      ToastPosition.CENTER
-    ).show();
 
     // need to make sure we unregister disconnect event since it may have been registered
     this._smartDrive.off(
@@ -1414,14 +1418,12 @@ export class MainViewModel extends Observable {
         this._onceSendSmartDriveSettings = once(this.sendSmartDriveSettings);
         // indicate failure
         Log.E('send settings failed', err);
-        new Toasty(
+        showFailure(
           'Failed to send settings to ' +
             this._savedSmartDriveAddress +
             ' ' +
-            err,
-          ToastDuration.SHORT,
-          ToastPosition.CENTER
-        ).show();
+            err
+        );
       });
   }
 
@@ -1431,11 +1433,6 @@ export class MainViewModel extends Observable {
   async onSmartDriveConnect(args: any) {
     this.powerAssistState = PowerAssist.State.Connected;
     this.updatePowerAssistRing();
-    new Toasty(
-      'Connected to ' + this._savedSmartDriveAddress,
-      ToastDuration.SHORT,
-      ToastPosition.CENTER
-    ).show();
     this._onceSendSmartDriveSettings = once(this.sendSmartDriveSettings);
   }
 
@@ -1457,9 +1454,6 @@ export class MainViewModel extends Observable {
       this.onSmartDriveDisconnect,
       this
     );
-    new Toasty(`Disconnected from ${this._smartDrive.address}`)
-      .setToastPosition(ToastPosition.CENTER)
-      .show();
   }
 
   async onSmartDriveError(args: any) {
@@ -1575,22 +1569,12 @@ export class MainViewModel extends Observable {
           return this._sqliteService
             .insertIntoTable(SmartDriveData.Errors.TableName, newError)
             .catch(err => {
-              new Toasty(
-                `Failed Saving SmartDrive Error: ${err}`,
-                ToastDuration.LONG
-              )
-                .setToastPosition(ToastPosition.CENTER)
-                .show();
+              showFailure(`Failed Saving SmartDrive Error: ${err}`);
             });
         }
       })
       .catch(err => {
-        new Toasty(
-          `Failed getting SmartDrive Error: ${err}`,
-          ToastDuration.LONG
-        )
-          .setToastPosition(ToastPosition.CENTER)
-          .show();
+        showFailure(`Failed getting SmartDrive Error: ${err}`);
       });
   }
 
@@ -1699,9 +1683,7 @@ export class MainViewModel extends Observable {
       })
       .catch(err => {
         Log.E('Failed saving usage:', err);
-        new Toasty(`Failed saving usage: ${err}`, ToastDuration.LONG)
-          .setToastPosition(ToastPosition.CENTER)
-          .show();
+        showFailure(`Failed saving usage: ${err}`);
       });
   }
 

@@ -234,7 +234,7 @@
             <RL:Ripple rippleColor="#ddd">
               <GridLayout rows="*" columns="15, *" id="pairSmartDrive" tap="{{ saveNewSmartDrive }}">
                 <Label row="0" col="0" text="&#xf21b;" class="bullet-list-icon" textWrap="true" />
-                <Label row="0" col="1" text="Pair SmartDrive" class="settings-label" textWrap="true" />
+                <Label row="0" col="1" text="{{ pairSmartDriveText }}" class="settings-label" textWrap="true" />
               </GridLayout>
             </RL:Ripple>
         </StackLayout>
