@@ -200,6 +200,11 @@ export class MainViewModel extends Observable {
 
   private chargingWorkTimeoutId: any = null;
 
+  isActivityThis(activity: any) {
+    // TODO: This is a hack to determine which activity is being updated!
+    return `${activity}`.includes('com.permobil.smartdrive.MainActivity');
+  }
+
   constructor() {
     super();
 
@@ -258,6 +263,51 @@ export class MainViewModel extends Observable {
       this.currentTime = currentSystemTime();
       this.currentTimeMeridiem = currentSystemTimeMeridiem();
     });
+
+    // Activity lifecycle event handlers
+    application.android.on(
+      application.AndroidApplication.activityStartedEvent,
+      (args: application.AndroidActivityBundleEventData) => {
+        if (this.isActivityThis(args.activity)) {
+          // similar to the app launch event.
+          this.enableDeviceSensors();
+        }
+      }
+    );
+    application.android.on(
+      application.AndroidApplication.activityPausedEvent,
+      (args: application.AndroidActivityBundleEventData) => {
+        if (this.isActivityThis(args.activity)) {
+          // paused happens any time a new activity is shown
+          // in front, e.g. showSuccess / showFailure - so we
+          // probably don't want to fullstop on paused
+          // TODO: determine if we want this!
+          this.fullStop();
+        }
+      }
+    );
+    application.android.on(
+      application.AndroidApplication.activityResumedEvent,
+      (args: application.AndroidActivityBundleEventData) => {
+        if (this.isActivityThis(args.activity)) {
+          // resumed happens after an app is re-opened out of
+          // suspend, even though the app level resume event
+          // doesn't seem to fire. Therefore we want to make
+          // sure to re-enable device sensors since the
+          // suspend event will have disabled them.
+          this.enableDeviceSensors();
+        }
+      }
+    );
+    application.android.on(
+      application.AndroidApplication.activityStoppedEvent,
+      (args: application.AndroidActivityBundleEventData) => {
+        if (this.isActivityThis(args.activity)) {
+          // similar to the app suspend / exit event.
+          this.fullStop();
+        }
+      }
+    );
 
     // handle application lifecycle events
     this.registerAppEventHandlers();
@@ -393,8 +443,6 @@ export class MainViewModel extends Observable {
         }
       }
     );
-    // now enable the sensors
-    this.enableDeviceSensors();
 
     // load savedSmartDriveAddress from settings / memory
     const savedSDAddr = appSettings.getString(DataKeys.SD_SAVED_ADDRESS);
@@ -422,6 +470,7 @@ export class MainViewModel extends Observable {
   }
 
   fullStop() {
+    this.disableDeviceSensors();
     this.disablePowerAssist();
   }
 
@@ -433,7 +482,6 @@ export class MainViewModel extends Observable {
     application.on(application.resumeEvent, this.onAppResume.bind(this));
     application.on(application.suspendEvent, this.onAppSuspend.bind(this));
     application.on(application.exitEvent, this.onAppExit.bind(this));
-    application.on(application.displayedEvent, this.onAppDisplayed.bind(this));
     application.on(application.lowMemoryEvent, this.onAppLowMemory.bind(this));
     application.on(
       application.uncaughtErrorEvent,
@@ -446,7 +494,6 @@ export class MainViewModel extends Observable {
     application.off(application.resumeEvent, this.onAppResume.bind(this));
     application.off(application.suspendEvent, this.onAppSuspend.bind(this));
     application.off(application.exitEvent, this.onAppExit.bind(this));
-    application.off(application.displayedEvent, this.onAppDisplayed.bind(this));
     application.off(application.lowMemoryEvent, this.onAppLowMemory.bind(this));
     application.off(
       application.uncaughtErrorEvent,
@@ -454,30 +501,20 @@ export class MainViewModel extends Observable {
     );
   }
 
-  onAppLaunch(args?: any) {
-    Log.D('App launch');
-  }
+  onAppLaunch(args?: any) {}
 
-  onAppResume(args?: any) {
-    Log.D('App resume');
-  }
+  onAppResume(args?: any) {}
 
   onAppSuspend(args?: any) {
-    Log.D('App suspend');
     this.fullStop();
   }
 
   onAppExit(args?: any) {
-    Log.D('App exit');
     this.fullStop();
   }
 
-  onAppDisplayed(args?: any) {
-    Log.D('App displayed');
-  }
-
   onAppLowMemory(args?: any) {
-    Log.D('App low memory', args);
+    Log.D('App low memory', args.android);
     // TODO: determine if we need to stop for this - we see this
     // even even when the app is using very little memory
     //this.fullStop();
@@ -1260,8 +1297,7 @@ export class MainViewModel extends Observable {
             // save the smartdrive here
             this._savedSmartDriveAddress = result;
             appSettings.setString(DataKeys.SD_SAVED_ADDRESS, result);
-
-            // showSuccess(`Paired to SmartDrive ${result}`);
+            showSuccess(`Paired to SmartDrive ${result}`);
             return true;
           } else {
             return false;
