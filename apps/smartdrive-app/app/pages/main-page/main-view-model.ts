@@ -154,7 +154,7 @@ export class MainViewModel extends Observable {
   @Prop() public sdSerialNumber: string = '---';
   @Prop() public watchSerialNumber: string = '---';
   @Prop() public appVersion: string = '---';
-  @Prop() public databaseId: string = KinveyService.api_data_route;
+  @Prop() public databaseId: string = KinveyService.api_app_key;
 
   /**
    * State Management for Sensor Monitoring / Data Collection
