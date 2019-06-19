@@ -13,7 +13,7 @@
       <pager:PagerItem>
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
           // Power Assist Circle
-          <nac:AnimatedCircle id="powerAssistCircle"  loaded="{{ onPowerAssistCircleLoaded }}"
+          <nac:AnimatedCircle id="powerAssistCircle"
 							  rowSpan="3" colSpan="3"
 							  class="powerAssistCircle"
 							  width="100%" height="100%"
@@ -24,7 +24,7 @@
 							  visibility="{{ ((powerAssistActive || isTraining) && !hasTapped) ? 'visible':'collapsed' }}">
           </nac:AnimatedCircle>
 		  // Tap indication circle
-          <nac:AnimatedCircle id="tapCircle"  loaded="{{ onTapCircleLoaded }}"
+          <nac:AnimatedCircle id="tapCircle"
 							  rowSpan="3" colSpan="3"
 							  class="tapCircle"
 							  width="100%" height="100%"
@@ -33,7 +33,7 @@
 							  visibility="{{ hasTapped ? 'visible':'collapsed' }}">
           </nac:AnimatedCircle>
          // SmartDrive Battery Circle
-         <nac:AnimatedCircle id="smartDriveBatteryCircle" loaded="{{ onSmartDriveCircleLoaded }}"
+         <nac:AnimatedCircle id="smartDriveBatteryCircle"
 							 rowSpan="3" colSpan="3"
 							 class="sdBatteryCircle"
 							 width="90%" height="90%"
@@ -42,7 +42,7 @@
 							 progress="{{ smartDriveCurrentBatteryPercentage }}">
           </nac:AnimatedCircle>
          // Watch Battery Circle
-         <nac:AnimatedCircle id="watchBatteryCircle" loaded="{{ onWatchCircleLoaded }}"
+         <nac:AnimatedCircle id="watchBatteryCircle"
 							 rowSpan="3" colSpan="3"
 							 class="watchBatteryCircle"
 							 width="84%" height="84%"
@@ -248,7 +248,7 @@
       <wol:WearOsLayout height="100%" width="100%" disableInsetConstraint="true">
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
          // SmartDrive Update Progress Circle
-         <nac:AnimatedCircle id="updateProgressCircle" loaded="{{ onUpdateCircleLoaded }}"
+         <nac:AnimatedCircle id="updateProgressCircle"
 							 rowSpan="3" colSpan="3"
 							 class="bleProgressCircle"
 							 width="100%" height="100%"
@@ -285,7 +285,6 @@
           </nac:AnimatedCircle>
           // Update download progress circle
           <nac:AnimatedCircle id="updateDownloadProgressCircle"
-							  loaded="{{ onUpdateDownloadProgressCircleLoaded }}"
 							  rowSpan="3" colSpan="3"
 							  class="updateDownloadProgressCircle"
 							  width="100%" height="100%"

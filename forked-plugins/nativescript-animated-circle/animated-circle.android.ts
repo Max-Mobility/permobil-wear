@@ -106,6 +106,8 @@ export class AnimatedCircle extends Common {
         }
       });
     }
+    this._android.setOuterContourSize(0);
+    this._android.setInnerContourSize(0);
   }
 
   get android() {

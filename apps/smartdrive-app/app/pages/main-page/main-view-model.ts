@@ -186,12 +186,6 @@ export class MainViewModel extends Observable {
   private settingsScrollView: ScrollView;
   private errorsScrollView: ScrollView;
   private aboutScrollView: ScrollView;
-  private powerAssistRing: AnimatedCircle;
-  private tapRing: AnimatedCircle;
-  private watchBatteryRing: AnimatedCircle;
-  private smartDriveBatteryRing: AnimatedCircle;
-  private updateProgressRing: AnimatedCircle;
-  private updateDownloadProgressRing: AnimatedCircle;
   private _settingsLayout: SwipeDismissLayout;
   public _changeSettingsLayout: SwipeDismissLayout;
   private _errorHistoryLayout: SwipeDismissLayout;
@@ -619,40 +613,6 @@ export class MainViewModel extends Observable {
     this.pager = page.getViewById('pager') as Pager;
   }
 
-  onPowerAssistCircleLoaded(args: any) {
-    const page = args.object as Page;
-    this.powerAssistRing = page.getViewById(
-      'powerAssistCircle'
-    ) as AnimatedCircle;
-    (this.powerAssistRing as any).android.setOuterContourSize(0);
-    (this.powerAssistRing as any).android.setInnerContourSize(0);
-  }
-
-  onTapCircleLoaded(args: any) {
-    const page = args.object as Page;
-    this.tapRing = page.getViewById('tapCircle') as AnimatedCircle;
-    (this.tapRing as any).android.setOuterContourSize(0);
-    (this.tapRing as any).android.setInnerContourSize(0);
-  }
-
-  onSmartDriveCircleLoaded(args: any) {
-    const page = args.object as Page;
-    this.smartDriveBatteryRing = page.getViewById(
-      'smartDriveBatteryCircle'
-    ) as AnimatedCircle;
-    (this.smartDriveBatteryRing as any).android.setOuterContourSize(0);
-    (this.smartDriveBatteryRing as any).android.setInnerContourSize(0);
-  }
-
-  onWatchCircleLoaded(args: any) {
-    const page = args.object as Page;
-    this.watchBatteryRing = page.getViewById(
-      'watchBatteryCircle'
-    ) as AnimatedCircle;
-    (this.watchBatteryRing as any).android.setOuterContourSize(0);
-    (this.watchBatteryRing as any).android.setInnerContourSize(0);
-  }
-
   tapAxisIsPrimary(accel: any) {
     const max = Math.max(
       Math.abs(accel.z),
@@ -830,24 +790,6 @@ export class MainViewModel extends Observable {
       hideOffScreenLayout(this._updatesLayout, { x: 500, y: 0 });
       this.isUpdatesLayoutEnabled = false;
     });
-  }
-
-  onUpdateDownloadProgressCircleLoaded(args: any) {
-    const page = args.object as Page;
-    this.updateDownloadProgressRing = page.getViewById(
-      'updateDownloadProgressCircle'
-    ) as AnimatedCircle;
-    (this.updateDownloadProgressRing as any).android.setOuterContourSize(0);
-    (this.updateDownloadProgressRing as any).android.setInnerContourSize(0);
-  }
-
-  onUpdateProgressCircleLoaded(args: any) {
-    const page = args.object as Page;
-    this.updateProgressRing = page.getViewById(
-      'updateProgressCircle'
-    ) as AnimatedCircle;
-    (this.updateProgressRing as any).android.setOuterContourSize(0);
-    (this.updateProgressRing as any).android.setInnerContourSize(0);
   }
 
   checkForUpdates() {
