@@ -837,7 +837,7 @@ export class MainViewModel extends Observable {
         const fileMetaDatas = response.content.toJSON().filter(f => {
           const v = SmartDriveData.Firmwares.versionStringToByte(f['version']);
           const fw = f['_filename'];
-          return v > currentVersions[fw] || !currentVersions[fw];
+          return true; //!currentVersions[fw] || v > currentVersions[fw].version;
         });
         if (fileMetaDatas && fileMetaDatas.length) {
           // Log.D('got fileMetaDatas', fileMetaDatas);
@@ -845,18 +845,20 @@ export class MainViewModel extends Observable {
           promises = fileMetaDatas.map(f => {
             let url = f['_downloadURL'];
             // make sure they're https!
-            if (!url.startsWith('https')) {
-              url = url.replace('http', 'https');
+            if (!url.startsWith('https:')) {
+              url = url.replace('http:', 'https:');
             }
             Log.D('Downloading FW update', f['_filename']);
             return getFile(url).then(data => {
+              const fileData = data.readSync();
               return {
                 version: SmartDriveData.Firmwares.versionStringToByte(
                   f['version']
                 ),
                 name: f['_filename'],
-                data: data,
-                changes: f['change_notes']
+                data: new Uint8Array(fileData),
+                changes:
+                  f['change_notes'][device.language] || f['change_notes']['en']
               };
             });
           });
@@ -870,11 +872,14 @@ export class MainViewModel extends Observable {
           promises = files.map(f => {
             // update the data in the db
             if (currentVersions[f.name]) {
-              // save the binary data to disk
-              let fileName = '';
-              LS.setItem(fileName, f.data);
-              const id = currentVersions[f.name].id;
               // this is a file we have - update the table
+              const id = currentVersions[f.name].id;
+              // save the binary data to disk
+              let fileName = currentVersions[f.name].filename;
+              LS.setItem(fileName, f.data);
+              // update current versions
+              currentVersions[f.name].version = f.version;
+              currentVersions[f.name].changes = f.changes;
               return this._sqliteService.updateInTable(
                 SmartDriveData.Firmwares.TableName,
                 {
@@ -885,14 +890,22 @@ export class MainViewModel extends Observable {
                 }
               );
             } else {
+              // this is a file we don't have in the table
               const newFirmware = SmartDriveData.Firmwares.newFirmware(
                 f.version,
-                f.name
+                f.name,
+                undefined,
+                f.changes
               );
               // save the binary data to disk
               const fileName = newFirmware[SmartDriveData.Firmwares.FileName];
               LS.setItem(fileName, f.data);
-              // this is a file we don't have in the table
+              // update current versions
+              currentVersions[f.name] = {
+                version: f.version,
+                filename: fileName,
+                changes: f.changes
+              };
               return this._sqliteService.insertIntoTable(
                 SmartDriveData.Firmwares.TableName,
                 newFirmware
@@ -900,21 +913,32 @@ export class MainViewModel extends Observable {
             }
           });
         }
-        return Promise.all(promises).then(() => {
-          return files;
-        });
+        return Promise.all(promises);
       })
-      .then(files => {
+      .then(() => {
+        // now see what we need to do with the data
         Log.D('Finished downloading updates.');
-        if (files && files.length) {
+        this.hasUpdateData = true;
+        this.updateProgressText = '';
+        this.checkingForUpdates = false;
+        // @ts-ignore
+        this.updateProgressCircle.stopSpinning();
+        // do we need to update? - check against smartdrive version
+        const bleVersion = currentVersions['SmartDriveBLE.ota'].version;
+        const mcuVersion = currentVersions['SmartDriveMCU.ota'].version;
+        if (
+          !this.smartDrive.isMcuUpToDate(mcuVersion) ||
+          !this.smartDrive.isBleUpToDate(bleVersion)
+        ) {
           // get info out to tell the user
           const version = SmartDriveData.Firmwares.versionByteToString(
-            Math.max(...files.map(f => f.version))
+            Math.max(mcuVersion, bleVersion)
           );
           Log.D('got version', version);
+          // show dialog to user informing them of the version number and changes
           const title = `Version ${version}`;
-          const changes = files.map(
-            f => f.changes[device.language] || f.changes['en']
+          const changes = Object.keys(currentVersions).map(
+            k => currentVersions[k].changes
           );
           const msg = flatten(changes).join('\n');
           Log.D('got changes', changes);
@@ -922,17 +946,59 @@ export class MainViewModel extends Observable {
             title: title,
             message: msg,
             okButtonText: 'Ok'
+          }).then(() => {
+            Log.D('Beginning SmartDrive update');
+            const bleFileName = currentVersions['SmartDriveBLE.ota'].filename;
+            const mcuFileName = currentVersions['SmartDriveMCU.ota'].filename;
+            const mcuFw = LS.getItem(mcuFileName);
+            const bleFw = LS.getItem(bleFileName);
+            Log.D('mcu length:', typeof mcuFw, mcuFw.length);
+            Log.D('ble length:', typeof bleFw, bleFw.length);
+            // disable swipe close of the updates layout
+            (this._updatesLayout as any).swipeable = false;
+            // smartdrive needs to update
+            this.smartDrive
+              .performOTA(
+                bleFw,
+                mcuFw,
+                bleVersion,
+                mcuVersion,
+                300 * 1000,
+                true
+              )
+              .then(otaStatus => {
+                const status = otaStatus.replace('OTA', 'Update');
+                this.updateProgressText = status;
+                Log.D('update status:', otaStatus);
+                if (status === 'Update Complete') {
+                  showSuccess('SmartDrive update completed successfully!');
+                }
+                // re-enable swipe close of the updates layout
+                (this._updatesLayout as any).swipeable = true;
+              })
+              .catch(err => {
+                const msg = `Update failed: ${err}`;
+                Log.E(msg);
+                this.updateProgressText = msg;
+                showFailure(msg);
+                // re-enable swipe close of the updates layout
+                (this._updatesLayout as any).swipeable = true;
+              });
+            // send the start command automatically
+            this.smartDrive.onOTAActionTap('ota.action.start');
           });
+        } else {
+          // smartdrive is already up to date
+          hideOffScreenLayout(this._updatesLayout, { x: 500, y: 0 });
+          this.isUpdatesLayoutEnabled = false;
+          setTimeout(() => {
+            showSuccess('SmartDrive is up to date!');
+          }, 100);
         }
-        this.hasUpdateData = true;
-        this.updateProgressText = '';
-        this.checkingForUpdates = false;
-        // @ts-ignore
-        this.updateProgressCircle.stopSpinning();
       })
       .catch(err => {
         Log.E("Couldn't get files:", err);
-        this.updateProgressText = '';
+        this.updateProgressText = `Error getting updates: ${err}`;
         this.hasUpdateData = false;
         this.checkingForUpdates = false;
         // @ts-ignore
@@ -940,16 +1006,13 @@ export class MainViewModel extends Observable {
       });
   }
 
-  startUpdates() {
-    if (this.smartDrive) {
-      // disable swipe close of the updates layout
-      //(this._updatesLayout as any).swipeable = false;
-    }
-  }
-
   cancelUpdates() {
+    this.updateProgressText = 'Update Cancelled';
     // re-enable swipe close of the updates layout
     (this._updatesLayout as any).swipeable = true;
+    if (this.smartDrive) {
+      this.smartDrive.cancelOTA();
+    }
   }
 
   onUpdateAction(args: any) {
@@ -1761,7 +1824,8 @@ export class MainViewModel extends Observable {
           data[md[SmartDriveData.Firmwares.FirmwareName]] = {
             version: md[SmartDriveData.Firmwares.VersionName],
             filename: md[SmartDriveData.Firmwares.FileName],
-            id: md[SmartDriveData.Firmwares.IdName]
+            id: md[SmartDriveData.Firmwares.IdName],
+            changes: md[SmartDriveData.Firmwares.ChangesName]
           };
         });
         return data;

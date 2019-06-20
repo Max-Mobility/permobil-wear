@@ -113,8 +113,11 @@ export class SmartDrive extends DeviceBase {
     return SmartDrive.versionByteToString(this.ble_version);
   }
 
-  public isMcuUpToDate(version: string): boolean {
-    const v = SmartDrive.versionStringToByte(version);
+  public isMcuUpToDate(version: string | number): boolean {
+    const v =
+      typeof version === 'number'
+        ? version
+        : SmartDrive.versionStringToByte(version);
     if (v === 0xff) {
       return true;
     }
@@ -124,8 +127,11 @@ export class SmartDrive extends DeviceBase {
     }, true);
   }
 
-  public isBleUpToDate(version: string): boolean {
-    const v = SmartDrive.versionStringToByte(version);
+  public isBleUpToDate(version: string | number): boolean {
+    const v =
+      typeof version === 'number'
+        ? version
+        : SmartDrive.versionStringToByte(version);
     if (v === 0xff) {
       return true;
     }
@@ -135,8 +141,11 @@ export class SmartDrive extends DeviceBase {
     }, true);
   }
 
-  public isUpToDate(version: string): boolean {
-    const v = SmartDrive.versionStringToByte(version);
+  public isUpToDate(version: string | number): boolean {
+    const v =
+      typeof version === 'number'
+        ? version
+        : SmartDrive.versionStringToByte(version);
     if (v === 0xff) {
       return true;
     }
@@ -211,7 +220,8 @@ export class SmartDrive extends DeviceBase {
     mcuFirmware: any,
     bleFWVersion: number,
     mcuFWVersion: number,
-    timeout: number
+    timeout: number,
+    autoForce: boolean = false
   ): Promise<any> {
     // send start ota for MCU
     //   - wait for reconnection (try to reconnect)
@@ -229,11 +239,12 @@ export class SmartDrive extends DeviceBase {
     // wait to get ble version
     // wait to get mcu version
     // check versions
-    this.isUpdating = false;
+    this.isUpdating = true;
     return new Promise((resolve, reject) => {
       if (!bleFirmware || !mcuFirmware || !bleFWVersion || !mcuFWVersion) {
         const msg = `Bad version (${bleFWVersion}, ${mcuFWVersion}), or firmware (${bleFirmware}, ${mcuFirmware})!`;
         console.log(msg);
+        this.isUpdating = false;
         reject(msg);
       } else {
         // set up variables to keep track of the ota
@@ -556,6 +567,7 @@ export class SmartDrive extends DeviceBase {
           };
 
           const finish = () => {
+            this.isUpdating = false;
             if (success) {
               resolve(reason);
             } else if (doRetry) {
@@ -582,6 +594,7 @@ export class SmartDrive extends DeviceBase {
             case SmartDrive.OTAState.awaiting_versions:
               if (haveBLEVersion && haveMCUVersion) {
                 if (
+                  !autoForce &&
                   bleVersion === bleFWVersion &&
                   mcuVersion === mcuFWVersion
                 ) {
@@ -822,13 +835,17 @@ export class SmartDrive extends DeviceBase {
               }
               break;
             case SmartDrive.OTAState.canceled:
+              this.isUpdating = false;
               stopOTA('OTA Canceled', false);
               break;
             case SmartDrive.OTAState.failed:
+              this.isUpdating = false;
               break;
             case SmartDrive.OTAState.comm_failure:
+              this.isUpdating = false;
               break;
             case SmartDrive.OTAState.timeout:
+              this.isUpdating = false;
               break;
             default:
               break;

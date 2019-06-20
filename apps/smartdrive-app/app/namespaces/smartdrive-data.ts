@@ -1,3 +1,4 @@
+import { knownFolders, path } from 'tns-core-modules/file-system';
 import { eachDay, format, subDays } from 'date-fns';
 
 export namespace SmartDriveData {
@@ -125,10 +126,12 @@ export namespace SmartDriveData {
     export const VersionName = 'version';
     export const FirmwareName = 'firmware';
     export const FileName = 'filename';
+    export const ChangesName = 'changes';
     export const Fields = [
       { name: VersionName, type: 'int' },
       { name: FirmwareName, type: 'TEXT' },
-      { name: FileName, type: 'TEXT' }
+      { name: FileName, type: 'TEXT' },
+      { name: ChangesName, type: 'TEXT' }
     ];
 
     export const FilePath = '/assets/firmwares/';
@@ -146,30 +149,46 @@ export namespace SmartDriveData {
       return (parseInt(major) << 4) | parseInt(minor);
     }
 
+    export function getFileName(firmware: string): string {
+      return path.join(
+        knownFolders.currentApp().path,
+        SmartDriveData.Firmwares.FilePath + firmware
+      );
+    }
+
     export function loadFirmware(
       id: any,
       version: number,
       firmwareName: string,
-      fileName: string
+      fileName: string,
+      changes: string
     ) {
       return {
         [SmartDriveData.Firmwares.IdName]: id,
         [SmartDriveData.Firmwares.VersionName]: version,
         [SmartDriveData.Firmwares.FirmwareName]: firmwareName,
-        [SmartDriveData.Firmwares.FileName]: fileName
+        [SmartDriveData.Firmwares.FileName]: fileName,
+        [SmartDriveData.Firmwares.ChangesName]: changes
+          ? JSON.parse(changes)
+          : []
       };
     }
 
     export function newFirmware(
       version: number,
       firmwareName: string,
-      fileName?: string
+      fileName?: string,
+      changes?: string[]
     ) {
+      const fname =
+        fileName || SmartDriveData.Firmwares.getFileName(firmwareName);
       return {
         [SmartDriveData.Firmwares.VersionName]: version,
         [SmartDriveData.Firmwares.FirmwareName]: firmwareName,
-        [SmartDriveData.Firmwares.FileName]:
-          fileName || SmartDriveData.Firmwares.FilePath + firmwareName
+        [SmartDriveData.Firmwares.FileName]: fname,
+        [SmartDriveData.Firmwares.ChangesName]: changes
+          ? JSON.stringify(changes)
+          : '[]'
       };
     }
   }

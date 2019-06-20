@@ -269,15 +269,12 @@
 			  <Label row="3" col="1" horizontalAlignment="center"
 					 verticalAlignment="middle" textWrap="true"
 					 text="{{ updateProgressText }}"
-					 visibility="{{ (checkingForUpdates || !hasUpdateData) ? 'visible' : 'collapsed' }}"/>
-			  <Button row="3" col="1" class="powerAssist-deactive"
-					  text="Start"
-					  tap="{{ startUpdates }}"
-					  visibility="{{ (hasUpdateData && !checkingForUpdates) ? 'visible' : 'collapsed' }}"/>
+					 visibility="{{ !smartDrive.isUpdating ? 'visible' : 'collapsed' }}"/>
 			  <Button row="3" col="1" class="powerAssist-active"
 					  text="Cancel"
 					  tap="{{ cancelUpdates }}"
 					  visibility="{{ smartDrive.isUpdating ? 'visible' : 'collapsed' }}"/>
+			  <!--
 			  <ListView items="{{ smartDrive.otaActions }}"
 						visibility="{{ smartDrive.isUpdating ? 'visible' : 'collapsed' }}">
 				<ListView.itemTemplate>
@@ -287,6 +284,7 @@
 						  visibility="{{ hasUpdateData ? 'visible' : 'collapsed' }}"/>
 				</ListView.itemTemplate>
 			  </ListView>
+			  -->
               <Label row="4" col="1" class="currentTime"
 					 text="{{ currentTime }}" textWrap="true" />
               <Label row="5" col="1" class="currentTimeMeridiem"
