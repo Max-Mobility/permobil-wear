@@ -118,4 +118,59 @@ export namespace SmartDriveData {
       };
     }
   }
+
+  export namespace Firmwares {
+    export const TableName = 'SmartDriveFirmwares';
+    export const IdName = 'id';
+    export const VersionName = 'version';
+    export const FirmwareName = 'firmware';
+    export const FileName = 'filename';
+    export const Fields = [
+      { name: VersionName, type: 'int' },
+      { name: FirmwareName, type: 'TEXT' },
+      { name: FileName, type: 'TEXT' }
+    ];
+
+    export const FilePath = '/assets/firmwares/';
+
+    export function versionByteToString(version: number): string {
+      if (version === 0xff || version === 0x00) {
+        return 'unknown';
+      } else {
+        return `${(version & 0xf0) >> 4}.${version & 0x0f}`;
+      }
+    }
+
+    export function versionStringToByte(version: string): number {
+      const [major, minor] = version.split('.');
+      return (parseInt(major) << 4) | parseInt(minor);
+    }
+
+    export function loadFirmware(
+      id: any,
+      version: number,
+      firmwareName: string,
+      fileName: string
+    ) {
+      return {
+        [SmartDriveData.Firmwares.IdName]: id,
+        [SmartDriveData.Firmwares.VersionName]: version,
+        [SmartDriveData.Firmwares.FirmwareName]: firmwareName,
+        [SmartDriveData.Firmwares.FileName]: fileName
+      };
+    }
+
+    export function newFirmware(
+      version: number,
+      firmwareName: string,
+      fileName?: string
+    ) {
+      return {
+        [SmartDriveData.Firmwares.VersionName]: version,
+        [SmartDriveData.Firmwares.FirmwareName]: firmwareName,
+        [SmartDriveData.Firmwares.FileName]:
+          fileName || SmartDriveData.Firmwares.FilePath + firmwareName
+      };
+    }
+  }
 }

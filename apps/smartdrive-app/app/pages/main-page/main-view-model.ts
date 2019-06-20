@@ -24,6 +24,7 @@ import { Pager } from 'nativescript-pager';
 import { Sentry } from 'nativescript-sentry';
 import * as themes from 'nativescript-themes';
 import { Vibrate } from 'nativescript-vibrate';
+import * as LS from 'nativescript-localstorage';
 import { SwipeDismissLayout } from 'nativescript-wear-os';
 import {
   showFailure,
@@ -91,6 +92,8 @@ export class MainViewModel extends Observable {
    * Boolean to track the updates swipe layout visibility.
    */
   @Prop() isUpdatesLayoutEnabled = false;
+  @Prop() updateProgressText: string = 'Checking for Updates';
+  @Prop() checkingForUpdates: boolean = false;
 
   /**
    *
@@ -186,6 +189,7 @@ export class MainViewModel extends Observable {
   private settingsScrollView: ScrollView;
   private errorsScrollView: ScrollView;
   private aboutScrollView: ScrollView;
+  private updateProgressCircle: AnimatedCircle;
   private _settingsLayout: SwipeDismissLayout;
   public _changeSettingsLayout: SwipeDismissLayout;
   private _errorHistoryLayout: SwipeDismissLayout;
@@ -342,19 +346,27 @@ export class MainViewModel extends Observable {
         SmartDriveData.Info.IdName,
         SmartDriveData.Info.Fields
       )
+      .then(() => {
+        return this._sqliteService.makeTable(
+          SmartDriveData.Errors.TableName,
+          SmartDriveData.Errors.IdName,
+          SmartDriveData.Errors.Fields
+        );
+      })
+      .then(() => {
+        return this._sqliteService.makeTable(
+          SmartDriveData.Firmwares.TableName,
+          SmartDriveData.Firmwares.IdName,
+          SmartDriveData.Firmwares.Fields
+        );
+      })
+      .then(() => {
+        Log.D('Tables complete');
+        console.timeEnd('SQLite_Init');
+      })
       .catch(err => {
-        Log.E(`Couldn't make SmartDriveData.Info table:`, err);
+        Log.E(`Couldn't make table:`, err);
       });
-    this._sqliteService
-      .makeTable(
-        SmartDriveData.Errors.TableName,
-        SmartDriveData.Errors.IdName,
-        SmartDriveData.Errors.Fields
-      )
-      .catch(err => {
-        Log.E(`Couldn't make SmartDriveData.Errors table:`, err);
-      });
-    console.timeEnd('SQLite_Init');
 
     // make throttled save function - not called more than once every 10 seconds
     this._throttledSmartDriveSaveFn = throttle(
@@ -771,6 +783,13 @@ export class MainViewModel extends Observable {
   /**
    * Updates Page Handlers
    */
+  onUpdateProgressCircleLoaded(args: any) {
+    const page = args.object as Page;
+    this.updateProgressCircle = page.getViewById(
+      'updateProgressCircle'
+    ) as AnimatedCircle;
+  }
+
   onUpdatesTap() {
     if (this.smartDrive) {
       showOffScreenLayout(this._updatesLayout);
@@ -792,45 +811,113 @@ export class MainViewModel extends Observable {
     });
   }
 
-  checkForUpdates() {
+  async checkForUpdates() {
+    this.updateProgressText = 'Checking for Updates';
+    this.checkingForUpdates = true;
     this.hasUpdateData = false;
-    // TODO: check versions against what we have in the db!
-    const query = {
-      $or: [
-        { _filename: 'SmartDriveBLE.ota' },
-        { _filename: 'SmartDriveMCU.ota' }
-      ],
-      firmware_file: true
-    };
-    return this._kinveyService
-      .getFile(undefined, query)
+    let currentVersions = {};
+    let newVersions = {};
+    // @ts-ignore
+    this.updateProgressCircle.spin();
+    return this.getFirmwareMetadata()
+      .then(md => {
+        currentVersions = md;
+        const query = {
+          $or: [
+            { _filename: 'SmartDriveBLE.ota' },
+            { _filename: 'SmartDriveMCU.ota' }
+          ],
+          firmware_file: true
+        };
+        return this._kinveyService.getFile(undefined, query);
+      })
       .then(response => {
         let promises = [];
-        // TODO: check versions against what we have in the db!
-        const fileUrls = response.content
-          .toJSON()
-          .map(f => f['_downloadURL'])
-          .map(u => {
-            // make sure they're https!
-            if (!u.startsWith('https')) {
-              return u.replace('http', 'https');
-            }
+        const fileMetaDatas = response.content.toJSON().filter(f => {
+          const v = SmartDriveData.Firmwares.versionStringToByte(f['version']);
+          const fw = f['_filename'];
+          return v > currentVersions[fw];
+        });
+        if (fileMetaDatas && fileMetaDatas.length) {
+          // update the firmware versions
+          fileMetaDatas.map(f => {
+            newVersions[
+              f['_filename']
+            ].version = SmartDriveData.Firmwares.versionStringToByte(
+              f['version']
+            );
           });
-        if (fileUrls && fileUrls.length) {
           // Log.D('got fileurls', fileUrls);
-          promises = fileUrls.map(url => getFile(url));
+          // now download the files
+          promises = fileMetaDatas.map(f => {
+            const url = f['_downloadURL'];
+            // make sure they're https!
+            if (!url.startsWith('https')) {
+              return url.replace('http', 'https');
+            }
+            return getFile(url).then(data => {
+              return {
+                version: SmartDriveData.Firmwares.versionStringToByte(
+                  f['version']
+                ),
+                name: f['_filename'],
+                data: data
+              };
+            });
+          });
         }
         return Promise.all(promises);
       })
       .then(files => {
-        // TODO: save update data to database
+        let promises = [];
         if (files && files.length) {
           // Log.D('got files');
-          this.hasUpdateData = true;
+          promises = files.map(f => {
+            // update the data in the db
+            if (currentVersions[f.name]) {
+              // save the binary data to disk
+              let fileName = '';
+              LS.setItem(fileName, f.data);
+              const id = currentVersions[f.name].id;
+              // this is a file we have - update the table
+              return this._sqliteService.updateInTable(
+                SmartDriveData.Firmwares.TableName,
+                {
+                  [SmartDriveData.Firmwares.VersionName]: f.version
+                },
+                {
+                  [SmartDriveData.Firmwares.IdName]: id
+                }
+              );
+            } else {
+              const newFirmware = SmartDriveData.Firmwares.newFirmware(
+                f.version,
+                f.name
+              );
+              // save the binary data to disk
+              const fileName = newFirmware[SmartDriveData.Firmwares.FileName];
+              LS.setItem(fileName, f.data);
+              // this is a file we don't have in the table
+              this._sqliteService.insertIntoTable(
+                SmartDriveData.Firmwares.TableName,
+                newFirmware
+              );
+            }
+          });
         }
+        return Promise.all(promises);
+      })
+      .then(() => {
+        this.hasUpdateData = true;
+        this.updateProgressText = '';
+        this.checkingForUpdates = false;
+        // @ts-ignore
+        this.updateProgressCircle.stopSpinning();
       })
       .catch(err => {
         Log.E("Couldn't get files:", err);
+        // @ts-ignore
+        this.updateProgressCircle.stopSpinning();
       });
   }
 
@@ -1642,6 +1729,29 @@ export class MainViewModel extends Observable {
   /*
    * DATABASE FUNCTIONS
    */
+  getFirmwareMetadata() {
+    return this._sqliteService
+      .getAll({ tableName: SmartDriveData.Firmwares.TableName })
+      .then(objs => {
+        // @ts-ignore
+        return objs.map(o => SmartDriveData.Firmwares.loadFirmware(...o));
+      })
+      .then(mds => {
+        const data = {};
+        mds.map(md => {
+          data[md[SmartDriveData.Firmwares.FirmwareName]] = {
+            version: md[SmartDriveData.Firmwares.VersionName],
+            filename: md[SmartDriveData.Firmwares.FileName],
+            id: md[SmartDriveData.Firmwares.IdName]
+          };
+        });
+        return data;
+      })
+      .catch(err => {
+        Log.E("Couldn't get firmware metadata:", err);
+      });
+  }
+
   saveErrorToDatabase(errorCode: string, errorId: number) {
     if (errorId === undefined) {
       // we use this when saving a local error

@@ -249,14 +249,21 @@
         <GridLayout rows="32, auto, *" columns="*, auto, *" height="100%" width="100%">
          // SmartDrive Update Progress Circle
          <nac:AnimatedCircle id="updateProgressCircle"
+							 loaded="{{ onUpdateProgressCircleLoaded }}"
 							 rowSpan="3" colSpan="3"
-							 class="bleProgressCircle"
+							 class="updateProgressCircle"
 							 width="100%" height="100%"
+							 backgroundColor="{{ checkingForUpdates ? 'black' : 'transparent' }}"
 							 animated="true" animateFrom="0" clockwise="true"
 							 rimWidth="2" barWidth="8"
-							 progress="{{ smartDrive.otaProgress }}"
-							 visibility="{{ hasUpdateData ? 'visible' : 'collapsed' }}">
-            <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
+							 text="{{ updateProgressText }}"
+							 textSize="2"
+							 textColor="#0000FF"
+							 progress="{{ smartDrive.otaProgress }}">
+           <GridLayout rows="15, auto, auto, *, auto, auto, 15"
+					   columns="30, *, 30"
+					   class="circleDetails"
+					   visibility="{{ !checkingForUpdates ? 'visible' : 'collapsed' }}">
               <Label row="1" col="1" class="topValue" horizontalAlignment="center" textWrap="true"
 					 text="{{ smartDrive.otaState }}"/>
               <Label row="2" col="1" class="topValueDescription" textWrap="true"
@@ -269,12 +276,17 @@
 					  text="Cancel"
 					  tap="{{ cancelUpdates }}"
 					  visibility="{{ smartDrive.isUpdating ? 'visible' : 'collapsed' }}"/>
+			  <Button row="3" col="1" class="powerAssist-deactive"
+					  text="Check for Updates"
+					  tap="{{ checkForUpdates }}"
+					  visibility="{{ !hasUpdateData ? 'visible' : 'collapsed' }}"/>
 			  <ListView items="{{ smartDrive.otaActions }}"
 						visibility="{{ smartDrive.isUpdating ? 'visible' : 'collapsed' }}">
 				<ListView.itemTemplate>
 				  <Button row="3" col="1" class="powerAssist-deactive"
 						  text="{{ this }}"
-						  tap="{{ onUpdateAction }}"/>
+						  tap="{{ onUpdateAction }}"
+						  visibility="{{ hasUpdateData ? 'visible' : 'collapsed' }}"/>
 				</ListView.itemTemplate>
 			  </ListView>
               <Label row="4" col="1" class="currentTime"
@@ -283,20 +295,6 @@
 					 text="{{ currentTimeMeridiem }}" textWrap="true" />
             </GridLayout>
           </nac:AnimatedCircle>
-          // Update download progress circle
-          <nac:AnimatedCircle id="updateDownloadProgressCircle"
-							  rowSpan="3" colSpan="3"
-							  class="updateDownloadProgressCircle"
-							  width="100%" height="100%"
-							  animated="true" animateFrom="0" clockwise="true"
-							  rimWidth="2" barWidth="8" progress="50"
-							  visibility="{{ !hasUpdateData ? 'visible' : 'collapsed' }}">
-            <GridLayout rows="15, auto, auto, *, auto, auto, 15" columns="30, *, 30" class="circleDetails">
-			  <Button row="3" col="1" class="powerAssist-deactive"
-					  text="Check for Updates"
-					  tap="{{ checkForUpdates }}"/>
-			</GridLayout>
-		  </nac:AnimatedCircle>
         </GridLayout>
 	  </wol:WearOsLayout>
     </sdl:SwipeDismissLayout>

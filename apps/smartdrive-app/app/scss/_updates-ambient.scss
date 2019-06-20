@@ -1,41 +1,20 @@
 @import 'variables';
 
-$mcu-progress-color: #B9B9B9;
-$mcu-progress-rim-color: $black;
-$ble-progress-color: #B9B9B9;
-$ble-progress-rim-color: $black;
-
-$download-progress-color: #B9B9B9;
-$download-progress-rim-color: $black;
+$update-progress-color: #B9B9B9;
+$update-progress-rim-color: $black;
+$update-progress-spinner-color: #B9B9B9;
 
 $activated-color: #B9B9B9;
 $deactivated-color: #B9B9B9;
 
-.mcuProgressCircle {
+.updateProgressCircle {
   background-color: transparent;
   fill-color: transparent;
   width: 100%;
   height: 100%;
-  bar-color: $mcu-progress-color;
-  rim-color: $mcu-progress-rim-color;
-}
-
-.bleProgressCircle {
-  background-color: transparent;
-  fill-color: transparent;
-  width: 90%;
-  height: 90%;
-  bar-color: $ble-progress-color;
-  rim-color: $ble-progress-rim-color;
-}
-
-.updateDownloadProgressCircle {
-  background-color: transparent;
-  fill-color: transparent;
-  width: 100%;
-  height: 100%;
-  bar-color: $download-progress-color;
-  rim-color: $download-progress-rim-color;
+  spin-bar-color: $update-progress-spinner-color;
+  bar-color: $update-progress-color;
+  rim-color: $update-progress-rim-color;
 }
 
 .topValue {
@@ -51,7 +30,6 @@ $deactivated-color: #B9B9B9;
   horizontal-align: $center;
   vertical-align: top;
 }
-
 
 .powerAssist-active,
 .powerAssist-deactive,
