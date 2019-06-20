@@ -916,6 +916,9 @@ export class MainViewModel extends Observable {
       })
       .catch(err => {
         Log.E("Couldn't get files:", err);
+        this.updateProgressText = '';
+        this.hasUpdateData = false;
+        this.checkingForUpdates = false;
         // @ts-ignore
         this.updateProgressCircle.stopSpinning();
       });

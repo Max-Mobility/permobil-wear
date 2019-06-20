@@ -253,33 +253,31 @@
 							 rowSpan="3" colSpan="3"
 							 class="updateProgressCircle"
 							 width="100%" height="100%"
-							 backgroundColor="{{ checkingForUpdates ? 'black' : 'transparent' }}"
 							 animated="true" animateFrom="0" clockwise="true"
 							 rimWidth="2" barWidth="8"
-							 text="{{ updateProgressText }}"
-							 textSize="2"
-							 textColor="#0000FF"
 							 progress="{{ smartDrive.otaProgress }}">
-           <GridLayout rows="15, auto, auto, *, auto, auto, 15"
-					   columns="30, *, 30"
-					   class="circleDetails"
-					   visibility="{{ !checkingForUpdates ? 'visible' : 'collapsed' }}">
-              <Label row="1" col="1" class="topValue" horizontalAlignment="center" textWrap="true"
-					 text="{{ smartDrive.otaState }}"/>
+           <GridLayout
+			   rows="15, auto, auto, *, auto, auto, 15"
+			   columns="30, *, 30"
+			   class="circleDetails">
+              <Label row="1" col="1" class="topValue" horizontalAlignment="center"
+					 text="{{ smartDrive.otaState }}"
+					 visibility="{{ smartDrive.isUpdating ? 'visible' : 'hidden' }}"/>
               <Label row="2" col="1" class="topValueDescription" textWrap="true"
-					 text="Update Status"/>
+					 text="Update Status"
+					 visibility="{{ smartDrive.isUpdating ? 'visible' : 'hidden' }}"/>
+			  <Label row="3" col="1" horizontalAlignment="center"
+					 verticalAlignment="middle" textWrap="true"
+					 text="{{ updateProgressText }}"
+					 visibility="{{ (checkingForUpdates || !hasUpdateData) ? 'visible' : 'collapsed' }}"/>
 			  <Button row="3" col="1" class="powerAssist-deactive"
 					  text="Start"
 					  tap="{{ startUpdates }}"
-					  visibility="{{ !smartDrive.isUpdating ? 'visible' : 'collapsed' }}"/>
+					  visibility="{{ (hasUpdateData && !checkingForUpdates) ? 'visible' : 'collapsed' }}"/>
 			  <Button row="3" col="1" class="powerAssist-active"
 					  text="Cancel"
 					  tap="{{ cancelUpdates }}"
 					  visibility="{{ smartDrive.isUpdating ? 'visible' : 'collapsed' }}"/>
-			  <Button row="3" col="1" class="powerAssist-deactive"
-					  text="Check for Updates"
-					  tap="{{ checkForUpdates }}"
-					  visibility="{{ !hasUpdateData ? 'visible' : 'collapsed' }}"/>
 			  <ListView items="{{ smartDrive.otaActions }}"
 						visibility="{{ smartDrive.isUpdating ? 'visible' : 'collapsed' }}">
 				<ListView.itemTemplate>
