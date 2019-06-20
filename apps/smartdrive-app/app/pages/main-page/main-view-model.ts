@@ -15,6 +15,7 @@ import {
 import { closestIndexTo, format, isSameDay, isToday, subDays } from 'date-fns';
 import { ReflectiveInjector } from 'injection-js';
 import clamp from 'lodash/clamp';
+import flatten from 'lodash/flatten';
 import last from 'lodash/last';
 import once from 'lodash/once';
 import throttle from 'lodash/throttle';
@@ -816,12 +817,12 @@ export class MainViewModel extends Observable {
     this.checkingForUpdates = true;
     this.hasUpdateData = false;
     let currentVersions = {};
-    let newVersions = {};
     // @ts-ignore
     this.updateProgressCircle.spin();
     return this.getFirmwareMetadata()
       .then(md => {
         currentVersions = md;
+        Log.D('Current FW Versions:', currentVersions);
         const query = {
           $or: [
             { _filename: 'SmartDriveBLE.ota' },
@@ -836,32 +837,26 @@ export class MainViewModel extends Observable {
         const fileMetaDatas = response.content.toJSON().filter(f => {
           const v = SmartDriveData.Firmwares.versionStringToByte(f['version']);
           const fw = f['_filename'];
-          return v > currentVersions[fw];
+          return v > currentVersions[fw] || !currentVersions[fw];
         });
         if (fileMetaDatas && fileMetaDatas.length) {
-          // update the firmware versions
-          fileMetaDatas.map(f => {
-            newVersions[
-              f['_filename']
-            ].version = SmartDriveData.Firmwares.versionStringToByte(
-              f['version']
-            );
-          });
-          // Log.D('got fileurls', fileUrls);
+          // Log.D('got fileMetaDatas', fileMetaDatas);
           // now download the files
           promises = fileMetaDatas.map(f => {
-            const url = f['_downloadURL'];
+            let url = f['_downloadURL'];
             // make sure they're https!
             if (!url.startsWith('https')) {
-              return url.replace('http', 'https');
+              url = url.replace('http', 'https');
             }
+            Log.D('Downloading FW update', f['_filename']);
             return getFile(url).then(data => {
               return {
                 version: SmartDriveData.Firmwares.versionStringToByte(
                   f['version']
                 ),
                 name: f['_filename'],
-                data: data
+                data: data,
+                changes: f['change_notes']
               };
             });
           });
@@ -871,7 +866,7 @@ export class MainViewModel extends Observable {
       .then(files => {
         let promises = [];
         if (files && files.length) {
-          // Log.D('got files');
+          Log.D('Updating metadata and writing file data.');
           promises = files.map(f => {
             // update the data in the db
             if (currentVersions[f.name]) {
@@ -898,16 +893,37 @@ export class MainViewModel extends Observable {
               const fileName = newFirmware[SmartDriveData.Firmwares.FileName];
               LS.setItem(fileName, f.data);
               // this is a file we don't have in the table
-              this._sqliteService.insertIntoTable(
+              return this._sqliteService.insertIntoTable(
                 SmartDriveData.Firmwares.TableName,
                 newFirmware
               );
             }
           });
         }
-        return Promise.all(promises);
+        return Promise.all(promises).then(() => {
+          return files;
+        });
       })
-      .then(() => {
+      .then(files => {
+        Log.D('Finished downloading updates.');
+        if (files && files.length) {
+          // get info out to tell the user
+          const version = SmartDriveData.Firmwares.versionByteToString(
+            Math.max(...files.map(f => f.version))
+          );
+          Log.D('got version', version);
+          const title = `Version ${version}`;
+          const changes = files.map(
+            f => f.changes[device.language] || f.changes['en']
+          );
+          const msg = flatten(changes).join('\n');
+          Log.D('got changes', changes);
+          alert({
+            title: title,
+            message: msg,
+            okButtonText: 'Ok'
+          });
+        }
         this.hasUpdateData = true;
         this.updateProgressText = '';
         this.checkingForUpdates = false;
