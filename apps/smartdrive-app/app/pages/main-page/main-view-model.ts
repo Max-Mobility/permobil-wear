@@ -214,47 +214,40 @@ export class MainViewModel extends Observable {
     return `${activity}`.includes('com.permobil.smartdrive.MainActivity');
   }
 
+  requestReadPhoneStatePermission(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      // grab the permission dialog result
+      application.android.on(
+        application.AndroidApplication.activityRequestPermissionsEvent,
+        (args: application.AndroidActivityRequestPermissionsEventData) => {
+          for (let i = 0; i < args.permissions.length; i++) {
+            if (
+              args.grantResults[i] ===
+              android.content.pm.PackageManager.PERMISSION_DENIED
+            ) {
+              reject('Permission denied');
+              return;
+            }
+          }
+          resolve();
+        }
+      );
+
+      const activity =
+        application.android.foregroundActivity ||
+        application.android.startActivity;
+
+      // invoke the permission dialog
+      (android.support.v4.app.ActivityCompat as any).requestPermissions(
+        activity,
+        [android.Manifest.permission.READ_PHONE_STATE],
+        227
+      );
+    });
+  }
+
   constructor() {
     super();
-
-    // update about page info
-    this.watchSerialNumber = device.uuid;
-    const packageManager = application.android.context.getPackageManager();
-    const packageInfo = packageManager.getPackageInfo(
-      application.android.context.getPackageName(),
-      0
-    );
-    const versionName = packageInfo.versionName;
-    const versionCode = packageInfo.versionCode;
-    this.appVersion = versionName;
-
-    // handle ambient mode callbacks
-    application.on('enterAmbient', args => {
-      Log.D('*** enterAmbient ***');
-      themes.applyThemeCss(ambientTheme, 'theme-ambient.scss');
-
-      if (this.pager) {
-        const children = this.pager._childrenViews;
-        for (let i = 0; i < children.size; i++) {
-          const child = children.get(i);
-          child._onCssStateChange();
-        }
-      }
-    });
-
-    // handle ambient mode callbacks
-    application.on('exitAmbient', args => {
-      Log.D('*** exitAmbient ***');
-      themes.applyThemeCss(defaultTheme, 'theme-default.scss');
-
-      if (this.pager) {
-        const children = this.pager._childrenViews;
-        for (let i = 0; i < children.size; i++) {
-          const child = children.get(i) as View;
-          child._onCssStateChange();
-        }
-      }
-    });
 
     // initialize the wake lock here
     const context = android.content.Context;
@@ -274,15 +267,6 @@ export class MainViewModel extends Observable {
     });
 
     // Activity lifecycle event handlers
-    application.android.on(
-      application.AndroidApplication.activityStartedEvent,
-      (args: application.AndroidActivityBundleEventData) => {
-        if (this.isActivityThis(args.activity)) {
-          // similar to the app launch event.
-          this.enableDeviceSensors();
-        }
-      }
-    );
     application.android.on(
       application.AndroidApplication.activityPausedEvent,
       (args: application.AndroidActivityBundleEventData) => {
@@ -368,6 +352,67 @@ export class MainViewModel extends Observable {
       .catch(err => {
         Log.E(`Couldn't make table:`, err);
       });
+
+    // load serial number from settings / memory
+    const savedSerial = appSettings.getString(DataKeys.WATCH_SERIAL_NUMBER);
+    if (savedSerial && savedSerial.length) {
+      this.watchSerialNumber = savedSerial;
+      this._kinveyService.watch_serial_number = this.watchSerialNumber;
+    }
+    const packageManager = application.android.context.getPackageManager();
+    const packageInfo = packageManager.getPackageInfo(
+      application.android.context.getPackageName(),
+      0
+    );
+    const versionName = packageInfo.versionName;
+    const versionCode = packageInfo.versionCode;
+    this.appVersion = versionName;
+
+    // handle ambient mode callbacks
+    application.on('enterAmbient', args => {
+      Log.D('*** enterAmbient ***');
+      themes.applyThemeCss(ambientTheme, 'theme-ambient.scss');
+
+      if (this.pager) {
+        const children = this.pager._childrenViews;
+        for (let i = 0; i < children.size; i++) {
+          const child = children.get(i);
+          child._onCssStateChange();
+        }
+      }
+    });
+
+    // handle ambient mode callbacks
+    application.on('exitAmbient', args => {
+      Log.D('*** exitAmbient ***');
+      themes.applyThemeCss(defaultTheme, 'theme-default.scss');
+
+      if (this.pager) {
+        const children = this.pager._childrenViews;
+        for (let i = 0; i < children.size; i++) {
+          const child = children.get(i) as View;
+          child._onCssStateChange();
+        }
+      }
+
+      const savedSerial = appSettings.getString(DataKeys.WATCH_SERIAL_NUMBER);
+      if (!savedSerial) {
+        // update about page info
+        Log.D('Requesting permissions!');
+        this.requestReadPhoneStatePermission()
+          .then(p => {
+            this.watchSerialNumber = android.os.Build.getSerial();
+            appSettings.setString(
+              DataKeys.WATCH_SERIAL_NUMBER,
+              this.watchSerialNumber
+            );
+            this._kinveyService.watch_serial_number = this.watchSerialNumber;
+          })
+          .catch(e => {
+            Log.E('permission denied!', e);
+          });
+      }
+    });
 
     // make throttled save function - not called more than once every 10 seconds
     this._throttledSmartDriveSaveFn = throttle(
@@ -473,6 +518,7 @@ export class MainViewModel extends Observable {
 
     Log.D(
       'Device Info: ---',
+      'Serial Number: ' + this.watchSerialNumber,
       'Manufacturer: ' + device.manufacturer,
       'Model: ' + device.model,
       'OS: ' + device.os,
