@@ -802,7 +802,6 @@ export class MainViewModel extends Observable {
   }
 
   onUpdatesLayoutLoaded(args) {
-    this.checkForUpdates();
     this._updatesLayout = args.object as SwipeDismissLayout;
     this._updatesLayout.on(SwipeDismissLayout.dimissedEvent, args => {
       // Log.D('dismissedEvent', args.object);
